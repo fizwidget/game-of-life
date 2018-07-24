@@ -21,7 +21,7 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { matrix = Matrix.create 10 10 Dead
+    ( { matrix = Matrix.create { width = 10, height = 10 } Dead
       , iterations = 10
       }
     , Cmd.none

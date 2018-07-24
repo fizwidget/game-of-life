@@ -4,7 +4,13 @@ import Array exposing (Array)
 
 
 type Matrix a
-    = Matrix (Array a)
+    = Matrix Dimensions (Array a)
+
+
+type alias Dimensions =
+    { width : Width
+    , height : Height
+    }
 
 
 type alias Width =
@@ -25,29 +31,29 @@ type alias Coordinate =
     }
 
 
-create : Width -> Height -> a -> Matrix a
-create width height value =
+create : Dimensions -> a -> Matrix a
+create { width, height } value =
     Array.repeat (width * height) value
-        |> Matrix
+        |> Matrix { width = width, height = height }
 
 
-toIndex : Coordinate -> Index
-toIndex { x, y } =
-    x * y
+toIndex : Dimensions -> Coordinate -> Index
+toIndex { width } { x, y } =
+    (y * width) + x
 
 
 get : Coordinate -> Matrix a -> Maybe a
-get coordinate (Matrix array) =
-    Array.get (toIndex coordinate) array
+get coordinate (Matrix dimensions array) =
+    Array.get (toIndex dimensions coordinate) array
 
 
 set : Coordinate -> Matrix a -> a -> Matrix a
-set coordinate (Matrix array) value =
-    Array.set (toIndex coordinate) value array
-        |> Matrix
+set coordinate (Matrix dimensions array) value =
+    Array.set (toIndex dimensions coordinate) value array
+        |> Matrix dimensions
 
 
 map : (a -> b) -> Matrix a -> Matrix b
-map f (Matrix array) =
+map f (Matrix dimensions array) =
     Array.map f array
-        |> Matrix
+        |> Matrix dimensions

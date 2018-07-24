@@ -1,19 +1,31 @@
 module Main exposing (main)
 
 import Html exposing (Html, div, text)
+import Data.Matrix as Matrix exposing (Matrix)
 
 
 type Msg
     = NoOp
 
 
-type Model
-    = Model
+type Cell
+    = Alive
+    | Dead
+
+
+type alias Model =
+    { matrix : Matrix Cell
+    , iterations : Int
+    }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model, Cmd.none )
+    ( { matrix = Matrix.create 10 10 Dead
+      , iterations = 10
+      }
+    , Cmd.none
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

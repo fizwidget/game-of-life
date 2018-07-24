@@ -8,17 +8,9 @@ type Matrix a
 
 
 type alias Dimensions =
-    { width : Width
-    , height : Height
+    { width : Int
+    , height : Int
     }
-
-
-type alias Width =
-    Int
-
-
-type alias Height =
-    Int
 
 
 type alias Index =
@@ -32,9 +24,9 @@ type alias Coordinate =
 
 
 create : Dimensions -> a -> Matrix a
-create { width, height } value =
+create ({ width, height } as dimensions) value =
     Array.repeat (width * height) value
-        |> Matrix { width = width, height = height }
+        |> Matrix dimensions
 
 
 toIndex : Dimensions -> Coordinate -> Index
@@ -44,13 +36,21 @@ toIndex { width } { x, y } =
 
 get : Coordinate -> Matrix a -> Maybe a
 get coordinate (Matrix dimensions array) =
-    Array.get (toIndex dimensions coordinate) array
+    let
+        index =
+            toIndex dimensions coordinate
+    in
+        Array.get index array
 
 
 set : Coordinate -> Matrix a -> a -> Matrix a
 set coordinate (Matrix dimensions array) value =
-    Array.set (toIndex dimensions coordinate) value array
-        |> Matrix dimensions
+    let
+        index =
+            toIndex dimensions coordinate
+    in
+        Array.set index value array
+            |> Matrix dimensions
 
 
 map : (a -> b) -> Matrix a -> Matrix b

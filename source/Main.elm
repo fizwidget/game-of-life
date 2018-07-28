@@ -10,8 +10,7 @@ import Time as Time exposing (millisecond)
 import Data.Matrix as Matrix exposing (Matrix, Coordinate)
 
 
-type Msg
-    = Tick
+-- Model
 
 
 type Cell
@@ -19,18 +18,25 @@ type Cell
     | Dead
 
 
+type alias Cells =
+    Matrix Cell
+
+
 type alias Model =
-    { matrix : Matrix Cell
-    }
+    { cells : Cells }
+
+
+
+-- Init
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { matrix = initialMatrix }, Cmd.none )
+    ( { cells = initialCells }, Cmd.none )
 
 
-initialMatrix : Matrix Cell
-initialMatrix =
+initialCells : Cells
+initialCells =
     Matrix.create { width = 30, height = 30 } Dead
         |> Matrix.set { x = 15 + 3, y = 15 + 3 } Alive
         |> Matrix.set { x = 15 + 3, y = 15 + 4 } Alive
@@ -44,61 +50,72 @@ initialMatrix =
         |> Matrix.set { x = 15 + 8, y = 15 + 8 } Alive
 
 
+
+-- Update
+
+
+type Msg
+    = Tick
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        Tick ->
-            ( { matrix = iterate model.matrix }, Cmd.none )
+update Tick model =
+    ( { cells = step model.cells }, Cmd.none )
 
 
-iterate : Matrix Cell -> Matrix Cell
-iterate matrix =
-    Matrix.indexedMap (updateCell matrix) matrix
+step : Cells -> Cells
+step cells =
+    Matrix.coordinateMap (updateCell cells) cells
 
 
-updateCell : Matrix Cell -> Coordinate -> Cell -> Cell
-updateCell matrix coordinate cell =
+updateCell : Cells -> Coordinate -> Cell -> Cell
+updateCell cells coordinate cell =
+    case ( cell, countNeighbours cells coordinate ) of
+        ( Alive, 2 ) ->
+            Alive
+
+        ( Alive, 3 ) ->
+            Alive
+
+        ( Dead, 3 ) ->
+            Alive
+
+        _ ->
+            Dead
+
+
+countNeighbours : Cells -> Coordinate -> Int
+countNeighbours cells coordinate =
     let
-        neighbourCount =
-            Matrix.getNeighbours coordinate matrix
-                |> List.foldl countLiveCells 0
+        countLiveCell cell currentCount =
+            case cell of
+                Alive ->
+                    currentCount + 1
+
+                Dead ->
+                    currentCount
     in
-        case ( cell, neighbourCount ) of
-            ( Alive, 2 ) ->
-                Alive
-
-            ( Alive, 3 ) ->
-                Alive
-
-            ( Dead, 3 ) ->
-                Alive
-
-            _ ->
-                Dead
+        Matrix.getNeighbours coordinate cells
+            |> List.foldl countLiveCell 0
 
 
-countLiveCells : Cell -> Int -> Int
-countLiveCells cell currentCount =
-    case cell of
-        Alive ->
-            currentCount + 1
 
-        Dead ->
-            currentCount
+-- View
 
 
 view : Model -> Html msg
 view model =
-    let
-        globalStyles =
-            global [ body [ margin (px 0), backgroundColor Colors.black ] ]
+    div [] (globalStyles :: (viewCells model.cells))
 
-        modelView =
-            model.matrix
-                |> Matrix.getRows
-                |> List.map viewRow
-    in
-        div [] (globalStyles :: modelView)
+
+globalStyles : Html msg
+globalStyles =
+    global [ body [ margin (px 0), backgroundColor Colors.black ] ]
+
+
+viewCells : Cells -> List (Html msg)
+viewCells =
+    Matrix.getRows >> List.map viewRow
 
 
 viewRow : List Cell -> Html msg
@@ -139,6 +156,10 @@ cellColor cell =
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Time.every (millisecond * 150) (always Tick)
+
+
+
+-- Main
 
 
 main : Program Never Model Msg

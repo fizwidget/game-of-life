@@ -91,7 +91,7 @@ view : Model -> Html msg
 view model =
     let
         globalStyles =
-            global [ body [ margin (px 0) ] ]
+            global [ body [ margin (px 0), backgroundColor Colors.black ] ]
 
         modelView =
             model.matrix

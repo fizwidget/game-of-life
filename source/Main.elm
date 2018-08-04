@@ -6,8 +6,9 @@ import Html.Styled.Attributes exposing (css)
 import Css.Foreign exposing (global, body)
 import Css exposing (..)
 import Css.Colors as Colors
+import Array exposing (Array)
 import Time as Time exposing (millisecond)
-import Data.Matrix as Matrix exposing (Matrix, Coordinate)
+import Matrix as Matrix exposing (Matrix, Coordinate)
 
 
 -- Model
@@ -115,14 +116,14 @@ globalStyles =
 
 viewCells : Cells -> List (Html msg)
 viewCells =
-    Matrix.getRows >> List.map viewRow
+    Matrix.getRows >> Array.map viewRow >> Array.toList
 
 
-viewRow : List Cell -> Html msg
+viewRow : Array Cell -> Html msg
 viewRow cells =
     div
         [ css [ lineHeight (px 0) ] ]
-        (List.map (viewCell (cellSize cells)) cells)
+        (Array.map (viewCell (cellSize cells)) cells |> Array.toList)
 
 
 viewCell : Float -> Cell -> Html msg
@@ -138,19 +139,19 @@ viewCell cellSize cell =
         []
 
 
-cellSize : List Cell -> Float
+cellSize : Array Cell -> Float
 cellSize cells =
-    100.0 / toFloat (List.length cells)
+    100.0 / toFloat (Array.length cells)
 
 
 cellColor : Cell -> Css.Color
 cellColor cell =
     case cell of
         Alive ->
-            Colors.white
+            Colors.black
 
         Dead ->
-            Colors.black
+            Colors.white
 
 
 subscriptions : Model -> Sub Msg

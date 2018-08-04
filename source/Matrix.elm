@@ -1,4 +1,4 @@
-module Data.Matrix
+module Matrix
     exposing
         ( Matrix
         , Coordinate
@@ -71,11 +71,9 @@ coordinateMap f (Matrix rows) =
             |> Matrix
 
 
-getRows : Matrix a -> List (List a)
+getRows : Matrix a -> Array (Array a)
 getRows (Matrix rows) =
     rows
-        |> Array.map (Array.toList)
-        |> Array.toList
 
 
 getNeighbours : Coordinate -> Matrix a -> List a

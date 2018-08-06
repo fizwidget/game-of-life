@@ -1,12 +1,12 @@
 module Main exposing (main)
 
 import Html
-import Html.Styled exposing (Html, toUnstyled, div, span)
+import Html.Styled.Events exposing (onClick)
+import Html.Styled exposing (Html, toUnstyled, div, span, button)
 import Html.Styled.Attributes exposing (css)
 import Css.Foreign exposing (global, body)
 import Css exposing (..)
 import Css.Colors as Colors
-import Array exposing (Array)
 import Time as Time exposing (millisecond)
 import Matrix as Matrix exposing (Matrix, Coordinate)
 
@@ -57,16 +57,37 @@ initialCells =
 
 type Msg
     = Tick
+    | Toggle Coordinate
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update Tick model =
-    ( { cells = step model.cells }, Cmd.none )
+update msg model =
+    case msg of
+        Tick ->
+            ( { cells = step model.cells }, Cmd.none )
+
+        Toggle coordinate ->
+            Matrix.get model.cells coordinate
+                |> Maybe.map toggle
+                |> Maybe.map (\cell -> Matrix.set coordinate cell model.cells)
+                |> Maybe.map (\cells -> { cells = cells })
+                |> Maybe.withDefault model
+                |> (\model -> ( model, Cmd.none ))
+
+
+toggle : Cell -> Cell
+toggle cell =
+    case cell of
+        Alive ->
+            Dead
+
+        Dead ->
+            Alive
 
 
 step : Cells -> Cells
 step cells =
-    Matrix.coordinateMap (updateCell cells) cells
+    Matrix.indexedMap (updateCell cells) cells
 
 
 updateCell : Cells -> Coordinate -> Cell -> Cell
@@ -104,9 +125,9 @@ countNeighbours cells coordinate =
 -- View
 
 
-view : Model -> Html msg
+view : Model -> Html Msg
 view model =
-    div [] (globalStyles :: (viewCells model.cells))
+    div [] [ globalStyles, viewModel model ]
 
 
 globalStyles : Html msg
@@ -114,34 +135,39 @@ globalStyles =
     global [ body [ margin (px 0), backgroundColor Colors.black ] ]
 
 
-viewCells : Cells -> List (Html msg)
-viewCells =
-    Matrix.getRows >> Array.map viewRow >> Array.toList
-
-
-viewRow : Array Cell -> Html msg
-viewRow cells =
-    div
-        [ css [ lineHeight (px 0) ] ]
-        (Array.map (viewCell (cellSize cells)) cells |> Array.toList)
-
-
-viewCell : Float -> Cell -> Html msg
-viewCell cellSize cell =
+viewModel : Model -> Html Msg
+viewModel { cells } =
     div
         [ css
-            [ width (vw cellSize)
-            , height (vw cellSize)
-            , backgroundColor (cellColor cell)
-            , display inlineBlock
+            [ displayFlex
+            , alignItems center
+            , justifyContent center
+            , flexWrap wrap
             ]
+        ]
+        (Matrix.toListWithCoordinates cells
+            |> List.map (viewCell (cellSize cells))
+        )
+
+
+viewCell : Float -> ( Coordinate, Cell ) -> Html Msg
+viewCell size ( coordinate, cell ) =
+    div
+        [ css
+            [ width (vh size)
+            , height (vh size)
+            , backgroundColor (cellColor cell)
+            , displayFlex
+            , flex3 (int 0) (int 0) (pct size)
+            ]
+        , (onClick (Toggle coordinate))
         ]
         []
 
 
-cellSize : Array Cell -> Float
+cellSize : Cells -> Float
 cellSize cells =
-    100.0 / toFloat (Array.length cells)
+    100.0 / toFloat (Matrix.width cells)
 
 
 cellColor : Cell -> Css.Color

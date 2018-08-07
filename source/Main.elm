@@ -51,16 +51,16 @@ emptyMatrix =
 initialCells : Cells
 initialCells =
     Matrix.create { width = 20, height = 20 } Dead
-        |> Matrix.set { x = 7 + 3, y = 7 + 3 } Alive
-        |> Matrix.set { x = 7 + 3, y = 7 + 4 } Alive
-        |> Matrix.set { x = 7 + 3, y = 7 + 5 } Alive
-        |> Matrix.set { x = 7 + 2, y = 7 + 5 } Alive
-        |> Matrix.set { x = 7 + 6, y = 7 + 4 } Alive
-        |> Matrix.set { x = 7 + 8, y = 7 + 3 } Alive
-        |> Matrix.set { x = 7 + 4, y = 7 + 7 } Alive
-        |> Matrix.set { x = 7 + 4, y = 7 + 10 } Alive
-        |> Matrix.set { x = 7 + 7, y = 7 + 9 } Alive
-        |> Matrix.set { x = 7 + 8, y = 7 + 8 } Alive
+        |> Matrix.set { x = 3, y = 3 } Alive
+        |> Matrix.set { x = 3, y = 4 } Alive
+        |> Matrix.set { x = 3, y = 5 } Alive
+        |> Matrix.set { x = 2, y = 5 } Alive
+        |> Matrix.set { x = 6, y = 4 } Alive
+        |> Matrix.set { x = 8, y = 3 } Alive
+        |> Matrix.set { x = 4, y = 7 } Alive
+        |> Matrix.set { x = 4, y = 10 } Alive
+        |> Matrix.set { x = 7, y = 9 } Alive
+        |> Matrix.set { x = 8, y = 8 } Alive
 
 
 

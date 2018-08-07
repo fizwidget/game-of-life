@@ -3,7 +3,7 @@ module Main exposing (main)
 import Html
 import Html.Styled.Events exposing (onClick)
 import Html.Styled exposing (Html, toUnstyled, div, span, button, text)
-import Html.Styled.Attributes exposing (css)
+import Html.Styled.Attributes exposing (css, class)
 import Css.Foreign exposing (global, body)
 import Css exposing (..)
 import Css.Colors as Colors
@@ -208,7 +208,8 @@ viewCells cells =
 viewCell : Float -> ( Coordinate, Cell ) -> Html Msg
 viewCell size ( coordinate, cell ) =
     div
-        [ css
+        [ class "cell"
+        , css
             [ width (vw size)
             , height (vw size)
             , backgroundColor (cellColor cell)
@@ -232,7 +233,7 @@ cellColor : Cell -> Css.Color
 cellColor cell =
     case cell of
         Alive ->
-            hex "2684FF"
+            rgba 38 132 255 0.8
 
         Dead ->
             Colors.white

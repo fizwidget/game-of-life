@@ -38,7 +38,7 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { cells = emptyMatrix, status = Paused }
+    ( { cells = initialCells, status = Paused }
     , Cmd.none
     )
 
@@ -50,17 +50,17 @@ emptyMatrix =
 
 initialCells : Cells
 initialCells =
-    Matrix.create { width = 30, height = 30 } Dead
-        |> Matrix.set { x = 15 + 3, y = 15 + 3 } Alive
-        |> Matrix.set { x = 15 + 3, y = 15 + 4 } Alive
-        |> Matrix.set { x = 15 + 3, y = 15 + 5 } Alive
-        |> Matrix.set { x = 15 + 2, y = 15 + 5 } Alive
-        |> Matrix.set { x = 15 + 6, y = 15 + 4 } Alive
-        |> Matrix.set { x = 15 + 8, y = 15 + 3 } Alive
-        |> Matrix.set { x = 15 + 4, y = 15 + 7 } Alive
-        |> Matrix.set { x = 15 + 4, y = 15 + 10 } Alive
-        |> Matrix.set { x = 15 + 7, y = 15 + 9 } Alive
-        |> Matrix.set { x = 15 + 8, y = 15 + 8 } Alive
+    Matrix.create { width = 20, height = 20 } Dead
+        |> Matrix.set { x = 7 + 3, y = 7 + 3 } Alive
+        |> Matrix.set { x = 7 + 3, y = 7 + 4 } Alive
+        |> Matrix.set { x = 7 + 3, y = 7 + 5 } Alive
+        |> Matrix.set { x = 7 + 2, y = 7 + 5 } Alive
+        |> Matrix.set { x = 7 + 6, y = 7 + 4 } Alive
+        |> Matrix.set { x = 7 + 8, y = 7 + 3 } Alive
+        |> Matrix.set { x = 7 + 4, y = 7 + 7 } Alive
+        |> Matrix.set { x = 7 + 4, y = 7 + 10 } Alive
+        |> Matrix.set { x = 7 + 7, y = 7 + 9 } Alive
+        |> Matrix.set { x = 7 + 8, y = 7 + 8 } Alive
 
 
 
@@ -216,7 +216,7 @@ viewCell size ( coordinate, cell ) =
             , displayFlex
             , flex3 (int 0) (int 0) (pct size)
             , borderRadius (pct 50)
-            , border3 (px 2) solid Colors.white
+            , border3 (px 4) solid Colors.white
             , boxSizing borderBox
             ]
         , (onClick (Toggle coordinate))
@@ -243,7 +243,7 @@ subscriptions : Model -> Sub Msg
 subscriptions { status } =
     case status of
         Playing ->
-            Time.every (millisecond * 150) (always Tick)
+            Time.every (millisecond * 200) (always Tick)
 
         Paused ->
             Sub.none

@@ -2,7 +2,7 @@ module Main exposing (main)
 
 import Html
 import Html.Styled.Events exposing (onClick)
-import Html.Styled exposing (Html, toUnstyled, div, span, button)
+import Html.Styled exposing (Html, toUnstyled, div, span, button, text)
 import Html.Styled.Attributes exposing (css)
 import Css.Foreign exposing (global, body)
 import Css exposing (..)
@@ -23,8 +23,13 @@ type alias Cells =
     Matrix Cell
 
 
+type Status
+    = Paused
+    | Playing
+
+
 type alias Model =
-    { cells : Cells }
+    { cells : Cells, status : Status }
 
 
 
@@ -33,7 +38,14 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { cells = initialCells }, Cmd.none )
+    ( { cells = emptyMatrix, status = Paused }
+    , Cmd.none
+    )
+
+
+emptyMatrix : Cells
+emptyMatrix =
+    Matrix.create { width = 30, height = 30 } Dead
 
 
 initialCells : Cells
@@ -58,19 +70,27 @@ initialCells =
 type Msg
     = Tick
     | Toggle Coordinate
+    | Play
+    | Pause
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        Play ->
+            ( { model | status = Playing }, Cmd.none )
+
+        Pause ->
+            ( { model | status = Paused }, Cmd.none )
+
         Tick ->
-            ( { cells = step model.cells }, Cmd.none )
+            ( { model | cells = step model.cells }, Cmd.none )
 
         Toggle coordinate ->
             Matrix.get model.cells coordinate
                 |> Maybe.map toggle
                 |> Maybe.map (\cell -> Matrix.set coordinate cell model.cells)
-                |> Maybe.map (\cells -> { cells = cells })
+                |> Maybe.map (\cells -> { model | cells = cells })
                 |> Maybe.withDefault model
                 |> (\model -> ( model, Cmd.none ))
 
@@ -132,11 +152,46 @@ view model =
 
 globalStyles : Html msg
 globalStyles =
-    global [ body [ margin (px 0), backgroundColor Colors.black ] ]
+    global [ body [ margin (px 0), backgroundColor Colors.white ] ]
 
 
 viewModel : Model -> Html Msg
-viewModel { cells } =
+viewModel { cells, status } =
+    div
+        []
+        [ viewCells cells, viewPlayPauseButton status ]
+
+
+viewPlayPauseButton : Status -> Html Msg
+viewPlayPauseButton status =
+    let
+        styles =
+            css
+                [ position fixed
+                , width (px 100)
+                , height (px 40)
+                , marginLeft auto
+                , marginRight auto
+                , left (px 0)
+                , right (px 0)
+                , bottom (pct 6)
+                , backgroundColor (rgba 76 154 255 0.9)
+                , border2 (px 0) none
+                , borderRadius (px 10)
+                , color Colors.white
+                , fontSize (px 20)
+                ]
+    in
+        case status of
+            Playing ->
+                button [ onClick Pause, styles ] [ text "Pause" ]
+
+            Paused ->
+                button [ onClick Play, styles ] [ text "Play" ]
+
+
+viewCells : Cells -> Html Msg
+viewCells cells =
     div
         [ css
             [ displayFlex
@@ -154,11 +209,14 @@ viewCell : Float -> ( Coordinate, Cell ) -> Html Msg
 viewCell size ( coordinate, cell ) =
     div
         [ css
-            [ width (vh size)
-            , height (vh size)
+            [ width (vw size)
+            , height (vw size)
             , backgroundColor (cellColor cell)
             , displayFlex
             , flex3 (int 0) (int 0) (pct size)
+            , borderRadius (pct 50)
+            , border3 (px 2) solid Colors.white
+            , boxSizing borderBox
             ]
         , (onClick (Toggle coordinate))
         ]
@@ -174,15 +232,20 @@ cellColor : Cell -> Css.Color
 cellColor cell =
     case cell of
         Alive ->
-            Colors.black
+            hex "2684FF"
 
         Dead ->
             Colors.white
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Time.every (millisecond * 150) (always Tick)
+subscriptions { status } =
+    case status of
+        Playing ->
+            Time.every (millisecond * 150) (always Tick)
+
+        Paused ->
+            Sub.none
 
 
 

@@ -115,11 +115,7 @@ noCmd model =
 
 toggle : Cells -> Coordinate -> Cells
 toggle cells coordinate =
-    coordinate
-        |> Matrix.get cells
-        |> Maybe.map toggleCell
-        |> Maybe.map (\cell -> Matrix.set coordinate cell cells)
-        |> Maybe.withDefault cells
+    Matrix.update coordinate cells toggleCell
 
 
 toggleCell : Cell -> Cell

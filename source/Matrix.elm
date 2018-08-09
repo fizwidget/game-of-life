@@ -7,6 +7,7 @@ module Matrix
         , height
         , get
         , set
+        , update
         , map
         , indexedMap
         , toListWithCoordinates
@@ -82,6 +83,15 @@ set coordinate value (Matrix dimensions array) =
     in
         Array.set index value array
             |> Matrix dimensions
+
+
+update : Coordinate -> Matrix a -> (a -> a) -> Matrix a
+update coordinate matrix f =
+    coordinate
+        |> get matrix
+        |> Maybe.map f
+        |> Maybe.map (\cell -> set coordinate cell matrix)
+        |> Maybe.withDefault matrix
 
 
 map : (a -> b) -> Matrix a -> Matrix b

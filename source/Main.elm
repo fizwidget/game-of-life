@@ -175,7 +175,7 @@ view model =
 
 globalStyles : Html msg
 globalStyles =
-    global [ body [ margin (px 0), backgroundColor Colors.white ] ]
+    global [ body [ margin (px 0) ] ]
 
 
 viewModel : Model -> Html Msg

@@ -90,7 +90,7 @@ update coordinate matrix f =
     coordinate
         |> get matrix
         |> Maybe.map f
-        |> Maybe.map (\cell -> set coordinate cell matrix)
+        |> Maybe.map (\updatedValue -> set coordinate updatedValue matrix)
         |> Maybe.withDefault matrix
 
 

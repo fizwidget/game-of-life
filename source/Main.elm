@@ -43,38 +43,22 @@ init =
     )
 
 
-emptyMatrix : Cells
-emptyMatrix =
+blank : Cells
+blank =
     Matrix.create { width = 30, height = 30 } Dead
 
 
 line : Cells
 line =
     Matrix.create { width = 20, height = 20 } Dead
-        |> Matrix.set { x = 7, y = 6 } Alive
-        |> Matrix.set { x = 8, y = 6 } Alive
-        |> Matrix.set { x = 9, y = 6 } Alive
-        |> Matrix.set { x = 10, y = 6 } Alive
-        |> Matrix.set { x = 11, y = 6 } Alive
-        |> Matrix.set { x = 12, y = 6 } Alive
-        |> Matrix.set { x = 13, y = 6 } Alive
-        |> Matrix.set { x = 14, y = 6 } Alive
-        |> Matrix.set { x = 15, y = 6 } Alive
-
-
-oddPattern : Cells
-oddPattern =
-    Matrix.create { width = 20, height = 20 } Dead
-        |> Matrix.set { x = 3, y = 3 } Alive
-        |> Matrix.set { x = 3, y = 4 } Alive
-        |> Matrix.set { x = 3, y = 5 } Alive
-        |> Matrix.set { x = 2, y = 5 } Alive
-        |> Matrix.set { x = 6, y = 4 } Alive
-        |> Matrix.set { x = 8, y = 3 } Alive
-        |> Matrix.set { x = 4, y = 7 } Alive
-        |> Matrix.set { x = 4, y = 10 } Alive
-        |> Matrix.set { x = 7, y = 9 } Alive
-        |> Matrix.set { x = 8, y = 8 } Alive
+        |> Matrix.set { x = 7 - 1, y = 6 } Alive
+        |> Matrix.set { x = 8 - 1, y = 6 } Alive
+        |> Matrix.set { x = 9 - 1, y = 6 } Alive
+        |> Matrix.set { x = 10 - 1, y = 6 } Alive
+        |> Matrix.set { x = 11 - 1, y = 6 } Alive
+        |> Matrix.set { x = 12 - 1, y = 6 } Alive
+        |> Matrix.set { x = 13 - 1, y = 6 } Alive
+        |> Matrix.set { x = 14 - 1, y = 6 } Alive
 
 
 
@@ -200,8 +184,77 @@ globalStyles =
 viewModel : Model -> Html Msg
 viewModel { cells, status } =
     div
-        []
+        [ css
+            [ displayFlex
+            , justifyContent center
+            , alignItems center
+            , height (vh 100)
+            ]
+        ]
         [ viewCells cells, viewPlayPauseButton status ]
+
+
+viewCells : Cells -> Html Msg
+viewCells cells =
+    div
+        [ css
+            [ position relative
+            , width (pct 100)
+            , after
+                [ property "content" "''"
+                , display block
+                , paddingBottom (pct 100)
+                ]
+            ]
+        ]
+        [ div
+            [ css
+                [ displayFlex
+                , alignItems center
+                , justifyContent center
+                , flexWrap wrap
+                , position absolute
+                , width (pct 100)
+                , height (pct 100)
+                ]
+            ]
+            (Matrix.toListWithCoordinates cells
+                |> List.map (viewCell (cellSize cells))
+            )
+        ]
+
+
+viewCell : Float -> ( Coordinate, Cell ) -> Html Msg
+viewCell size ( coordinate, cell ) =
+    div
+        [ class "cell"
+        , css
+            [ height (pct size)
+            , backgroundColor (cellColor cell)
+            , displayFlex
+            , flex3 (int 0) (int 0) (pct size)
+            , borderRadius (pct 50)
+            , border3 (px 4) solid Colors.white
+            , boxSizing borderBox
+            ]
+        , (onClick (Toggle coordinate))
+        ]
+        []
+
+
+cellSize : Cells -> Float
+cellSize cells =
+    100.0 / toFloat (Matrix.height cells)
+
+
+cellColor : Cell -> Css.Color
+cellColor cell =
+    case cell of
+        Alive ->
+            rgba 38 132 255 0.8
+
+        Dead ->
+            Colors.white
 
 
 viewPlayPauseButton : Status -> Html Msg
@@ -230,55 +283,6 @@ viewPlayPauseButton status =
 
             Paused ->
                 button [ onClick Play, styles ] [ text "Play" ]
-
-
-viewCells : Cells -> Html Msg
-viewCells cells =
-    div
-        [ css
-            [ displayFlex
-            , alignItems center
-            , justifyContent center
-            , flexWrap wrap
-            ]
-        ]
-        (Matrix.toListWithCoordinates cells
-            |> List.map (viewCell (cellSize cells))
-        )
-
-
-viewCell : Float -> ( Coordinate, Cell ) -> Html Msg
-viewCell size ( coordinate, cell ) =
-    div
-        [ class "cell"
-        , css
-            [ width (vw size)
-            , height (vh size)
-            , backgroundColor (cellColor cell)
-            , displayFlex
-            , flex3 (int 0) (int 0) (pct size)
-            , borderRadius (pct 50)
-            , border3 (px 4) solid Colors.white
-            , boxSizing borderBox
-            ]
-        , (onClick (Toggle coordinate))
-        ]
-        []
-
-
-cellSize : Cells -> Float
-cellSize cells =
-    100.0 / toFloat (Matrix.width cells)
-
-
-cellColor : Cell -> Css.Color
-cellColor cell =
-    case cell of
-        Alive ->
-            rgba 38 132 255 0.8
-
-        Dead ->
-            Colors.white
 
 
 

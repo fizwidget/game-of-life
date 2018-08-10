@@ -10,6 +10,8 @@ module Matrix
         , update
         , map
         , indexedMap
+        , foldl
+        , any
         , toListWithCoordinates
         , getRows
         , getNeighbours
@@ -104,6 +106,19 @@ indexedMap : (Coordinate -> a -> b) -> Matrix a -> Matrix b
 indexedMap f (Matrix dimensions array) =
     Array.indexedMap (toCoordinate dimensions >> f) array
         |> Matrix dimensions
+
+
+foldl : (a -> b -> b) -> b -> Matrix a -> b
+foldl f initial (Matrix _ array) =
+    Array.foldl f initial array
+
+
+any : (a -> Bool) -> Matrix a -> Bool
+any predicate (Matrix _ array) =
+    array
+        |> Array.filter predicate
+        |> Array.isEmpty
+        |> not
 
 
 toListWithCoordinates : Matrix a -> List ( Coordinate, a )

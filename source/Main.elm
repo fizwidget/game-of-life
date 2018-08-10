@@ -101,6 +101,7 @@ update msg model =
 
         Tick ->
             { model | cells = step model.cells }
+                |> pauseIfFinished
                 |> noCmd
 
         Toggle coordinate ->
@@ -111,6 +112,24 @@ update msg model =
 noCmd : Model -> ( Model, Cmd Msg )
 noCmd model =
     ( model, Cmd.none )
+
+
+pauseIfFinished : Model -> Model
+pauseIfFinished ({ cells, status } as model) =
+    case status of
+        Playing ->
+            if Matrix.any isAlive cells then
+                model
+            else
+                { model | status = Paused }
+
+        Paused ->
+            model
+
+
+isAlive : Cell -> Bool
+isAlive =
+    (==) Alive
 
 
 toggle : Cells -> Coordinate -> Cells

@@ -11,7 +11,8 @@ module Matrix
         , map
         , indexedMap
         , foldl
-        , any
+        , all
+        , equals
         , toListWithCoordinates
         , getRows
         , getNeighbours
@@ -113,12 +114,16 @@ foldl f initial (Matrix _ array) =
     Array.foldl f initial array
 
 
-any : (a -> Bool) -> Matrix a -> Bool
-any predicate (Matrix _ array) =
+all : (a -> Bool) -> Matrix a -> Bool
+all predicate (Matrix _ array) =
     array
-        |> Array.filter predicate
+        |> Array.filter (predicate >> not)
         |> Array.isEmpty
-        |> not
+
+
+equals : Matrix a -> Matrix a -> Bool
+equals (Matrix _ a) (Matrix _ b) =
+    a == b
 
 
 toListWithCoordinates : Matrix a -> List ( Coordinate, a )

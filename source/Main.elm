@@ -4,14 +4,20 @@ import Html
 import Html.Styled.Events exposing (onClick)
 import Html.Styled exposing (Html, toUnstyled, div, span, button, text)
 import Html.Styled.Attributes exposing (css, class)
-import Css.Foreign exposing (global, body)
 import Css exposing (..)
+import Css.Foreign exposing (global, body)
 import Css.Colors as Colors
+import Css.Transitions exposing (easeInOut, transition)
 import Time as Time exposing (millisecond)
 import Matrix as Matrix exposing (Matrix, Coordinate)
 
 
 -- MODEL
+
+
+type Status
+    = Paused
+    | Playing
 
 
 type Cell
@@ -23,13 +29,11 @@ type alias Cells =
     Matrix Cell
 
 
-type Status
-    = Paused
-    | Playing
-
-
 type alias Model =
-    { cells : Cells, status : Status }
+    { status : Status
+    , cells : Cells
+    , previousCells : Maybe Cells
+    }
 
 
 
@@ -38,14 +42,17 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { cells = line, status = Paused }
+    ( { status = Paused
+      , cells = empty
+      , previousCells = Nothing
+      }
     , Cmd.none
     )
 
 
-blank : Cells
-blank =
-    Matrix.create { width = 30, height = 30 } Dead
+empty : Cells
+empty =
+    Matrix.create { width = 18, height = 18 } Dead
 
 
 line : Cells
@@ -73,7 +80,7 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg ({ cells } as model) =
     case msg of
         Play ->
             { model | status = Playing }
@@ -84,12 +91,12 @@ update msg model =
                 |> noCmd
 
         Tick ->
-            { model | cells = step model.cells }
-                |> pauseIfFinished
+            { model | cells = tick cells, previousCells = Just cells }
+                |> pauseWhenFinished
                 |> noCmd
 
         Toggle coordinate ->
-            { model | cells = toggle model.cells coordinate }
+            { model | cells = toggle cells coordinate }
                 |> noCmd
 
 
@@ -98,22 +105,31 @@ noCmd model =
     ( model, Cmd.none )
 
 
-pauseIfFinished : Model -> Model
-pauseIfFinished ({ cells, status } as model) =
+pauseWhenFinished : Model -> Model
+pauseWhenFinished ({ status, cells, previousCells } as model) =
     case status of
         Playing ->
-            if Matrix.any isAlive cells then
-                model
-            else
+            if Matrix.all isDead cells then
                 { model | status = Paused }
+            else if isFrozen cells previousCells then
+                { model | status = Paused }
+            else
+                model
 
         Paused ->
             model
 
 
-isAlive : Cell -> Bool
-isAlive =
-    (==) Alive
+isFrozen : Cells -> Maybe Cells -> Bool
+isFrozen cells previousCells =
+    previousCells
+        |> Maybe.map (Matrix.equals cells)
+        |> Maybe.withDefault False
+
+
+isDead : Cell -> Bool
+isDead =
+    (==) Dead
 
 
 toggle : Cells -> Coordinate -> Cells
@@ -131,8 +147,8 @@ toggleCell cell =
             Alive
 
 
-step : Cells -> Cells
-step cells =
+tick : Cells -> Cells
+tick cells =
     Matrix.indexedMap (updateCell cells) cells
 
 
@@ -227,8 +243,7 @@ viewCells cells =
 viewCell : Float -> ( Coordinate, Cell ) -> Html Msg
 viewCell size ( coordinate, cell ) =
     div
-        [ class "cell"
-        , css
+        [ css
             [ height (pct size)
             , backgroundColor (cellColor cell)
             , displayFlex
@@ -236,6 +251,7 @@ viewCell size ( coordinate, cell ) =
             , borderRadius (pct 50)
             , border3 (px 4) solid Colors.white
             , boxSizing borderBox
+            , transition [ Css.Transitions.backgroundColor3 200 0 easeInOut ]
             ]
         , (onClick (Toggle coordinate))
         ]
@@ -261,28 +277,30 @@ viewPlayPauseButton : Status -> Html Msg
 viewPlayPauseButton status =
     let
         styles =
-            css
-                [ position fixed
-                , width (px 100)
-                , height (px 40)
-                , marginLeft auto
-                , marginRight auto
-                , left (px 0)
-                , right (px 0)
-                , bottom (pct 6)
-                , backgroundColor (rgba 76 154 255 0.9)
-                , border2 (px 0) none
-                , borderRadius (px 10)
-                , color Colors.white
-                , fontSize (px 20)
-                ]
+            [ position fixed
+            , width (px 100)
+            , height (px 40)
+            , marginLeft auto
+            , marginRight auto
+            , left (px 0)
+            , right (px 0)
+            , bottom (pct 6)
+            , border2 (px 0) none
+            , borderRadius (px 10)
+            , color Colors.white
+            , fontSize (px 20)
+            ]
     in
         case status of
             Playing ->
-                button [ onClick Pause, styles ] [ text "Pause" ]
+                button
+                    [ onClick Pause, css (backgroundColor (rgba 76 154 255 0.7) :: styles) ]
+                    [ text "Pause" ]
 
             Paused ->
-                button [ onClick Play, styles ] [ text "Play" ]
+                button
+                    [ onClick Play, css (backgroundColor (rgba 76 154 255 0.9) :: styles) ]
+                    [ text "Play" ]
 
 
 

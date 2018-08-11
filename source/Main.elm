@@ -5,7 +5,6 @@ import Html.Styled.Events exposing (onClick)
 import Html.Styled exposing (Html, toUnstyled, div, span, button, text)
 import Html.Styled.Attributes exposing (css, class)
 import Css exposing (..)
-import Css.Foreign exposing (global, body)
 import Css.Colors as Colors
 import Css.Transitions exposing (easeInOut, transition)
 import Time as Time exposing (millisecond)

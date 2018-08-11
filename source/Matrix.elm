@@ -14,7 +14,7 @@ module Matrix
         , all
         , equals
         , toList
-        , getNeighbours
+        , neighbours
         )
 
 import Array exposing (Array)
@@ -139,8 +139,8 @@ offsetBy { x, y } ( dx, dy ) =
     }
 
 
-getNeighbours : Coordinate -> Matrix a -> List a
-getNeighbours coordinate matrix =
+neighbours : Coordinate -> Matrix a -> List a
+neighbours coordinate matrix =
     [ ( 1, 1 ), ( 1, 0 ), ( 1, -1 ), ( 0, -1 ), ( -1, -1 ), ( -1, 0 ), ( -1, 1 ), ( 0, 1 ) ]
         |> List.map (offsetBy coordinate)
         |> List.filterMap (get matrix)

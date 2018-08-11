@@ -43,29 +43,11 @@ type alias Model =
 init : ( Model, Cmd Msg )
 init =
     ( { status = Paused
-      , cells = empty
+      , cells = Matrix.create { width = 18, height = 18 } Dead
       , previousCells = Nothing
       }
     , Cmd.none
     )
-
-
-empty : Cells
-empty =
-    Matrix.create { width = 18, height = 18 } Dead
-
-
-line : Cells
-line =
-    Matrix.create { width = 20, height = 20 } Dead
-        |> Matrix.set { x = 7 - 1, y = 6 } Alive
-        |> Matrix.set { x = 8 - 1, y = 6 } Alive
-        |> Matrix.set { x = 9 - 1, y = 6 } Alive
-        |> Matrix.set { x = 10 - 1, y = 6 } Alive
-        |> Matrix.set { x = 11 - 1, y = 6 } Alive
-        |> Matrix.set { x = 12 - 1, y = 6 } Alive
-        |> Matrix.set { x = 13 - 1, y = 6 } Alive
-        |> Matrix.set { x = 14 - 1, y = 6 } Alive
 
 
 
@@ -91,7 +73,7 @@ update msg model =
                 |> noCmd
 
         Tick ->
-            { model | cells = advance model.cells, previousCells = Just model.cells }
+            { model | cells = updateCells model.cells, previousCells = Just model.cells }
                 |> pauseIfFinished
                 |> noCmd
 
@@ -103,6 +85,34 @@ update msg model =
 noCmd : Model -> ( Model, Cmd Msg )
 noCmd model =
     ( model, Cmd.none )
+
+
+updateCells : Cells -> Cells
+updateCells cells =
+    Matrix.coordinateMap (updateCell cells) cells
+
+
+updateCell : Cells -> Coordinate -> Cell -> Cell
+updateCell cells coordinate cell =
+    case ( cell, countLiveNeighbours cells coordinate ) of
+        ( Alive, 2 ) ->
+            Alive
+
+        ( Alive, 3 ) ->
+            Alive
+
+        ( Dead, 3 ) ->
+            Alive
+
+        _ ->
+            Dead
+
+
+countLiveNeighbours : Cells -> Coordinate -> Int
+countLiveNeighbours cells coordinate =
+    Matrix.neighbours coordinate cells
+        |> List.filter ((==) Alive)
+        |> List.length
 
 
 pauseIfFinished : Model -> Model
@@ -142,52 +152,12 @@ toggleCell cell =
             Alive
 
 
-advance : Cells -> Cells
-advance cells =
-    Matrix.coordinateMap (updateCell cells) cells
-
-
-updateCell : Cells -> Coordinate -> Cell -> Cell
-updateCell cells coordinate cell =
-    let
-        liveNeighbours =
-            countNeighbours cells coordinate
-    in
-        case ( cell, liveNeighbours ) of
-            ( Alive, 2 ) ->
-                Alive
-
-            ( Alive, 3 ) ->
-                Alive
-
-            ( Dead, 3 ) ->
-                Alive
-
-            _ ->
-                Dead
-
-
-countNeighbours : Cells -> Coordinate -> Int
-countNeighbours cells coordinate =
-    Matrix.getNeighbours coordinate cells
-        |> List.filter ((==) Alive)
-        |> List.length
-
-
 
 -- VIEW
 
 
 view : Model -> Html Msg
-view model =
-    div []
-        [ global [ body [ margin (px 0), backgroundColor Colors.red ] ]
-        , viewModel model
-        ]
-
-
-viewModel : Model -> Html Msg
-viewModel { cells, status } =
+view { cells, status } =
     div [ css [ displayFlex, justifyContent center, alignItems center ] ]
         [ viewCells cells, viewStatusButton status ]
 
@@ -229,13 +199,26 @@ viewCell size ( coordinate, cell ) =
             , displayFlex
             , flex3 (int 0) (int 0) (pct size)
             , borderRadius (pct 50)
-            , border3 (px 4) solid Colors.white
+            , border3 (px (cellBorderSize cell)) solid Colors.white
             , boxSizing borderBox
-            , transition [ Css.Transitions.backgroundColor3 200 0 easeInOut ]
+            , transition
+                [ Css.Transitions.backgroundColor3 200 0 easeInOut
+                , Css.Transitions.borderWidth 200
+                ]
             ]
         , (onClick (Toggle coordinate))
         ]
         []
+
+
+cellBorderSize : Cell -> Float
+cellBorderSize cell =
+    case cell of
+        Alive ->
+            4
+
+        Dead ->
+            40
 
 
 cellSize : Cells -> Float

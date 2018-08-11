@@ -70,21 +70,13 @@ toCoordinate { width } index =
 
 get : Matrix a -> Coordinate -> Maybe a
 get (Matrix dimensions array) coordinate =
-    let
-        index =
-            toIndex dimensions coordinate
-    in
-        Array.get index array
+    Array.get (toIndex dimensions coordinate) array
 
 
 set : Coordinate -> a -> Matrix a -> Matrix a
 set coordinate value (Matrix dimensions array) =
-    let
-        index =
-            toIndex dimensions coordinate
-    in
-        Array.set index value array
-            |> Matrix dimensions
+    Array.set (toIndex dimensions coordinate) value array
+        |> Matrix dimensions
 
 
 update : Coordinate -> Matrix a -> (a -> a) -> Matrix a
@@ -92,7 +84,7 @@ update coordinate matrix f =
     coordinate
         |> get matrix
         |> Maybe.map f
-        |> Maybe.map (\updatedValue -> set coordinate updatedValue matrix)
+        |> Maybe.map (\newValue -> set coordinate newValue matrix)
         |> Maybe.withDefault matrix
 
 
@@ -132,15 +124,15 @@ toList (Matrix dimensions array) =
         |> Array.toList
 
 
-offsetBy : Coordinate -> ( Int, Int ) -> Coordinate
-offsetBy { x, y } ( dx, dy ) =
-    { x = x + dx
-    , y = y + dy
-    }
-
-
 neighbours : Coordinate -> Matrix a -> List a
 neighbours coordinate matrix =
     [ ( 1, 1 ), ( 1, 0 ), ( 1, -1 ), ( 0, -1 ), ( -1, -1 ), ( -1, 0 ), ( -1, 1 ), ( 0, 1 ) ]
         |> List.map (offsetBy coordinate)
         |> List.filterMap (get matrix)
+
+
+offsetBy : Coordinate -> ( Int, Int ) -> Coordinate
+offsetBy { x, y } ( dx, dy ) =
+    { x = x + dx
+    , y = y + dy
+    }

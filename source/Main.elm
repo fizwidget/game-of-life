@@ -158,7 +158,7 @@ toggleCell cell =
 view : Model -> Html Msg
 view { cells, status } =
     div [ css [ displayFlex, justifyContent center, alignItems center ] ]
-        [ viewCells cells, viewStatusButton status ]
+        [ viewCells cells, viewStatusButton status cells ]
 
 
 viewCells : Cells -> Html Msg
@@ -194,7 +194,7 @@ viewCell size ( coordinate, cell ) =
     div
         [ css
             [ height (pct size)
-            , backgroundColor (cellColor cell)
+            , backgroundColor (cellColor cell coordinate)
             , displayFlex
             , flex3 (int 0) (int 0) (pct size)
             , borderRadius (pct 50)
@@ -217,7 +217,7 @@ cellBorderSize cell =
             4
 
         Dead ->
-            40
+            30
 
 
 cellSize : Cells -> Float
@@ -225,18 +225,34 @@ cellSize cells =
     100.0 / toFloat (Matrix.height cells)
 
 
-cellColor : Cell -> Css.Color
-cellColor cell =
+cellColor : Cell -> Coordinate -> Css.Color
+cellColor cell coordinate =
     case cell of
         Alive ->
-            rgba 38 132 255 0.8
+            liveCellColor coordinate
 
         Dead ->
-            Colors.white
+            rgb 244 245 247
 
 
-viewStatusButton : Status -> Html Msg
-viewStatusButton status =
+liveCellColor : Coordinate -> Color
+liveCellColor { x, y } =
+    case ( x % 2 == 0, y % 2 == 0 ) of
+        ( True, True ) ->
+            rgba 255 171 0 0.8
+
+        ( True, False ) ->
+            rgba 54 179 126 0.8
+
+        ( False, True ) ->
+            rgba 0 184 217 0.8
+
+        ( False, False ) ->
+            rgba 101 84 192 0.8
+
+
+viewStatusButton : Status -> Cells -> Html Msg
+viewStatusButton status cells =
     let
         styles =
             [ position fixed
@@ -248,21 +264,28 @@ viewStatusButton status =
             , right (px 0)
             , bottom (pct 6)
             , border2 (px 0) none
-            , borderRadius (px 10)
+            , borderRadius (px 20)
             , color Colors.white
             , fontSize (px 20)
+            , transition
+                [ Css.Transitions.backgroundColor3 200 0 easeInOut
+                , Css.Transitions.visibility3 200 0 easeInOut
+                ]
             ]
     in
-        case status of
-            Playing ->
-                button
-                    [ onClick Pause, css (backgroundColor (rgba 76 154 255 0.7) :: styles) ]
-                    [ text "Pause" ]
+        if Matrix.all ((==) Dead) cells then
+            div [] []
+        else
+            case status of
+                Playing ->
+                    button
+                        [ onClick Pause, css (backgroundColor (rgba 179 186 197 0.6) :: styles) ]
+                        [ text "Pause" ]
 
-            Paused ->
-                button
-                    [ onClick Play, css (backgroundColor (rgba 76 154 255 0.9) :: styles) ]
-                    [ text "Play" ]
+                Paused ->
+                    button
+                        [ onClick Play, css (backgroundColor (rgba 54 179 126 0.9) :: styles) ]
+                        [ text "Play" ]
 
 
 

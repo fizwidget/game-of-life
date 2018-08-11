@@ -201,8 +201,8 @@ viewCell size ( coordinate, cell ) =
             , border3 (px (cellBorderSize cell)) solid Colors.white
             , boxSizing borderBox
             , transition
-                [ Css.Transitions.backgroundColor3 200 0 easeInOut
-                , Css.Transitions.borderWidth 200
+                [ Css.Transitions.backgroundColor3 550 0 easeInOut
+                , Css.Transitions.borderWidth 550
                 ]
             ]
         , (onClick (Toggle coordinate))
@@ -217,7 +217,7 @@ cellBorderSize cell =
             4
 
         Dead ->
-            30
+            20
 
 
 cellSize : Cells -> Float
@@ -296,7 +296,7 @@ subscriptions : Model -> Sub Msg
 subscriptions { status } =
     case status of
         Playing ->
-            Time.every (millisecond * 200) (always Tick)
+            Time.every (600 * millisecond) (always Tick)
 
         Paused ->
             Sub.none

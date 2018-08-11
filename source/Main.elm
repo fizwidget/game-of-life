@@ -80,7 +80,7 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ cells } as model) =
+update msg model =
     case msg of
         Play ->
             { model | status = Playing }
@@ -91,12 +91,12 @@ update msg ({ cells } as model) =
                 |> noCmd
 
         Tick ->
-            { model | cells = tick cells, previousCells = Just cells }
-                |> pauseWhenFinished
+            { model | cells = advance model.cells, previousCells = Just model.cells }
+                |> pauseIfFinished
                 |> noCmd
 
         Toggle coordinate ->
-            { model | cells = toggle cells coordinate }
+            { model | cells = toggleCoordinate model.cells coordinate }
                 |> noCmd
 
 
@@ -105,13 +105,13 @@ noCmd model =
     ( model, Cmd.none )
 
 
-pauseWhenFinished : Model -> Model
-pauseWhenFinished ({ status, cells, previousCells } as model) =
+pauseIfFinished : Model -> Model
+pauseIfFinished ({ status, cells, previousCells } as model) =
     case status of
         Playing ->
-            if Matrix.all isDead cells then
+            if Matrix.all ((==) Dead) cells then
                 { model | status = Paused }
-            else if isFrozen cells previousCells then
+            else if hasReachedEquilibrium cells previousCells then
                 { model | status = Paused }
             else
                 model
@@ -120,20 +120,15 @@ pauseWhenFinished ({ status, cells, previousCells } as model) =
             model
 
 
-isFrozen : Cells -> Maybe Cells -> Bool
-isFrozen cells previousCells =
+hasReachedEquilibrium : Cells -> Maybe Cells -> Bool
+hasReachedEquilibrium cells previousCells =
     previousCells
         |> Maybe.map (Matrix.equals cells)
         |> Maybe.withDefault False
 
 
-isDead : Cell -> Bool
-isDead =
-    (==) Dead
-
-
-toggle : Cells -> Coordinate -> Cells
-toggle cells coordinate =
+toggleCoordinate : Cells -> Coordinate -> Cells
+toggleCoordinate cells coordinate =
     Matrix.update coordinate cells toggleCell
 
 
@@ -147,40 +142,36 @@ toggleCell cell =
             Alive
 
 
-tick : Cells -> Cells
-tick cells =
-    Matrix.indexedMap (updateCell cells) cells
+advance : Cells -> Cells
+advance cells =
+    Matrix.coordinateMap (updateCell cells) cells
 
 
 updateCell : Cells -> Coordinate -> Cell -> Cell
 updateCell cells coordinate cell =
-    case ( cell, countNeighbours cells coordinate ) of
-        ( Alive, 2 ) ->
-            Alive
+    let
+        liveNeighbours =
+            countNeighbours cells coordinate
+    in
+        case ( cell, liveNeighbours ) of
+            ( Alive, 2 ) ->
+                Alive
 
-        ( Alive, 3 ) ->
-            Alive
+            ( Alive, 3 ) ->
+                Alive
 
-        ( Dead, 3 ) ->
-            Alive
+            ( Dead, 3 ) ->
+                Alive
 
-        _ ->
-            Dead
+            _ ->
+                Dead
 
 
 countNeighbours : Cells -> Coordinate -> Int
 countNeighbours cells coordinate =
-    let
-        countLiveCell cell currentCount =
-            case cell of
-                Alive ->
-                    currentCount + 1
-
-                Dead ->
-                    currentCount
-    in
-        Matrix.getNeighbours coordinate cells
-            |> List.foldl countLiveCell 0
+    Matrix.getNeighbours coordinate cells
+        |> List.filter ((==) Alive)
+        |> List.length
 
 
 
@@ -189,25 +180,16 @@ countNeighbours cells coordinate =
 
 view : Model -> Html Msg
 view model =
-    div [] [ globalStyles, viewModel model ]
-
-
-globalStyles : Html msg
-globalStyles =
-    global [ body [ margin (px 0) ] ]
+    div []
+        [ global [ body [ margin (px 0), backgroundColor Colors.red ] ]
+        , viewModel model
+        ]
 
 
 viewModel : Model -> Html Msg
 viewModel { cells, status } =
-    div
-        [ css
-            [ displayFlex
-            , justifyContent center
-            , alignItems center
-            , height (vh 100)
-            ]
-        ]
-        [ viewCells cells, viewPlayPauseButton status ]
+    div [ css [ displayFlex, justifyContent center, alignItems center ] ]
+        [ viewCells cells, viewStatusButton status ]
 
 
 viewCells : Cells -> Html Msg
@@ -234,9 +216,7 @@ viewCells cells =
                 , height (pct 100)
                 ]
             ]
-            (Matrix.toListWithCoordinates cells
-                |> List.map (viewCell (cellSize cells))
-            )
+            (Matrix.toList cells |> List.map (viewCell (cellSize cells)))
         ]
 
 
@@ -273,8 +253,8 @@ cellColor cell =
             Colors.white
 
 
-viewPlayPauseButton : Status -> Html Msg
-viewPlayPauseButton status =
+viewStatusButton : Status -> Html Msg
+viewStatusButton status =
     let
         styles =
             [ position fixed

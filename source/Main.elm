@@ -93,7 +93,7 @@ type Msg
     | MouseDown
     | MouseUp
     | MouseOver Coordinate
-    | KeyDown KeyCode
+    | KeyDown Char
     | SetSpeed Speed
 
 
@@ -134,8 +134,8 @@ update msg model =
                     { model | cells = toggleCoordinate coordinate model.cells }
                         |> noCmd
 
-        KeyDown keyCode ->
-            if Char.fromCode keyCode == 'P' then
+        KeyDown key ->
+            if key == 'P' then
                 { model | status = toggleStatus model.status }
                     |> noCmd
             else
@@ -449,7 +449,10 @@ subscriptions { status, speed } =
                 Paused ->
                     Sub.none
     in
-        Sub.batch [ Keyboard.downs KeyDown, ticks ]
+        Sub.batch
+            [ Keyboard.downs (Char.fromCode >> KeyDown)
+            , ticks
+            ]
 
 
 

@@ -253,39 +253,40 @@ liveCellColor { x, y } =
 
 viewStatusButton : Status -> Cells -> Html Msg
 viewStatusButton status cells =
-    let
-        styles =
-            [ position fixed
-            , width (px 100)
-            , height (px 40)
-            , marginLeft auto
-            , marginRight auto
-            , left (px 0)
-            , right (px 0)
-            , bottom (pct 6)
-            , border2 (px 0) none
-            , borderRadius (px 20)
-            , color Colors.white
-            , fontSize (px 20)
-            , transition
-                [ Css.Transitions.backgroundColor3 200 0 easeInOut
-                , Css.Transitions.visibility3 200 0 easeInOut
-                ]
-            ]
-    in
-        if Matrix.all ((==) Dead) cells then
-            div [] []
-        else
-            case status of
-                Playing ->
-                    button
-                        [ onClick Pause, css (backgroundColor (rgba 179 186 197 0.6) :: styles) ]
-                        [ text "Pause" ]
+    if Matrix.all ((==) Dead) cells then
+        div [] []
+    else
+        case status of
+            Playing ->
+                button
+                    [ onClick Pause, css (backgroundColor (rgba 179 186 197 0.6) :: statusButtonStyles) ]
+                    [ text "Pause" ]
 
-                Paused ->
-                    button
-                        [ onClick Play, css (backgroundColor (rgba 54 179 126 0.9) :: styles) ]
-                        [ text "Play" ]
+            Paused ->
+                button
+                    [ onClick Play, css (backgroundColor (rgba 54 179 126 0.9) :: statusButtonStyles) ]
+                    [ text "Play" ]
+
+
+statusButtonStyles : List Css.Style
+statusButtonStyles =
+    [ position fixed
+    , width (px 100)
+    , height (px 40)
+    , marginLeft auto
+    , marginRight auto
+    , left (px 0)
+    , right (px 0)
+    , bottom (pct 6)
+    , border2 (px 0) none
+    , borderRadius (px 20)
+    , color Colors.white
+    , fontSize (px 20)
+    , transition
+        [ Css.Transitions.backgroundColor3 200 0 easeInOut
+        , Css.Transitions.visibility3 200 0 easeInOut
+        ]
+    ]
 
 
 

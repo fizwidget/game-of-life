@@ -2,11 +2,11 @@ module Main exposing (main)
 
 import Html
 import Html.Styled.Events exposing (onClick)
-import Html.Styled exposing (Html, toUnstyled, div, span, button, text)
-import Html.Styled.Attributes exposing (css, class)
+import Html.Styled exposing (Html, toUnstyled, div, button, text)
+import Html.Styled.Attributes exposing (css)
 import Css exposing (..)
 import Css.Colors as Colors
-import Css.Transitions exposing (easeInOut, transition)
+import Css.Transitions as Transitions exposing (easeInOut, transition)
 import Time as Time exposing (Time, millisecond)
 import Matrix as Matrix exposing (Matrix, Coordinate)
 
@@ -42,11 +42,29 @@ type alias Model =
 init : ( Model, Cmd Msg )
 init =
     ( { status = Paused
-      , cells = Matrix.create { width = 18, height = 18 } Dead
+      , cells = lineConfiguration
       , previousCells = Nothing
       }
     , Cmd.none
     )
+
+
+emptyConfiguration : Cells
+emptyConfiguration =
+    Matrix.create { width = 18, height = 18 } Dead
+
+
+lineConfiguration : Cells
+lineConfiguration =
+    Matrix.create { width = 18, height = 18 } Dead
+        |> Matrix.set { x = 5, y = 4 } Alive
+        |> Matrix.set { x = 6, y = 4 } Alive
+        |> Matrix.set { x = 7, y = 4 } Alive
+        |> Matrix.set { x = 8, y = 4 } Alive
+        |> Matrix.set { x = 9, y = 4 } Alive
+        |> Matrix.set { x = 10, y = 4 } Alive
+        |> Matrix.set { x = 11, y = 4 } Alive
+        |> Matrix.set { x = 12, y = 4 } Alive
 
 
 
@@ -120,20 +138,13 @@ pauseIfFinished ({ status, cells, previousCells } as model) =
         Playing ->
             if Matrix.all ((==) Dead) cells then
                 { model | status = Paused }
-            else if isEquilibrium cells previousCells then
+            else if previousCells == Just cells then
                 { model | status = Paused }
             else
                 model
 
         Paused ->
             model
-
-
-isEquilibrium : Cells -> Maybe Cells -> Bool
-isEquilibrium cells previousCells =
-    previousCells
-        |> Maybe.map (Matrix.equals cells)
-        |> Maybe.withDefault False
 
 
 toggleCoordinate : Coordinate -> Cells -> Cells
@@ -228,9 +239,9 @@ viewCellContent cell coordinate =
             , backgroundColor (cellColor cell coordinate)
             , borderRadius (pct 30)
             , transition
-                [ Css.Transitions.backgroundColor3 transitionDuration 0 easeInOut
-                , Css.Transitions.width transitionDuration
-                , Css.Transitions.height transitionDuration
+                [ Transitions.backgroundColor3 transitionDuration 0 easeInOut
+                , Transitions.width transitionDuration
+                , Transitions.height transitionDuration
                 ]
             ]
         ]
@@ -239,7 +250,7 @@ viewCellContent cell coordinate =
 
 transitionDuration : Time
 transitionDuration =
-    550 * millisecond
+    tickInterval + 200 * millisecond
 
 
 cellContentSize : Cell -> Percentage
@@ -304,18 +315,15 @@ statusButtonStyles =
     [ position fixed
     , width (px 100)
     , height (px 40)
-    , marginLeft auto
-    , marginRight auto
-    , left (px 0)
-    , right (px 0)
-    , bottom (pct 6)
+    , left (px 20)
+    , bottom (px 20)
     , border2 (px 0) none
-    , borderRadius (px 20)
+    , borderRadius (px 15)
     , color Colors.white
     , fontSize (px 20)
     , transition
-        [ Css.Transitions.backgroundColor3 200 0 easeInOut
-        , Css.Transitions.visibility3 200 0 easeInOut
+        [ Transitions.backgroundColor3 200 0 easeInOut
+        , Transitions.visibility3 200 0 easeInOut
         ]
     ]
 
@@ -324,11 +332,16 @@ statusButtonStyles =
 -- SUBSCRIPTIONS
 
 
+tickInterval : Time
+tickInterval =
+    600 * millisecond
+
+
 subscriptions : Model -> Sub Msg
 subscriptions { status } =
     case status of
         Playing ->
-            Time.every (600 * millisecond) (always Tick)
+            Time.every tickInterval (always Tick)
 
         Paused ->
             Sub.none

@@ -1,8 +1,9 @@
 # TODOs
 
+* Make speed configurable.
+* Allow stepping through each iteration.
 * Import configuration files.
 * Persist configurations to local storage.
-* Better mobile support.
 
 # Questions
 

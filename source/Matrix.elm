@@ -12,7 +12,6 @@ module Matrix
         , coordinateMap
         , foldl
         , all
-        , equals
         , toList
         , neighbours
         )
@@ -110,11 +109,6 @@ all predicate (Matrix _ array) =
     array
         |> Array.filter (predicate >> not)
         |> Array.isEmpty
-
-
-equals : Matrix a -> Matrix a -> Bool
-equals (Matrix _ a) (Matrix _ b) =
-    a == b
 
 
 toList : Matrix a -> List a

@@ -226,7 +226,7 @@ viewCellContent cell coordinate =
             [ width (pct (cellContentSize cell))
             , height (pct (cellContentSize cell))
             , backgroundColor (cellColor cell coordinate)
-            , borderRadius (pct 50)
+            , borderRadius (pct 30)
             , transition
                 [ Css.Transitions.backgroundColor3 transitionDuration 0 easeInOut
                 , Css.Transitions.width transitionDuration

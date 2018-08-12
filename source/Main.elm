@@ -109,7 +109,7 @@ updateCells cells =
 
 updateCell : Cells -> Coordinate -> Cell -> Cell
 updateCell cells coordinate cell =
-    case ( cell, countLiveNeighbours cells coordinate ) of
+    case ( cell, liveNeighbours cells coordinate ) of
         ( Alive, 2 ) ->
             Alive
 
@@ -123,8 +123,8 @@ updateCell cells coordinate cell =
             Dead
 
 
-countLiveNeighbours : Cells -> Coordinate -> Int
-countLiveNeighbours cells coordinate =
+liveNeighbours : Cells -> Coordinate -> Int
+liveNeighbours cells coordinate =
     Matrix.neighbours cells coordinate
         |> List.filter ((==) Alive)
         |> List.length

@@ -89,8 +89,7 @@ type Msg
     = Tick
     | Play
     | Pause
-    | Click Coordinate
-    | MouseDown
+    | MouseDown Coordinate
     | MouseUp
     | MouseOver Coordinate
     | KeyDown Char
@@ -113,12 +112,8 @@ update msg model =
                 |> pauseIfFinished
                 |> noCmd
 
-        Click coordinate ->
-            { model | cells = toggleCoordinate coordinate model.cells }
-                |> noCmd
-
-        MouseDown ->
-            { model | mouse = Down }
+        MouseDown coordinate ->
+            { model | mouse = Down, cells = toggleCoordinate coordinate model.cells }
                 |> noCmd
 
         MouseUp ->
@@ -233,8 +228,6 @@ view { cells, status, speed } =
                 , justifyContent center
                 , alignItems center
                 ]
-            , onMouseDown MouseDown
-            , onMouseUp MouseUp
             ]
             [ squareContainer (viewCells transitionDuration cells)
             , viewControls status speed cells
@@ -286,7 +279,8 @@ viewCell transitionDuration size coordinate cell =
             , justifyContent center
             , alignItems center
             ]
-        , onMouseDown (Click coordinate)
+        , onMouseDown (MouseDown coordinate)
+        , onMouseUp MouseUp
         , onMouseEnter (MouseOver coordinate)
         ]
         [ viewCellContent transitionDuration cell coordinate ]

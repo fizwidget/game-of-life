@@ -57,14 +57,14 @@ emptyConfiguration =
 lineConfiguration : Cells
 lineConfiguration =
     Matrix.create { width = 18, height = 18 } Dead
-        |> Matrix.set { x = 5, y = 4 } Alive
-        |> Matrix.set { x = 6, y = 4 } Alive
-        |> Matrix.set { x = 7, y = 4 } Alive
-        |> Matrix.set { x = 8, y = 4 } Alive
-        |> Matrix.set { x = 9, y = 4 } Alive
-        |> Matrix.set { x = 10, y = 4 } Alive
-        |> Matrix.set { x = 11, y = 4 } Alive
-        |> Matrix.set { x = 12, y = 4 } Alive
+        |> Matrix.set { x = 5, y = 5 } Alive
+        |> Matrix.set { x = 6, y = 5 } Alive
+        |> Matrix.set { x = 7, y = 5 } Alive
+        |> Matrix.set { x = 8, y = 5 } Alive
+        |> Matrix.set { x = 9, y = 5 } Alive
+        |> Matrix.set { x = 10, y = 5 } Alive
+        |> Matrix.set { x = 11, y = 5 } Alive
+        |> Matrix.set { x = 12, y = 5 } Alive
 
 
 
@@ -253,6 +253,11 @@ transitionDuration =
     tickInterval + 200 * millisecond
 
 
+cellSize : Cells -> Percentage
+cellSize cells =
+    100.0 / toFloat (Matrix.height cells)
+
+
 cellContentSize : Cell -> Percentage
 cellContentSize cell =
     case cell of
@@ -263,16 +268,11 @@ cellContentSize cell =
             40
 
 
-cellSize : Cells -> Percentage
-cellSize cells =
-    100.0 / toFloat (Matrix.height cells)
-
-
 type alias Percentage =
     Float
 
 
-cellColor : Cell -> Coordinate -> Css.Color
+cellColor : Cell -> Coordinate -> Color
 cellColor cell { x, y } =
     case cell of
         Alive ->
@@ -300,17 +300,13 @@ viewStatusButton status cells =
     else
         case status of
             Playing ->
-                button
-                    [ onClick Pause, css (backgroundColor (rgba 179 186 197 0.6) :: statusButtonStyles) ]
-                    [ text "Pause" ]
+                viewButton "Pause" Pause (backgroundColor (rgba 179 186 197 0.6) :: statusButtonStyles)
 
             Paused ->
-                button
-                    [ onClick Play, css (backgroundColor (rgba 54 179 126 0.9) :: statusButtonStyles) ]
-                    [ text "Play" ]
+                viewButton "Play" Play (backgroundColor (rgba 54 179 126 0.9) :: statusButtonStyles)
 
 
-statusButtonStyles : List Css.Style
+statusButtonStyles : List Style
 statusButtonStyles =
     [ position fixed
     , width (px 100)
@@ -326,6 +322,13 @@ statusButtonStyles =
         , Transitions.visibility3 200 0 easeInOut
         ]
     ]
+
+
+viewButton : String -> Msg -> List Style -> Html Msg
+viewButton description clickMsg styles =
+    button
+        [ onClick clickMsg, css styles ]
+        [ text description ]
 
 
 

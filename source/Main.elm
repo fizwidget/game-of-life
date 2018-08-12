@@ -203,18 +203,22 @@ toggleCell cell =
 
 view : Model -> Html Msg
 view { cells, status, speed } =
-    div
-        [ css
-            [ displayFlex
-            , justifyContent center
-            , alignItems center
+    let
+        transitionDuration =
+            getTransitionDuration speed
+    in
+        div
+            [ css
+                [ displayFlex
+                , justifyContent center
+                , alignItems center
+                ]
+            , onMouseDown MouseDown
+            , onMouseUp MouseUp
             ]
-        , onMouseDown MouseDown
-        , onMouseUp MouseUp
-        ]
-        [ squareContainer (viewCells speed cells)
-        , viewControls status speed cells
-        ]
+            [ squareContainer (viewCells transitionDuration cells)
+            , viewControls status speed cells
+            ]
 
 
 squareContainer : Html msg -> Html msg
@@ -233,8 +237,8 @@ squareContainer content =
         [ content ]
 
 
-viewCells : Speed -> Cells -> Html Msg
-viewCells speed cells =
+viewCells : Time -> Cells -> Html Msg
+viewCells transitionDuration cells =
     div
         [ css
             [ displayFlex
@@ -247,13 +251,13 @@ viewCells speed cells =
             ]
         ]
         (cells
-            |> Matrix.coordinateMap (viewCell speed (cellSize cells))
+            |> Matrix.coordinateMap (viewCell transitionDuration (cellSize cells))
             |> Matrix.toList
         )
 
 
-viewCell : Speed -> Percentage -> Coordinate -> Cell -> Html Msg
-viewCell speed size coordinate cell =
+viewCell : Time -> Percentage -> Coordinate -> Cell -> Html Msg
+viewCell transitionDuration size coordinate cell =
     div
         [ css
             [ width (pct size)
@@ -265,11 +269,11 @@ viewCell speed size coordinate cell =
         , onMouseDown (Toggle coordinate)
         , onMouseEnter (MouseOver coordinate)
         ]
-        [ viewCellContent speed cell coordinate ]
+        [ viewCellContent transitionDuration cell coordinate ]
 
 
-viewCellContent : Speed -> Cell -> Coordinate -> Html msg
-viewCellContent speed cell coordinate =
+viewCellContent : Time -> Cell -> Coordinate -> Html msg
+viewCellContent transitionDuration cell coordinate =
     div
         [ css
             [ width (pct (cellContentSize cell))
@@ -277,17 +281,17 @@ viewCellContent speed cell coordinate =
             , backgroundColor (cellColor cell coordinate)
             , borderRadius (pct 30)
             , transition
-                [ Transitions.backgroundColor3 (transitionDuration speed) 0 easeInOut
-                , Transitions.width (transitionDuration speed)
-                , Transitions.height (transitionDuration speed)
+                [ Transitions.backgroundColor3 transitionDuration 0 easeInOut
+                , Transitions.width transitionDuration
+                , Transitions.height transitionDuration
                 ]
             ]
         ]
         []
 
 
-transitionDuration : Speed -> Time
-transitionDuration speed =
+getTransitionDuration : Speed -> Time
+getTransitionDuration speed =
     (tickInterval speed) + 200 * millisecond
 
 

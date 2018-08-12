@@ -87,9 +87,9 @@ lineConfiguration =
 
 type Msg
     = Tick
-    | Toggle Coordinate
     | Play
     | Pause
+    | Click Coordinate
     | MouseDown
     | MouseUp
     | MouseOver Coordinate
@@ -113,7 +113,7 @@ update msg model =
                 |> pauseIfFinished
                 |> noCmd
 
-        Toggle coordinate ->
+        Click coordinate ->
             { model | cells = toggleCoordinate coordinate model.cells }
                 |> noCmd
 
@@ -286,7 +286,7 @@ viewCell transitionDuration size coordinate cell =
             , justifyContent center
             , alignItems center
             ]
-        , onMouseDown (Toggle coordinate)
+        , onMouseDown (Click coordinate)
         , onMouseEnter (MouseOver coordinate)
         ]
         [ viewCellContent transitionDuration cell coordinate ]
@@ -448,11 +448,11 @@ subscriptions { status, speed } =
 
                 Paused ->
                     Sub.none
+
+        keyDowns =
+            Keyboard.downs (Char.fromCode >> KeyDown)
     in
-        Sub.batch
-            [ Keyboard.downs (Char.fromCode >> KeyDown)
-            , ticks
-            ]
+        Sub.batch [ ticks, keyDowns ]
 
 
 

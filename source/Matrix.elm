@@ -117,12 +117,9 @@ equals (Matrix _ a) (Matrix _ b) =
     a == b
 
 
-toList : Matrix a -> List ( Coordinate, a )
-toList (Matrix dimensions array) =
-    array
-        |> Array.indexedMap (,)
-        |> Array.map (Tuple.mapFirst (toCoordinate dimensions))
-        |> Array.toList
+toList : Matrix a -> List a
+toList (Matrix _ array) =
+    Array.toList array
 
 
 neighbours : Matrix a -> Coordinate -> List a

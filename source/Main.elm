@@ -157,12 +157,20 @@ toggleCell cell =
 
 view : Model -> Html Msg
 view { cells, status } =
-    div [ css [ displayFlex, justifyContent center, alignItems center ] ]
-        [ viewCells cells, viewStatusButton status cells ]
+    div
+        [ css
+            [ displayFlex
+            , justifyContent center
+            , alignItems center
+            ]
+        ]
+        [ squareContainer (viewCells cells)
+        , viewStatusButton status cells
+        ]
 
 
-viewCells : Cells -> Html Msg
-viewCells cells =
+squareContainer : Html msg -> Html msg
+squareContainer content =
     div
         [ css
             [ position relative
@@ -174,29 +182,35 @@ viewCells cells =
                 ]
             ]
         ]
-        [ div
-            [ css
-                [ displayFlex
-                , alignItems center
-                , justifyContent center
-                , flexWrap wrap
-                , position absolute
-                , width (pct 100)
-                , height (pct 100)
-                ]
-            ]
-            (Matrix.toList cells |> List.map (viewCell (cellSize cells)))
-        ]
+        [ content ]
 
 
-viewCell : Float -> ( Coordinate, Cell ) -> Html Msg
-viewCell size ( coordinate, cell ) =
+viewCells : Cells -> Html Msg
+viewCells cells =
     div
         [ css
-            [ height (pct size)
+            [ displayFlex
+            , alignItems center
+            , justifyContent center
+            , flexWrap wrap
+            , position absolute
+            , width (pct 100)
+            , height (pct 100)
+            ]
+        ]
+        (cells
+            |> Matrix.coordinateMap (viewCell (cellSize cells))
+            |> Matrix.toList
+        )
+
+
+viewCell : Float -> Coordinate -> Cell -> Html Msg
+viewCell sizePercentage coordinate cell =
+    div
+        [ css
+            [ width (pct sizePercentage)
+            , height (pct sizePercentage)
             , backgroundColor (cellColor cell coordinate)
-            , displayFlex
-            , flex3 (int 0) (int 0) (pct size)
             , borderRadius (pct 50)
             , border3 (px (cellBorderSize cell)) solid Colors.white
             , boxSizing borderBox
@@ -214,7 +228,7 @@ cellBorderSize : Cell -> Float
 cellBorderSize cell =
     case cell of
         Alive ->
-            4
+            10
 
         Dead ->
             20
@@ -226,29 +240,24 @@ cellSize cells =
 
 
 cellColor : Cell -> Coordinate -> Css.Color
-cellColor cell coordinate =
+cellColor cell { x, y } =
     case cell of
         Alive ->
-            liveCellColor coordinate
+            case ( x % 2 == 0, y % 2 == 0 ) of
+                ( True, True ) ->
+                    rgba 255 171 0 0.8
+
+                ( True, False ) ->
+                    rgba 54 179 126 0.8
+
+                ( False, True ) ->
+                    rgba 0 184 217 0.8
+
+                ( False, False ) ->
+                    rgba 101 84 192 0.8
 
         Dead ->
             rgb 244 245 247
-
-
-liveCellColor : Coordinate -> Color
-liveCellColor { x, y } =
-    case ( x % 2 == 0, y % 2 == 0 ) of
-        ( True, True ) ->
-            rgba 255 171 0 0.8
-
-        ( True, False ) ->
-            rgba 54 179 126 0.8
-
-        ( False, True ) ->
-            rgba 0 184 217 0.8
-
-        ( False, False ) ->
-            rgba 101 84 192 0.8
 
 
 viewStatusButton : Status -> Cells -> Html Msg

@@ -31,7 +31,6 @@ type alias Cells =
 type alias Model =
     { status : Status
     , cells : Cells
-    , previousCells : Maybe Cells
     }
 
 
@@ -43,7 +42,6 @@ init : ( Model, Cmd Msg )
 init =
     ( { status = Paused
       , cells = lineConfiguration
-      , previousCells = Nothing
       }
     , Cmd.none
     )
@@ -90,7 +88,7 @@ update msg model =
                 |> noCmd
 
         Tick ->
-            { model | cells = updateCells model.cells, previousCells = Just model.cells }
+            { model | cells = updateCells model.cells }
                 |> pauseIfFinished
                 |> noCmd
 
@@ -133,12 +131,10 @@ countLiveNeighbours cells coordinate =
 
 
 pauseIfFinished : Model -> Model
-pauseIfFinished ({ status, cells, previousCells } as model) =
+pauseIfFinished ({ status, cells } as model) =
     case status of
         Playing ->
             if Matrix.all ((==) Dead) cells then
-                { model | status = Paused }
-            else if previousCells == Just cells then
                 { model | status = Paused }
             else
                 model

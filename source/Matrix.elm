@@ -56,15 +56,35 @@ height (Matrix dimensions _) =
 
 
 toIndex : Dimensions -> Coordinate -> Index
-toIndex { width } { x, y } =
-    (y * width) + x
+toIndex { width, height } { x, y } =
+    let
+        wrappedX =
+            wrap 0 (width - 1) x
+
+        wrappedY =
+            wrap 0 (height - 1) y
+    in
+        (wrappedY * width) + wrappedX
+
+
+wrap : Int -> Int -> Int -> Int
+wrap min max value =
+    if value < min then
+        max
+    else if value > max then
+        min
+    else
+        value
 
 
 toCoordinate : Dimensions -> Index -> Coordinate
-toCoordinate { width } index =
-    { x = index % width
-    , y = index // width
-    }
+toCoordinate { width, height } index =
+    if index < width * height then
+        { x = index % width
+        , y = index // width
+        }
+    else
+        { x = width - 1, y = height - 1 }
 
 
 get : Coordinate -> Matrix a -> Maybe a

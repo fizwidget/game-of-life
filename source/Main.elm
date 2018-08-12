@@ -7,7 +7,7 @@ import Html.Styled.Attributes exposing (css, class)
 import Css exposing (..)
 import Css.Colors as Colors
 import Css.Transitions exposing (easeInOut, transition)
-import Time as Time exposing (millisecond)
+import Time as Time exposing (Time, millisecond)
 import Matrix as Matrix exposing (Matrix, Coordinate)
 
 
@@ -204,39 +204,61 @@ viewCells cells =
         )
 
 
-viewCell : Float -> Coordinate -> Cell -> Html Msg
-viewCell sizePercentage coordinate cell =
+viewCell : Percentage -> Coordinate -> Cell -> Html Msg
+viewCell size coordinate cell =
     div
         [ css
-            [ width (pct sizePercentage)
-            , height (pct sizePercentage)
+            [ width (pct size)
+            , height (pct size)
+            , displayFlex
+            , justifyContent center
+            , alignItems center
+            ]
+        , onClick (Toggle coordinate)
+        ]
+        [ viewCellContent cell coordinate ]
+
+
+viewCellContent : Cell -> Coordinate -> Html msg
+viewCellContent cell coordinate =
+    div
+        [ css
+            [ width (pct (cellContentSize cell))
+            , height (pct (cellContentSize cell))
             , backgroundColor (cellColor cell coordinate)
             , borderRadius (pct 50)
-            , border3 (px (cellBorderSize cell)) solid Colors.white
-            , boxSizing borderBox
             , transition
-                [ Css.Transitions.backgroundColor3 550 0 easeInOut
-                , Css.Transitions.borderWidth 550
+                [ Css.Transitions.backgroundColor3 transitionDuration 0 easeInOut
+                , Css.Transitions.width transitionDuration
+                , Css.Transitions.height transitionDuration
                 ]
             ]
-        , (onClick (Toggle coordinate))
         ]
         []
 
 
-cellBorderSize : Cell -> Float
-cellBorderSize cell =
+transitionDuration : Time
+transitionDuration =
+    550 * millisecond
+
+
+cellContentSize : Cell -> Percentage
+cellContentSize cell =
     case cell of
         Alive ->
-            10
+            70
 
         Dead ->
-            20
+            40
 
 
-cellSize : Cells -> Float
+cellSize : Cells -> Percentage
 cellSize cells =
     100.0 / toFloat (Matrix.height cells)
+
+
+type alias Percentage =
+    Float
 
 
 cellColor : Cell -> Coordinate -> Css.Color

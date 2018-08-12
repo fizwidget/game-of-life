@@ -7,6 +7,8 @@ import Html.Styled.Attributes exposing (css)
 import Css exposing (..)
 import Css.Colors as Colors
 import Css.Transitions as Transitions exposing (easeInOut, transition)
+import Keyboard as Keyboard exposing (KeyCode)
+import Char
 import Time as Time exposing (Time, millisecond)
 import Matrix as Matrix exposing (Matrix, Coordinate)
 
@@ -91,6 +93,7 @@ type Msg
     | MouseDown
     | MouseUp
     | MouseOver Coordinate
+    | KeyDown KeyCode
     | SetSpeed Speed
 
 
@@ -125,11 +128,18 @@ update msg model =
         MouseOver coordinate ->
             case model.mouse of
                 Up ->
-                    model |> noCmd
+                    noCmd model
 
                 Down ->
                     { model | cells = toggleCoordinate coordinate model.cells }
                         |> noCmd
+
+        KeyDown keyCode ->
+            if Char.fromCode keyCode == 'P' then
+                { model | status = toggleStatus model.status }
+                    |> noCmd
+            else
+                noCmd model
 
         SetSpeed speed ->
             { model | speed = speed }
@@ -139,6 +149,16 @@ update msg model =
 noCmd : Model -> ( Model, Cmd Msg )
 noCmd model =
     ( model, Cmd.none )
+
+
+toggleStatus : Status -> Status
+toggleStatus status =
+    case status of
+        Playing ->
+            Paused
+
+        Paused ->
+            Playing
 
 
 updateCells : Cells -> Cells
@@ -420,12 +440,16 @@ tickInterval speed =
 
 subscriptions : Model -> Sub Msg
 subscriptions { status, speed } =
-    case status of
-        Playing ->
-            Time.every (tickInterval speed) (always Tick)
+    let
+        ticks =
+            case status of
+                Playing ->
+                    Time.every (tickInterval speed) (always Tick)
 
-        Paused ->
-            Sub.none
+                Paused ->
+                    Sub.none
+    in
+        Sub.batch [ Keyboard.downs KeyDown, ticks ]
 
 
 

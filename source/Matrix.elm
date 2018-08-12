@@ -68,8 +68,8 @@ toCoordinate { width } index =
     }
 
 
-get : Matrix a -> Coordinate -> Maybe a
-get (Matrix dimensions array) coordinate =
+get : Coordinate -> Matrix a -> Maybe a
+get coordinate (Matrix dimensions array) =
     Array.get (toIndex dimensions coordinate) array
 
 
@@ -79,12 +79,12 @@ set coordinate value (Matrix dimensions array) =
         |> Matrix dimensions
 
 
-update : Coordinate -> Matrix a -> (a -> a) -> Matrix a
-update coordinate matrix f =
-    coordinate
-        |> get matrix
+update : (a -> a) -> Coordinate -> Matrix a -> Matrix a
+update f coordinate matrix =
+    matrix
+        |> get coordinate
         |> Maybe.map f
-        |> Maybe.map (\newValue -> set coordinate newValue matrix)
+        |> Maybe.map (\value -> set coordinate value matrix)
         |> Maybe.withDefault matrix
 
 
@@ -120,15 +120,16 @@ equals (Matrix _ a) (Matrix _ b) =
 toList : Matrix a -> List ( Coordinate, a )
 toList (Matrix dimensions array) =
     array
-        |> Array.indexedMap (\index -> \value -> ( toCoordinate dimensions index, value ))
+        |> Array.indexedMap (,)
+        |> Array.map (Tuple.mapFirst (toCoordinate dimensions))
         |> Array.toList
 
 
-neighbours : Coordinate -> Matrix a -> List a
-neighbours coordinate matrix =
+neighbours : Matrix a -> Coordinate -> List a
+neighbours matrix coordinate =
     [ ( 1, 1 ), ( 1, 0 ), ( 1, -1 ), ( 0, -1 ), ( -1, -1 ), ( -1, 0 ), ( -1, 1 ), ( 0, 1 ) ]
         |> List.map (offsetBy coordinate)
-        |> List.filterMap (get matrix)
+        |> List.filterMap ((flip get) matrix)
 
 
 offsetBy : Coordinate -> ( Int, Int ) -> Coordinate

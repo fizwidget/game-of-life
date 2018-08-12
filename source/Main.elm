@@ -77,7 +77,7 @@ update msg model =
                 |> noCmd
 
         Toggle coordinate ->
-            { model | cells = toggleCoordinate model.cells coordinate }
+            { model | cells = toggleCoordinate coordinate model.cells }
                 |> noCmd
 
 
@@ -109,7 +109,7 @@ updateCell cells coordinate cell =
 
 countLiveNeighbours : Cells -> Coordinate -> Int
 countLiveNeighbours cells coordinate =
-    Matrix.neighbours coordinate cells
+    Matrix.neighbours cells coordinate
         |> List.filter ((==) Alive)
         |> List.length
 
@@ -120,7 +120,7 @@ pauseIfFinished ({ status, cells, previousCells } as model) =
         Playing ->
             if Matrix.all ((==) Dead) cells then
                 { model | status = Paused }
-            else if hasReachedEquilibrium cells previousCells then
+            else if isEquilibrium cells previousCells then
                 { model | status = Paused }
             else
                 model
@@ -129,16 +129,16 @@ pauseIfFinished ({ status, cells, previousCells } as model) =
             model
 
 
-hasReachedEquilibrium : Cells -> Maybe Cells -> Bool
-hasReachedEquilibrium cells previousCells =
+isEquilibrium : Cells -> Maybe Cells -> Bool
+isEquilibrium cells previousCells =
     previousCells
         |> Maybe.map (Matrix.equals cells)
         |> Maybe.withDefault False
 
 
-toggleCoordinate : Cells -> Coordinate -> Cells
-toggleCoordinate cells coordinate =
-    Matrix.update coordinate cells toggleCell
+toggleCoordinate : Coordinate -> Cells -> Cells
+toggleCoordinate coordinate cells =
+    Matrix.update toggleCell coordinate cells
 
 
 toggleCell : Cell -> Cell

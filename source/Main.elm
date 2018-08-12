@@ -1,7 +1,7 @@
 module Main exposing (main)
 
 import Html
-import Html.Styled.Events exposing (onClick)
+import Html.Styled.Events exposing (onClick, onMouseDown, onMouseUp, onMouseEnter)
 import Html.Styled exposing (Html, toUnstyled, div, button, text)
 import Html.Styled.Attributes exposing (css)
 import Css exposing (..)
@@ -19,6 +19,16 @@ type Status
     | Playing
 
 
+type Mouse
+    = Up
+    | Down
+
+
+type Speed
+    = Slow
+    | Fast
+
+
 type Cell
     = Alive
     | Dead
@@ -31,6 +41,8 @@ type alias Cells =
 type alias Model =
     { status : Status
     , cells : Cells
+    , mouse : Mouse
+    , speed : Speed
     }
 
 
@@ -41,7 +53,9 @@ type alias Model =
 init : ( Model, Cmd Msg )
 init =
     ( { status = Paused
-      , cells = lineConfiguration
+      , cells = emptyConfiguration
+      , mouse = Up
+      , speed = Slow
       }
     , Cmd.none
     )
@@ -74,6 +88,10 @@ type Msg
     | Toggle Coordinate
     | Play
     | Pause
+    | MouseDown
+    | MouseUp
+    | MouseOver Coordinate
+    | SetSpeed Speed
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -94,6 +112,27 @@ update msg model =
 
         Toggle coordinate ->
             { model | cells = toggleCoordinate coordinate model.cells }
+                |> noCmd
+
+        MouseDown ->
+            { model | mouse = Down }
+                |> noCmd
+
+        MouseUp ->
+            { model | mouse = Up }
+                |> noCmd
+
+        MouseOver coordinate ->
+            case model.mouse of
+                Up ->
+                    model |> noCmd
+
+                Down ->
+                    { model | cells = toggleCoordinate coordinate model.cells }
+                        |> noCmd
+
+        SetSpeed speed ->
+            { model | speed = speed }
                 |> noCmd
 
 
@@ -163,16 +202,18 @@ toggleCell cell =
 
 
 view : Model -> Html Msg
-view { cells, status } =
+view { cells, status, speed } =
     div
         [ css
             [ displayFlex
             , justifyContent center
             , alignItems center
             ]
+        , onMouseDown MouseDown
+        , onMouseUp MouseUp
         ]
-        [ squareContainer (viewCells cells)
-        , viewStatusButton status cells
+        [ squareContainer (viewCells speed cells)
+        , viewControls status speed cells
         ]
 
 
@@ -192,8 +233,8 @@ squareContainer content =
         [ content ]
 
 
-viewCells : Cells -> Html Msg
-viewCells cells =
+viewCells : Speed -> Cells -> Html Msg
+viewCells speed cells =
     div
         [ css
             [ displayFlex
@@ -206,13 +247,13 @@ viewCells cells =
             ]
         ]
         (cells
-            |> Matrix.coordinateMap (viewCell (cellSize cells))
+            |> Matrix.coordinateMap (viewCell speed (cellSize cells))
             |> Matrix.toList
         )
 
 
-viewCell : Percentage -> Coordinate -> Cell -> Html Msg
-viewCell size coordinate cell =
+viewCell : Speed -> Percentage -> Coordinate -> Cell -> Html Msg
+viewCell speed size coordinate cell =
     div
         [ css
             [ width (pct size)
@@ -221,13 +262,14 @@ viewCell size coordinate cell =
             , justifyContent center
             , alignItems center
             ]
-        , onClick (Toggle coordinate)
+        , onMouseDown (Toggle coordinate)
+        , onMouseEnter (MouseOver coordinate)
         ]
-        [ viewCellContent cell coordinate ]
+        [ viewCellContent speed cell coordinate ]
 
 
-viewCellContent : Cell -> Coordinate -> Html msg
-viewCellContent cell coordinate =
+viewCellContent : Speed -> Cell -> Coordinate -> Html msg
+viewCellContent speed cell coordinate =
     div
         [ css
             [ width (pct (cellContentSize cell))
@@ -235,18 +277,18 @@ viewCellContent cell coordinate =
             , backgroundColor (cellColor cell coordinate)
             , borderRadius (pct 30)
             , transition
-                [ Transitions.backgroundColor3 transitionDuration 0 easeInOut
-                , Transitions.width transitionDuration
-                , Transitions.height transitionDuration
+                [ Transitions.backgroundColor3 (transitionDuration speed) 0 easeInOut
+                , Transitions.width (transitionDuration speed)
+                , Transitions.height (transitionDuration speed)
                 ]
             ]
         ]
         []
 
 
-transitionDuration : Time
-transitionDuration =
-    tickInterval + 200 * millisecond
+transitionDuration : Speed -> Time
+transitionDuration speed =
+    (tickInterval speed) + 200 * millisecond
 
 
 cellSize : Cells -> Percentage
@@ -289,29 +331,62 @@ cellColor cell { x, y } =
             rgb 244 245 247
 
 
+viewControls : Status -> Speed -> Cells -> Html Msg
+viewControls status speed cells =
+    div
+        [ css
+            [ position fixed
+            , left (px 20)
+            , bottom (px 20)
+            ]
+        ]
+        [ viewStatusButton status cells
+        , viewSpeedButton status speed
+        ]
+
+
 viewStatusButton : Status -> Cells -> Html Msg
 viewStatusButton status cells =
     if Matrix.all ((==) Dead) cells then
-        div [] []
+        blank
     else
         case status of
             Playing ->
-                viewButton "Pause" Pause (backgroundColor (rgba 179 186 197 0.6) :: statusButtonStyles)
+                viewButton "Pause" Pause []
 
             Paused ->
-                viewButton "Play" Play (backgroundColor (rgba 54 179 126 0.9) :: statusButtonStyles)
+                viewButton "Play" Play [ backgroundColor (rgba 54 179 126 0.9) ]
 
 
-statusButtonStyles : List Style
-statusButtonStyles =
-    [ position fixed
-    , width (px 100)
+viewSpeedButton : Status -> Speed -> Html Msg
+viewSpeedButton status speed =
+    case ( status, speed ) of
+        ( Playing, Slow ) ->
+            viewButton "Faster" (SetSpeed Fast) []
+
+        ( Playing, Fast ) ->
+            viewButton "Slower" (SetSpeed Slow) []
+
+        _ ->
+            blank
+
+
+viewButton : String -> Msg -> List Style -> Html Msg
+viewButton description clickMsg styles =
+    button
+        [ onClick clickMsg, css (buttonStyles ++ styles) ]
+        [ text description ]
+
+
+buttonStyles : List Style
+buttonStyles =
+    [ width (px 100)
     , height (px 40)
-    , left (px 20)
-    , bottom (px 20)
+    , margin (px 5)
     , border2 (px 0) none
     , borderRadius (px 15)
     , color Colors.white
+    , backgroundColor (rgba 179 186 197 0.6)
     , fontSize (px 20)
     , transition
         [ Transitions.backgroundColor3 200 0 easeInOut
@@ -320,27 +395,30 @@ statusButtonStyles =
     ]
 
 
-viewButton : String -> Msg -> List Style -> Html Msg
-viewButton description clickMsg styles =
-    button
-        [ onClick clickMsg, css styles ]
-        [ text description ]
+blank : Html msg
+blank =
+    div [] []
 
 
 
 -- SUBSCRIPTIONS
 
 
-tickInterval : Time
-tickInterval =
-    600 * millisecond
+tickInterval : Speed -> Time
+tickInterval speed =
+    case speed of
+        Slow ->
+            600 * millisecond
+
+        Fast ->
+            300 * millisecond
 
 
 subscriptions : Model -> Sub Msg
-subscriptions { status } =
+subscriptions { status, speed } =
     case status of
         Playing ->
-            Time.every tickInterval (always Tick)
+            Time.every (tickInterval speed) (always Tick)
 
         Paused ->
             Sub.none

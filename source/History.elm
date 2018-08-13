@@ -5,6 +5,7 @@ module History
         , now
         , record
         , undo
+        , didChange
         )
 
 
@@ -22,8 +23,8 @@ now (History current _) =
     current
 
 
-record : History a -> (a -> a) -> History a
-record (History current previous) f =
+record : (a -> a) -> History a -> History a
+record f (History current previous) =
     History (f current) (current :: previous)
 
 
@@ -35,3 +36,10 @@ undo (History current previous) =
 
         [] ->
             History current previous
+
+
+didChange : History a -> Bool
+didChange (History current previous) =
+    List.head previous
+        |> Maybe.map ((/=) current)
+        |> Maybe.withDefault True

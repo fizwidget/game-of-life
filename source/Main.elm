@@ -85,7 +85,7 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg ({ status, mouse, cells } as model) =
     case msg of
         Play ->
             { model | status = Playing }
@@ -96,15 +96,12 @@ update msg model =
                 |> noCmd
 
         Tick ->
-            { model | cells = History.advance model.cells updateCells }
+            { model | cells = History.record cells updateCells }
                 |> pauseIfFinished
                 |> noCmd
 
         MouseDown coordinate ->
-            { model
-                | mouse = Down
-                , cells = History.advance model.cells (toggleCoordinate coordinate)
-            }
+            { model | mouse = Down, cells = History.record cells (toggleCoordinate coordinate) }
                 |> noCmd
 
         MouseUp ->
@@ -112,12 +109,12 @@ update msg model =
                 |> noCmd
 
         MouseOver coordinate ->
-            case model.mouse of
+            case mouse of
                 Up ->
                     noCmd model
 
                 Down ->
-                    { model | cells = History.advance model.cells (toggleCoordinate coordinate) }
+                    { model | cells = History.record cells (toggleCoordinate coordinate) }
                         |> noCmd
 
         KeyDown key ->
@@ -135,7 +132,7 @@ noCmd model =
 
 
 onKeyDown : KeyCode -> Model -> Model
-onKeyDown keyCode model =
+onKeyDown keyCode ({ cells, status } as model) =
     let
         leftKey =
             37
@@ -144,12 +141,11 @@ onKeyDown keyCode model =
             39
     in
         if keyCode == Char.toCode 'P' then
-            { model | status = toggleStatus model.status }
+            { model | status = toggleStatus status }
         else if keyCode == rightKey then
-            { model | cells = History.advance model.cells updateCells }
-                |> pauseIfFinished
+            { model | status = Paused, cells = History.record cells updateCells }
         else if keyCode == leftKey then
-            { model | status = Paused, cells = History.undo model.cells }
+            { model | status = Paused, cells = History.undo cells }
         else
             model
 
@@ -196,7 +192,7 @@ pauseIfFinished : Model -> Model
 pauseIfFinished ({ status, cells } as model) =
     case status of
         Playing ->
-            if Matrix.all ((==) Dead) (History.current cells) then
+            if Matrix.all ((==) Dead) (History.now cells) then
                 { model | status = Paused }
             else
                 model
@@ -228,7 +224,7 @@ view : Model -> Html Msg
 view { cells, status, speed } =
     let
         currentCells =
-            History.current cells
+            History.now cells
 
         transitionDuration =
             getTransitionDuration speed

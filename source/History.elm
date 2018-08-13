@@ -2,8 +2,7 @@ module History
     exposing
         ( History
         , begin
-        , current
-        , advance
+        , now
         , record
         , undo
         )
@@ -18,26 +17,21 @@ begin current =
     History current []
 
 
-current : History a -> a
-current (History current _) =
+now : History a -> a
+now (History current _) =
     current
 
 
-advance : History a -> (a -> a) -> History a
-advance history f =
-    record ((current >> f) history) history
-
-
-record : a -> History a -> History a
-record value (History current previous) =
-    History value (current :: previous)
+record : History a -> (a -> a) -> History a
+record (History current previous) f =
+    History (f current) (current :: previous)
 
 
 undo : History a -> History a
 undo (History current previous) =
     case previous of
-        value :: rest ->
-            History value (rest)
+        head :: tail ->
+            History head tail
 
         [] ->
             History current previous

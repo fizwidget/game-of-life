@@ -150,6 +150,19 @@ noCmd model =
     ( model, Cmd.none )
 
 
+pauseWhenSettled : Model -> Model
+pauseWhenSettled ({ status, cells } as model) =
+    case status of
+        Playing ->
+            if History.didChange cells then
+                model
+            else
+                { model | status = Paused }
+
+        Paused ->
+            model
+
+
 toggleStatus : Status -> Status
 toggleStatus status =
     case status of
@@ -186,19 +199,6 @@ liveNeighbours cells coordinate =
     Matrix.neighbours cells coordinate
         |> List.filter ((==) Alive)
         |> List.length
-
-
-pauseWhenSettled : Model -> Model
-pauseWhenSettled ({ status, cells } as model) =
-    case status of
-        Playing ->
-            if History.didChange cells then
-                model
-            else
-                { model | status = Paused }
-
-        Paused ->
-            model
 
 
 toggleCoordinate : Coordinate -> Cells -> Cells

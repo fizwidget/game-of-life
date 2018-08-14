@@ -96,7 +96,7 @@ update msg ({ status, mouse, cells } as model) =
                 |> noCmd
 
         Tick ->
-            { model | cells = History.record updateCells cells }
+            { model | cells = History.record nextGeneration cells }
                 |> pauseWhenSettled
                 |> noCmd
 
@@ -105,7 +105,10 @@ update msg ({ status, mouse, cells } as model) =
                 |> noCmd
 
         MouseDown coordinate ->
-            { model | mouse = Down, cells = History.record (toggleCoordinate coordinate) cells }
+            { model
+                | mouse = Down
+                , cells = History.record (toggleCell coordinate) cells
+            }
                 |> noCmd
 
         MouseUp ->
@@ -118,7 +121,7 @@ update msg ({ status, mouse, cells } as model) =
                     noCmd model
 
                 Down ->
-                    { model | cells = History.record (toggleCoordinate coordinate) cells }
+                    { model | cells = History.record (toggleCell coordinate) cells }
                         |> noCmd
 
         KeyDown keyCode ->
@@ -126,10 +129,16 @@ update msg ({ status, mouse, cells } as model) =
                 { model | status = toggleStatus status }
                     |> noCmd
             else if keyCode == rightKey then
-                { model | status = Paused, cells = History.record updateCells cells }
+                { model
+                    | status = Paused
+                    , cells = History.record nextGeneration cells
+                }
                     |> noCmd
             else if keyCode == leftKey then
-                { model | status = Paused, cells = History.undo cells }
+                { model
+                    | status = Paused
+                    , cells = History.undo cells
+                }
                     |> noCmd
             else
                 noCmd model
@@ -173,8 +182,8 @@ toggleStatus status =
             Playing
 
 
-updateCells : Cells -> Cells
-updateCells cells =
+nextGeneration : Cells -> Cells
+nextGeneration cells =
     Matrix.coordinateMap (updateCell cells) cells
 
 
@@ -201,19 +210,18 @@ liveNeighbours cells coordinate =
         |> List.length
 
 
-toggleCoordinate : Coordinate -> Cells -> Cells
-toggleCoordinate coordinate cells =
-    Matrix.update toggleCell coordinate cells
+toggleCell : Coordinate -> Cells -> Cells
+toggleCell coordinate cells =
+    let
+        toggle cell =
+            case cell of
+                Alive ->
+                    Dead
 
-
-toggleCell : Cell -> Cell
-toggleCell cell =
-    case cell of
-        Alive ->
-            Dead
-
-        Dead ->
-            Alive
+                Dead ->
+                    Alive
+    in
+        Matrix.update toggle coordinate cells
 
 
 
@@ -392,7 +400,7 @@ viewSpeedButton status speed =
         ( Playing, Fast ) ->
             viewButton "Slower" (SetSpeed Slow) []
 
-        _ ->
+        ( Paused, _ ) ->
             blank
 
 

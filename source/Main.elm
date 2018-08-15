@@ -125,23 +125,26 @@ update msg ({ status, mouse, cells } as model) =
                         |> noCmd
 
         KeyDown keyCode ->
-            if keyCode == Char.toCode 'P' then
-                { model | status = toggleStatus status }
-                    |> noCmd
-            else if keyCode == rightKey then
-                { model
-                    | status = Paused
-                    , cells = History.redo cells |> Maybe.withDefault (History.record nextGeneration cells)
-                }
-                    |> noCmd
-            else if keyCode == leftKey then
-                { model
-                    | status = Paused
-                    , cells = History.undo cells
-                }
-                    |> noCmd
-            else
-                noCmd model
+            onKeyDown keyCode model
+                |> noCmd
+
+
+onKeyDown : KeyCode -> Model -> Model
+onKeyDown keyCode ({ status, cells } as model) =
+    if keyCode == Char.toCode 'P' then
+        { model | status = toggleStatus status }
+    else if keyCode == rightKey then
+        { model
+            | status = Paused
+            , cells = History.redo cells |> Maybe.withDefault (History.record nextGeneration cells)
+        }
+    else if keyCode == leftKey then
+        { model
+            | status = Paused
+            , cells = History.undo cells
+        }
+    else
+        model
 
 
 stepForward : History Cells -> History Cells

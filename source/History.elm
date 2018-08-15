@@ -5,41 +5,52 @@ module History
         , now
         , record
         , undo
+        , redo
         , didChange
         )
 
 
 type History a
-    = History a (List a)
+    = History (List a) a (List a)
 
 
 begin : a -> History a
-begin current =
-    History current []
+begin present =
+    History [] present []
 
 
 now : History a -> a
-now (History current _) =
-    current
+now (History _ present _) =
+    present
 
 
 record : (a -> a) -> History a -> History a
-record f (History current previous) =
-    History (f current) (current :: previous)
+record step (History _ present past) =
+    History [] (step present) (present :: past)
 
 
 undo : History a -> History a
-undo (History current previous) =
-    case previous of
+undo (History future present past) =
+    case past of
         head :: tail ->
-            History head tail
+            History (present :: future) head tail
 
         [] ->
-            History current previous
+            History future present past
+
+
+redo : History a -> Maybe (History a)
+redo (History future present past) =
+    case future of
+        head :: tail ->
+            Just <| History tail head (present :: past)
+
+        [] ->
+            Nothing
 
 
 didChange : History a -> Bool
-didChange (History current previous) =
-    List.head previous
-        |> Maybe.map ((/=) current)
+didChange (History _ present past) =
+    List.head past
+        |> Maybe.map ((/=) present)
         |> Maybe.withDefault True

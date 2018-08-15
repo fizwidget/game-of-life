@@ -131,7 +131,7 @@ update msg ({ status, mouse, cells } as model) =
             else if keyCode == rightKey then
                 { model
                     | status = Paused
-                    , cells = History.record nextGeneration cells
+                    , cells = History.redo cells |> Maybe.withDefault (History.record nextGeneration cells)
                 }
                     |> noCmd
             else if keyCode == leftKey then
@@ -142,6 +142,13 @@ update msg ({ status, mouse, cells } as model) =
                     |> noCmd
             else
                 noCmd model
+
+
+stepForward : History Cells -> History Cells
+stepForward cells =
+    cells
+        |> History.redo
+        |> Maybe.withDefault (History.record nextGeneration cells)
 
 
 leftKey : KeyCode

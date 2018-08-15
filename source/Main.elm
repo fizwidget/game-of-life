@@ -55,13 +55,12 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { status = Paused
-      , cells = History.begin initialCells
-      , mouse = Up
-      , speed = Slow
-      }
-    , Cmd.none
-    )
+    { status = Paused
+    , cells = History.begin initialCells
+    , mouse = Up
+    , speed = Slow
+    }
+        |> noCmd
 
 
 initialCells : Cells
@@ -133,34 +132,34 @@ onKeyDown : KeyCode -> Model -> Model
 onKeyDown keyCode ({ status, cells } as model) =
     if keyCode == Char.toCode 'P' then
         { model | status = toggleStatus status }
-    else if keyCode == rightKey then
-        { model
-            | status = Paused
-            , cells = History.redo cells |> Maybe.withDefault (History.record nextGeneration cells)
-        }
-    else if keyCode == leftKey then
+    else if keyCode == leftArrow then
         { model
             | status = Paused
             , cells = History.undo cells
+        }
+    else if keyCode == rightArrow then
+        { model
+            | status = Paused
+            , cells = redoOrNextGeneration cells
         }
     else
         model
 
 
-stepForward : History Cells -> History Cells
-stepForward cells =
+redoOrNextGeneration : History Cells -> History Cells
+redoOrNextGeneration cells =
     cells
         |> History.redo
         |> Maybe.withDefault (History.record nextGeneration cells)
 
 
-leftKey : KeyCode
-leftKey =
+leftArrow : KeyCode
+leftArrow =
     37
 
 
-rightKey : KeyCode
-rightKey =
+rightArrow : KeyCode
+rightArrow =
     39
 
 

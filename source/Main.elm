@@ -140,32 +140,13 @@ onKeyDown keyCode ({ status, cells } as model) =
     else if keyCode == rightArrow then
         { model
             | status = Paused
-            , cells = redoOrNextGeneration cells
+            , cells =
+                cells
+                    |> History.redo
+                    |> Maybe.withDefault (History.record nextGeneration cells)
         }
     else
         model
-
-
-redoOrNextGeneration : History Cells -> History Cells
-redoOrNextGeneration cells =
-    cells
-        |> History.redo
-        |> Maybe.withDefault (History.record nextGeneration cells)
-
-
-leftArrow : KeyCode
-leftArrow =
-    37
-
-
-rightArrow : KeyCode
-rightArrow =
-    39
-
-
-noCmd : Model -> ( Model, Cmd Msg )
-noCmd model =
-    ( model, Cmd.none )
 
 
 pauseWhenSettled : Model -> Model
@@ -471,6 +452,25 @@ subscriptions { status, speed } =
             Keyboard.downs KeyDown
     in
         Sub.batch [ ticks, keyDowns ]
+
+
+
+-- UTIL
+
+
+leftArrow : KeyCode
+leftArrow =
+    37
+
+
+rightArrow : KeyCode
+rightArrow =
+    39
+
+
+noCmd : Model -> ( Model, Cmd Msg )
+noCmd model =
+    ( model, Cmd.none )
 
 
 

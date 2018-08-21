@@ -84,7 +84,9 @@ toCoordinate { width, height } index =
         , y = index // width
         }
     else
-        { x = width - 1, y = height - 1 }
+        { x = width - 1
+        , y = height - 1
+        }
 
 
 get : Coordinate -> Matrix a -> Maybe a

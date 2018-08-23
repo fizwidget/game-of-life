@@ -77,6 +77,8 @@ type Msg
     = Play
     | Pause
     | Tick
+    | Undo
+    | Redo
     | SetSpeed Speed
     | MouseDown Coordinate
     | MouseUp
@@ -99,8 +101,14 @@ updateModel msg ({ status, mouse, cells } as model) =
             { model | status = Paused }
 
         Tick ->
-            { model | cells = History.record nextGeneration cells }
+            { model | cells = History.record step cells }
                 |> pauseIfSettled
+
+        Undo ->
+            undo model
+
+        Redo ->
+            redo model
 
         SetSpeed speed ->
             { model | speed = speed }
@@ -145,7 +153,7 @@ redo : Model -> Model
 redo ({ cells } as model) =
     { model
         | status = Paused
-        , cells = History.redo cells |> Maybe.withDefault (History.record nextGeneration cells)
+        , cells = History.redo cells |> Maybe.withDefault (History.record step cells)
     }
 
 
@@ -167,8 +175,8 @@ pauseIfSettled ({ status, cells } as model) =
         { model | status = Paused }
 
 
-nextGeneration : Cells -> Cells
-nextGeneration cells =
+step : Cells -> Cells
+step cells =
     Matrix.coordinateMap (updateCell cells) cells
 
 
@@ -356,6 +364,21 @@ cellColor cell { x, y } =
 
 viewControls : Status -> Speed -> Cells -> Html Msg
 viewControls status speed cells =
+    div []
+        [ bottomLeft
+            [ viewStatusButton status |> ifNotBlank cells
+            , viewSpeedButton status speed
+            ]
+        , bottomRight
+            [ viewUndoButton status
+            , viewRedoButton status
+            ]
+            |> ifNotBlank cells
+        ]
+
+
+bottomLeft : List (Html msg) -> Html msg
+bottomLeft =
     div
         [ css
             [ position fixed
@@ -363,22 +386,35 @@ viewControls status speed cells =
             , bottom (px 20)
             ]
         ]
-        [ viewStatusButton status cells
-        , viewSpeedButton status speed
+
+
+bottomRight : List (Html msg) -> Html msg
+bottomRight =
+    div
+        [ css
+            [ position fixed
+            , right (px 20)
+            , bottom (px 20)
+            ]
         ]
 
 
-viewStatusButton : Status -> Cells -> Html Msg
-viewStatusButton status cells =
+ifNotBlank : Cells -> Html msg -> Html msg
+ifNotBlank cells children =
     if Matrix.all ((==) Dead) cells then
-        blank
+        div [] []
     else
-        case status of
-            Playing ->
-                viewButton "Pause" Pause []
+        children
 
-            Paused ->
-                viewButton "Play" Play [ backgroundColor (rgba 54 179 126 0.9) ]
+
+viewStatusButton : Status -> Html Msg
+viewStatusButton status =
+    case status of
+        Playing ->
+            viewButton "Pause" Pause []
+
+        Paused ->
+            viewButton "Play" Play [ backgroundColor (rgba 54 179 126 0.8) ]
 
 
 viewSpeedButton : Status -> Speed -> Html Msg
@@ -391,7 +427,27 @@ viewSpeedButton status speed =
             viewButton "Slower" (SetSpeed Slow) []
 
         ( Paused, _ ) ->
-            blank
+            div [] []
+
+
+viewUndoButton : Status -> Html Msg
+viewUndoButton status =
+    viewButton "⬅︎" Undo (undoRedoButtonStyles status)
+
+
+viewRedoButton : Status -> Html Msg
+viewRedoButton status =
+    viewButton "➡︎" Redo (undoRedoButtonStyles status)
+
+
+undoRedoButtonStyles : Status -> List Style
+undoRedoButtonStyles status =
+    case status of
+        Playing ->
+            []
+
+        Paused ->
+            [ backgroundColor <| rgba 80 95 121 0.6 ]
 
 
 viewButton : String -> Msg -> List Style -> Html Msg
@@ -416,11 +472,6 @@ buttonStyles =
         , Transitions.visibility3 200 0 easeInOut
         ]
     ]
-
-
-blank : Html msg
-blank =
-    div [] []
 
 
 

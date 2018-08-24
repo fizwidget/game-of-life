@@ -320,11 +320,7 @@ getTransitionDuration speed =
 
 cellSize : Cells -> Percentage
 cellSize cells =
-    let
-        cellHeight =
-            toFloat (Matrix.height cells)
-    in
-        100.0 / cellHeight
+    100.0 / (Matrix.height cells |> toFloat)
 
 
 cellContentSize : Cell -> Percentage

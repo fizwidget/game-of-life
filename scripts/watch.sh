@@ -1,3 +1,3 @@
 #!/bin/bash
 
-elm-live source/Main.elm --output=build/elm.js
+elm-live src/Main.elm --output=build/elm.js

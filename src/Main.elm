@@ -363,13 +363,12 @@ viewControls status speed cells =
     div []
         [ bottomLeft
             [ viewStatusButton status |> ifNotBlank cells
-            , viewSpeedButton status speed
+            , viewSpeedButton speed
             ]
         , bottomRight
             [ viewUndoButton status
             , viewRedoButton status
             ]
-            |> ifNotBlank cells
         ]
 
 
@@ -380,6 +379,8 @@ bottomLeft =
             [ position fixed
             , left (px 20)
             , bottom (px 20)
+            , displayFlex
+            , flexDirection column
             ]
         ]
 
@@ -413,37 +414,24 @@ viewStatusButton status =
             viewButton "Play" Play [ backgroundColor (rgba 54 179 126 0.8) ]
 
 
-viewSpeedButton : Status -> Speed -> Html Msg
-viewSpeedButton status speed =
-    case ( status, speed ) of
-        ( Playing, Slow ) ->
+viewSpeedButton : Speed -> Html Msg
+viewSpeedButton speed =
+    case speed of
+        Slow ->
             viewButton "Faster" (SetSpeed Fast) []
 
-        ( Playing, Fast ) ->
+        Fast ->
             viewButton "Slower" (SetSpeed Slow) []
-
-        ( Paused, _ ) ->
-            div [] []
 
 
 viewUndoButton : Status -> Html Msg
 viewUndoButton status =
-    viewButton "⬅︎" Undo (undoRedoButtonStyles status)
+    viewButton "⬅︎" Undo []
 
 
 viewRedoButton : Status -> Html Msg
 viewRedoButton status =
-    viewButton "➡︎" Redo (undoRedoButtonStyles status)
-
-
-undoRedoButtonStyles : Status -> List Style
-undoRedoButtonStyles status =
-    case status of
-        Playing ->
-            []
-
-        Paused ->
-            [ backgroundColor <| rgba 80 95 121 0.6 ]
+    viewButton "➡︎" Redo []
 
 
 viewButton : String -> Msg -> List Style -> Html Msg

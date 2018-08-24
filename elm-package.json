@@ -4,7 +4,7 @@
     "repository": "https://github.com/fizwidget/game-of-life.git",
     "license": "BSD3",
     "source-directories": [
-        "source"
+        "src"
     ],
     "exposed-modules": [],
     "dependencies": {

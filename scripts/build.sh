@@ -1,3 +1,3 @@
 #!/bin/bash
 
-elm-make --warn source/Main.elm --output build/elm.js
+elm-make --warn src/Main.elm --output build/elm.js

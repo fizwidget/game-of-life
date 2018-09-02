@@ -2,7 +2,6 @@ module Main exposing (main)
 
 import Browser exposing (Document)
 import Browser.Events as Events
-import Char
 import Css exposing (..)
 import Css.Transitions as Transitions exposing (easeInOut, transition)
 import History as History exposing (History)

@@ -1,17 +1,19 @@
 module Main exposing (main)
 
-import Html
-import Html.Styled.Events exposing (onClick, onMouseDown, onMouseUp, onMouseEnter)
-import Html.Styled exposing (Html, toUnstyled, div, button, text)
-import Html.Styled.Attributes exposing (css)
-import Css exposing (..)
-import Css.Colors as Colors
-import Css.Transitions as Transitions exposing (easeInOut, transition)
-import Keyboard as Keyboard exposing (KeyCode)
+import Browser exposing (Document)
+import Browser.Events as Events
 import Char
-import Time as Time exposing (Time, millisecond)
-import Matrix as Matrix exposing (Matrix, Coordinate)
+import Css exposing (..)
+import Css.Transitions as Transitions exposing (easeInOut, transition)
 import History as History exposing (History)
+import Html
+import Html.Styled exposing (Html, button, div, text, toUnstyled)
+import Html.Styled.Attributes exposing (css)
+import Html.Styled.Events exposing (onClick, onMouseDown, onMouseEnter, onMouseUp)
+import Json.Decode as Decode exposing (Decoder)
+import Matrix as Matrix exposing (Coordinate, Matrix)
+import Time
+
 
 
 -- MODEL
@@ -83,7 +85,14 @@ type Msg
     | MouseDown Coordinate
     | MouseUp
     | MouseOver Coordinate
-    | KeyDown KeyCode
+    | KeyDown Key
+
+
+type Key
+    = LeftKey
+    | RightKey
+    | PKey
+    | OtherKey
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -130,15 +139,19 @@ updateModel msg ({ status, mouse, cells } as model) =
                 Down ->
                     { model | cells = History.record (toggleCoordinate coordinate) cells }
 
-        KeyDown keyCode ->
-            if keyCode == leftArrow then
-                undo model
-            else if keyCode == rightArrow then
-                redo model
-            else if keyCode == Char.toCode 'P' then
-                toggleStatus model
-            else
-                model
+        KeyDown key ->
+            case key of
+                LeftKey ->
+                    undo model
+
+                RightKey ->
+                    redo model
+
+                PKey ->
+                    toggleStatus model
+
+                OtherKey ->
+                    model
 
 
 undo : Model -> Model
@@ -171,6 +184,7 @@ pauseIfSettled : Model -> Model
 pauseIfSettled ({ status, cells } as model) =
     if History.didChange cells then
         model
+
     else
         { model | status = Paused }
 
@@ -222,6 +236,13 @@ toggleCell cell =
 -- VIEW
 
 
+document : Model -> Document Msg
+document model =
+    { title = "Game of Life"
+    , body = [ view model |> toUnstyled ]
+    }
+
+
 view : Model -> Html Msg
 view { cells, status, speed } =
     let
@@ -231,16 +252,16 @@ view { cells, status, speed } =
         transitionDuration =
             getTransitionDuration speed
     in
-        div
-            [ css
-                [ displayFlex
-                , justifyContent center
-                , alignItems center
-                ]
+    div
+        [ css
+            [ displayFlex
+            , justifyContent center
+            , alignItems center
             ]
-            [ squareContainer (viewCells transitionDuration currentCells)
-            , viewControls status speed currentCells
-            ]
+        ]
+        [ squareContainer (viewCells transitionDuration currentCells)
+        , viewControls status speed currentCells
+        ]
 
 
 squareContainer : Html msg -> Html msg
@@ -259,7 +280,7 @@ squareContainer content =
         [ content ]
 
 
-viewCells : Time -> Cells -> Html Msg
+viewCells : Milliseconds -> Cells -> Html Msg
 viewCells transitionDuration cells =
     div
         [ css
@@ -278,7 +299,7 @@ viewCells transitionDuration cells =
         )
 
 
-viewCell : Time -> Percentage -> Coordinate -> Cell -> Html Msg
+viewCell : Milliseconds -> Percentage -> Coordinate -> Cell -> Html Msg
 viewCell transitionDuration size coordinate cell =
     div
         [ css
@@ -295,7 +316,7 @@ viewCell transitionDuration size coordinate cell =
         [ viewCellContent transitionDuration cell coordinate ]
 
 
-viewCellContent : Time -> Cell -> Coordinate -> Html msg
+viewCellContent : Milliseconds -> Cell -> Coordinate -> Html msg
 viewCellContent transitionDuration cell coordinate =
     div
         [ css
@@ -313,9 +334,9 @@ viewCellContent transitionDuration cell coordinate =
         []
 
 
-getTransitionDuration : Speed -> Time
+getTransitionDuration : Speed -> Milliseconds
 getTransitionDuration speed =
-    (tickInterval speed) + 200 * millisecond
+    tickInterval speed + 200
 
 
 cellSize : Cells -> Percentage
@@ -344,7 +365,7 @@ cellColor cell { x, y } =
             rgb 244 245 247
 
         Alive ->
-            case ( x % 2 == 0, y % 2 == 0 ) of
+            case ( modBy 2 x == 0, modBy 2 y == 0 ) of
                 ( True, True ) ->
                     rgba 255 171 0 0.8
 
@@ -400,6 +421,7 @@ ifNotBlank : Cells -> Html msg -> Html msg
 ifNotBlank cells children =
     if Matrix.all ((==) Dead) cells then
         div [] []
+
     else
         children
 
@@ -448,7 +470,7 @@ buttonStyles =
     , margin (px 5)
     , border2 (px 0) none
     , borderRadius (px 15)
-    , color Colors.white
+    , color (rgb 255 255 255)
     , backgroundColor (rgba 179 186 197 0.6)
     , fontSize (px 20)
     , transition
@@ -465,7 +487,7 @@ buttonStyles =
 subscriptions : Model -> Sub Msg
 subscriptions { status, speed } =
     Sub.batch
-        [ Keyboard.downs KeyDown
+        [ keyDownSubscription
         , tickSubscription status speed
         ]
 
@@ -480,39 +502,56 @@ tickSubscription status speed =
             Sub.none
 
 
-tickInterval : Speed -> Time
+tickInterval : Speed -> Milliseconds
 tickInterval speed =
     case speed of
         Slow ->
-            600 * millisecond
+            600
 
         Fast ->
-            300 * millisecond
+            300
 
 
-
--- UTIL
-
-
-leftArrow : KeyCode
-leftArrow =
-    37
+keyDownSubscription : Sub Msg
+keyDownSubscription =
+    Events.onKeyDown keyDecoder
+        |> Sub.map KeyDown
 
 
-rightArrow : KeyCode
-rightArrow =
-    39
+keyDecoder : Decoder Key
+keyDecoder =
+    Decode.field "key" Decode.string
+        |> Decode.map toKey
+
+
+toKey : String -> Key
+toKey value =
+    if value == "ArrowLeft" then
+        LeftKey
+
+    else if value == "ArrowRight" then
+        RightKey
+
+    else if value == "p" then
+        PKey
+
+    else
+        OtherKey
+
+
+type alias Milliseconds =
+    Float
 
 
 
 -- MAIN
 
 
-main : Program Never Model Msg
+main : Program () Model Msg
 main =
-    Html.program
-        { init = init
-        , view = view >> toUnstyled
+    Browser.document
+        { init = \_ -> init
+        , view = document
         , update = update
         , subscriptions = subscriptions
         }

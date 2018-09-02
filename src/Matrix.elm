@@ -1,20 +1,19 @@
-module Matrix
-    exposing
-        ( Matrix
-        , Coordinate
-        , create
-        , width
-        , height
-        , get
-        , set
-        , update
-        , map
-        , coordinateMap
-        , foldl
-        , all
-        , toList
-        , neighbours
-        )
+module Matrix exposing
+    ( Coordinate
+    , Matrix
+    , all
+    , coordinateMap
+    , create
+    , foldl
+    , get
+    , height
+    , map
+    , neighbours
+    , set
+    , toList
+    , update
+    , width
+    )
 
 import Array exposing (Array)
 
@@ -40,8 +39,8 @@ type alias Coordinate =
 
 
 create : Dimensions -> a -> Matrix a
-create ({ width, height } as dimensions) value =
-    Array.repeat (width * height) value
+create dimensions value =
+    Array.repeat (dimensions.width * dimensions.height) value
         |> Matrix dimensions
 
 
@@ -56,36 +55,39 @@ height (Matrix dimensions _) =
 
 
 toIndex : Dimensions -> Coordinate -> Index
-toIndex { width, height } { x, y } =
+toIndex dimensions { x, y } =
     let
         wrappedX =
-            wrap 0 (width - 1) x
+            wrap 0 (dimensions.width - 1) x
 
         wrappedY =
-            wrap 0 (height - 1) y
+            wrap 0 (dimensions.height - 1) y
     in
-        (wrappedY * width) + wrappedX
+    (wrappedY * dimensions.width) + wrappedX
 
 
 wrap : Int -> Int -> Int -> Int
 wrap min max value =
     if value < min then
         max
+
     else if value > max then
         min
+
     else
         value
 
 
 toCoordinate : Dimensions -> Index -> Coordinate
-toCoordinate { width, height } index =
-    if index < width * height then
-        { x = index % width
-        , y = index // width
+toCoordinate dimensions index =
+    if index < dimensions.width * dimensions.height then
+        { x = modBy dimensions.width index
+        , y = index // dimensions.width
         }
+
     else
-        { x = width - 1
-        , y = height - 1
+        { x = dimensions.width - 1
+        , y = dimensions.height - 1
         }
 
 
@@ -142,7 +144,7 @@ neighbours : Matrix a -> Coordinate -> List a
 neighbours matrix coordinate =
     [ ( 1, 1 ), ( 1, 0 ), ( 1, -1 ), ( 0, -1 ), ( -1, -1 ), ( -1, 0 ), ( -1, 1 ), ( 0, 1 ) ]
         |> List.map (offsetBy coordinate)
-        |> List.filterMap ((flip get) matrix)
+        |> List.filterMap ((\b a -> get a b) matrix)
 
 
 offsetBy : Coordinate -> ( Int, Int ) -> Coordinate

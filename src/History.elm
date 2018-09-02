@@ -1,13 +1,12 @@
-module History
-    exposing
-        ( History
-        , begin
-        , now
-        , record
-        , undo
-        , redo
-        , didChange
-        )
+module History exposing
+    ( History
+    , begin
+    , didChange
+    , now
+    , record
+    , redo
+    , undo
+    )
 
 
 type History a

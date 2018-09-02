@@ -7,6 +7,9 @@ case "$1" in
     -d|--deploy)
     ./scripts/deploy.sh;;
 
+    --debug)
+    ./scripts/debug.sh;;
+
     *)
     ./scripts/build.sh;;
 esac

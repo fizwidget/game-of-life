@@ -525,17 +525,18 @@ keyDecoder =
 
 toKey : String -> Key
 toKey value =
-    if value == "ArrowLeft" then
-        LeftKey
+    case value of
+        "ArrowLeft" ->
+            LeftKey
 
-    else if value == "ArrowRight" then
-        RightKey
+        "ArrowRight" ->
+            RightKey
 
-    else if value == "p" then
-        PKey
+        "p" ->
+            PKey
 
-    else
-        OtherKey
+        _ ->
+            OtherKey
 
 
 type alias Milliseconds =

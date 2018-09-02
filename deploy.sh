@@ -9,11 +9,11 @@ git merge master -m "Merging master"
 echo
 
 echo "- Building..."
-./build.sh
+make production
 echo
 
 echo "- Comitting new artefacts..."
-git add ./build/elm.js
+git add elm.js
 git commit -m "Updating build artefacts"
 echo
 

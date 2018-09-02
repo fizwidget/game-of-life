@@ -6,3 +6,6 @@ production:
 
 debug:
 	elm make --debug $(MAIN_FILE) --output=$(OUTPUT_FILE)
+
+deploy:
+	./scripts/deploy.sh

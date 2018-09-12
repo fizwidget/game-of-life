@@ -4,13 +4,13 @@ import Browser exposing (Document)
 import Browser.Events as Events
 import Css exposing (..)
 import Css.Transitions as Transitions exposing (easeInOut, transition)
-import History as History exposing (History)
+import History exposing (History)
 import Html
 import Html.Styled exposing (Html, button, div, text, toUnstyled)
 import Html.Styled.Attributes exposing (css)
 import Html.Styled.Events exposing (onClick, onMouseDown, onMouseEnter, onMouseUp)
 import Json.Decode as Decode exposing (Decoder)
-import Matrix as Matrix exposing (Coordinate, Matrix)
+import Matrix exposing (Coordinate, Matrix)
 import Time
 
 

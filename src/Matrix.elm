@@ -1,5 +1,6 @@
 module Matrix exposing
     ( Coordinate
+    , Dimensions
     , Matrix
     , all
     , coordinateMap
@@ -96,8 +97,8 @@ get coordinate (Matrix dimensions array) =
     Array.get (toIndex dimensions coordinate) array
 
 
-set : Coordinate -> a -> Matrix a -> Matrix a
-set coordinate value (Matrix dimensions array) =
+set : a -> Coordinate -> Matrix a -> Matrix a
+set value coordinate (Matrix dimensions array) =
     Array.set (toIndex dimensions coordinate) value array
         |> Matrix dimensions
 
@@ -107,7 +108,7 @@ update f coordinate matrix =
     matrix
         |> get coordinate
         |> Maybe.map f
-        |> Maybe.map (\value -> set coordinate value matrix)
+        |> Maybe.map (\value -> set value coordinate matrix)
         |> Maybe.withDefault matrix
 
 

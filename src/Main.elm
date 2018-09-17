@@ -2,13 +2,14 @@ module Main exposing (main)
 
 import Browser exposing (Document)
 import Browser.Events as Events
+import Cell exposing (Cell(..))
 import Css exposing (..)
 import Css.Transitions as Transitions exposing (easeInOut, transition)
 import History exposing (History)
-import Html
-import Html.Styled exposing (Html, button, div, text, toUnstyled)
+import Html.Styled as Html exposing (Html, button, div, text, toUnstyled)
 import Html.Styled.Attributes exposing (css)
 import Html.Styled.Events exposing (onClick, onMouseDown, onMouseEnter, onMouseUp)
+import Import
 import Json.Decode as Decode exposing (Decoder)
 import Matrix exposing (Coordinate, Matrix)
 import Time
@@ -33,13 +34,13 @@ type Speed
     | Fast
 
 
-type Cell
-    = Alive
-    | Dead
-
-
 type alias Cells =
     Matrix Cell
+
+
+type Importer
+    = Open Import.Model
+    | Closed
 
 
 type alias Model =
@@ -47,6 +48,7 @@ type alias Model =
     , cells : History Cells
     , mouse : Mouse
     , speed : Speed
+    , importer : Importer
     }
 
 
@@ -60,6 +62,7 @@ init =
       , cells = History.begin initialCells
       , mouse = Up
       , speed = Slow
+      , importer = Closed
       }
     , Cmd.none
     )
@@ -85,6 +88,8 @@ type Msg
     | MouseUp
     | MouseOver Coordinate
     | KeyDown Key
+    | OpenImporter
+    | ImportMsg Import.Msg
 
 
 type Key
@@ -100,7 +105,7 @@ update msg model =
 
 
 updateModel : Msg -> Model -> Model
-updateModel msg ({ status, mouse, cells } as model) =
+updateModel msg ({ status, mouse, cells, importer } as model) =
     case msg of
         Play ->
             { model | status = Playing }
@@ -150,6 +155,26 @@ updateModel msg ({ status, mouse, cells } as model) =
                     toggleStatus model
 
                 OtherKey ->
+                    model
+
+        OpenImporter ->
+            { model | importer = Open Import.init }
+
+        ImportMsg importMsg ->
+            case importer of
+                Open importerModel ->
+                    let
+                        ( updatedImporterModel, outMsg ) =
+                            Import.update importMsg importerModel
+                    in
+                    case outMsg of
+                        Import.ImportConfirmed config ->
+                            { model | cells = History.begin config, importer = Closed }
+
+                        Import.NoOp ->
+                            { model | importer = Open updatedImporterModel }
+
+                Closed ->
                     model
 
 
@@ -243,7 +268,7 @@ document model =
 
 
 view : Model -> Html Msg
-view { cells, status, speed } =
+view { cells, status, speed, importer } =
     let
         currentCells =
             History.now cells
@@ -259,7 +284,7 @@ view { cells, status, speed } =
             ]
         ]
         [ squareContainer (viewCells transitionDuration currentCells)
-        , viewControls status speed currentCells
+        , viewControls status speed currentCells importer
         ]
 
 
@@ -378,11 +403,12 @@ cellColor cell { x, y } =
                     rgba 101 84 192 0.8
 
 
-viewControls : Status -> Speed -> Cells -> Html Msg
-viewControls status speed cells =
+viewControls : Status -> Speed -> Cells -> Importer -> Html Msg
+viewControls status speed cells importer =
     div []
         [ bottomLeft
-            [ viewStatusButton status |> ifNotBlank cells
+            [ viewImporter importer
+            , viewStatusButton status |> ifNotBlank cells
             , viewSpeedButton speed
             ]
         , bottomRight
@@ -443,6 +469,16 @@ viewSpeedButton speed =
 
         Fast ->
             viewButton "Slower" (SetSpeed Slow) []
+
+
+viewImporter : Importer -> Html Msg
+viewImporter loader =
+    case loader of
+        Open model ->
+            Html.map ImportMsg (Import.view model)
+
+        Closed ->
+            viewButton "Import" OpenImporter []
 
 
 viewUndoButton : Status -> Html Msg

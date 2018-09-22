@@ -5,6 +5,7 @@ import Html.Styled exposing (Html, button, div, text, textarea)
 import Html.Styled.Attributes exposing (css, value)
 import Html.Styled.Events exposing (onClick, onInput)
 import Matrix exposing (Coordinate, Dimensions, Matrix)
+import Maybe.Extra as Maybe
 
 
 
@@ -77,15 +78,27 @@ decodeMatrix value =
         coordinates =
             value
                 |> String.lines
-                |> List.filterMap decodeLine
+                |> dropHeader
+                |> List.map decodeLine
+                |> Maybe.combine
 
         matrixSize =
-            calculateSize coordinates
+            Maybe.andThen calculateSize coordinates
 
         emptyMatrix =
             Maybe.map (\size -> Matrix.create size Dead) matrixSize
     in
-    Maybe.map (initializeMatrix coordinates) emptyMatrix
+    Maybe.map2 initializeMatrix coordinates emptyMatrix
+
+
+dropHeader : List String -> List String
+dropHeader lines =
+    case lines of
+        "#Life 1.06" :: tail ->
+            tail
+
+        _ ->
+            lines
 
 
 initializeMatrix : List Coordinate -> Matrix Cell -> Matrix Cell

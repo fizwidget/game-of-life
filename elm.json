@@ -12,6 +12,7 @@
             "elm/http": "1.0.0",
             "elm/json": "1.0.0",
             "elm/time": "1.0.0",
+            "elm-community/maybe-extra": "5.0.0",
             "rtfeldman/elm-css": "15.1.0"
         },
         "indirect": {

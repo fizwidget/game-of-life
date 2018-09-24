@@ -81,14 +81,52 @@ decodeMatrix value =
                 |> dropHeader
                 |> List.map decodeLine
                 |> Maybe.combine
+                |> Maybe.map startAtZero
 
         matrixSize =
-            Maybe.andThen calculateSize coordinates
+            coordinates
+                |> Maybe.andThen calculateSize
+                |> Maybe.map (applyMinSize { width = 18, height = 18 })
 
         emptyMatrix =
             Maybe.map (\size -> Matrix.create size Dead) matrixSize
     in
     Maybe.map2 initializeMatrix coordinates emptyMatrix
+
+
+applyMinSize : Dimensions -> Dimensions -> Dimensions
+applyMinSize minDimensions requestedDimensions =
+    { width = max minDimensions.width requestedDimensions.width
+    , height = max minDimensions.height requestedDimensions.height
+    }
+
+
+startAtZero : List Coordinate -> List Coordinate
+startAtZero coordinates =
+    let
+        minX =
+            coordinates
+                |> List.map .x
+                |> (\xs -> 0 :: xs)
+                |> List.minimum
+                |> Maybe.withDefault 0
+
+        minY =
+            coordinates
+                |> List.map .y
+                |> (\xs -> 0 :: xs)
+                |> List.minimum
+                |> Maybe.withDefault 0
+    in
+    coordinates
+        |> List.map (offsetBy -minX -minY)
+
+
+offsetBy : Int -> Int -> Coordinate -> Coordinate
+offsetBy dx dy { x, y } =
+    { x = x + dx
+    , y = y + dy
+    }
 
 
 dropHeader : List String -> List String

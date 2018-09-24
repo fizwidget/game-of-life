@@ -274,7 +274,7 @@ view { cells, status, speed, importer } =
             History.now cells
 
         transitionDuration =
-            getTransitionDuration speed
+            calculateTransitionDuration speed
     in
     div
         [ css
@@ -283,7 +283,7 @@ view { cells, status, speed, importer } =
             , alignItems center
             ]
         ]
-        [ squareContainer (viewCells transitionDuration currentCells)
+        [ squareContainer <| viewCells transitionDuration currentCells
         , viewControls status speed currentCells importer
         ]
 
@@ -358,8 +358,8 @@ viewCellContent transitionDuration cell coordinate =
         []
 
 
-getTransitionDuration : Speed -> Milliseconds
-getTransitionDuration speed =
+calculateTransitionDuration : Speed -> Milliseconds
+calculateTransitionDuration speed =
     tickInterval speed + 200
 
 

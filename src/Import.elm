@@ -1,8 +1,9 @@
 module Import exposing (Model, Msg, OutMsg(..), init, update, view)
 
 import Cell exposing (Cell(..))
+import Css exposing (..)
 import Html.Styled exposing (Html, button, div, text, textarea)
-import Html.Styled.Attributes exposing (css, value)
+import Html.Styled.Attributes exposing (autofocus, cols, css, disabled, placeholder, rows, value)
 import Html.Styled.Events exposing (onClick, onInput)
 import Matrix exposing (Coordinate, Dimensions, Matrix)
 import Maybe.Extra as Maybe
@@ -31,7 +32,6 @@ init =
 
 type Msg
     = Change String
-    | Confirm (Matrix Cell)
 
 
 type OutMsg
@@ -43,10 +43,9 @@ update : Msg -> Model -> ( Model, OutMsg )
 update msg model =
     case msg of
         Change value ->
-            ( { model | input = value }, NoOp )
-
-        Confirm config ->
-            ( model, ImportConfirmed config )
+            ( { model | input = value }
+            , decodeMatrix value |> Maybe.map ImportConfirmed |> Maybe.withDefault NoOp
+            )
 
 
 
@@ -56,16 +55,17 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div []
-        [ textarea [ value model.input, onInput Change ] []
-        , decodeMatrix model.input
-            |> Maybe.map viewConfirmButton
-            |> Maybe.withDefault (div [] [])
+        [ textarea
+            [ rows 32
+            , cols 30
+            , autofocus True
+            , placeholder "Paste a Life 1.06 file here"
+            , css [ borderRadius (px 4), resize none ]
+            , value model.input
+            , onInput Change
+            ]
+            []
         ]
-
-
-viewConfirmButton : Matrix Cell -> Html Msg
-viewConfirmButton config =
-    button [ onClick (Confirm config) ] [ text "Confirm" ]
 
 
 

@@ -88,10 +88,36 @@ decodeMatrix value =
                 |> Maybe.andThen calculateSize
                 |> Maybe.map (applyMinSize { width = 18, height = 18 })
 
+        centeredCoordinates =
+            Maybe.map2 center coordinates matrixSize
+
         emptyMatrix =
             Maybe.map (\size -> Matrix.create size Dead) matrixSize
     in
-    Maybe.map2 initializeMatrix coordinates emptyMatrix
+    Maybe.map2 initializeMatrix centeredCoordinates emptyMatrix
+
+
+center : List Coordinate -> Dimensions -> List Coordinate
+center coordinates dimensions =
+    let
+        midX =
+            dimensions.width // 2
+
+        dx =
+            midX - (patternWidth coordinates // 2)
+
+        dy =
+            3
+    in
+    List.map (offsetBy dx dy) coordinates
+
+
+patternWidth : List Coordinate -> Int
+patternWidth coordinates =
+    coordinates
+        |> List.map .x
+        |> List.maximum
+        |> Maybe.withDefault 0
 
 
 applyMinSize : Dimensions -> Dimensions -> Dimensions

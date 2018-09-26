@@ -268,7 +268,7 @@ decodePattern value =
         -- Size is wrong :/
         matrixSize =
             coordinates
-                |> Maybe.map calculateSize
+                |> Maybe.map patternSize
                 |> Maybe.map (applyMinSize { width = 18, height = 18 })
 
         centeredCoordinates =
@@ -301,7 +301,7 @@ decodeLine line =
 toPair : List String -> Maybe ( String, String )
 toPair values =
     case values of
-        first :: second :: _ ->
+        first :: second :: [] ->
             Just ( first, second )
 
         _ ->
@@ -311,58 +311,36 @@ toPair values =
 toCoordinate : ( String, String ) -> Maybe Coordinate
 toCoordinate ( first, second ) =
     let
-        x =
-            String.toInt first
-
-        y =
-            String.toInt second
+        ( x, y ) =
+            ( String.toInt first, String.toInt second )
     in
     Maybe.map2 Coordinate x y
 
 
-calculateSize : List Coordinate -> Dimensions
-calculateSize coordinates =
-    let
-        xs =
-            List.map .x coordinates
-
-        ys =
-            List.map .y coordinates
-
-        minX =
-            List.minimum xs |> Maybe.withDefault 0
-
-        maxX =
-            List.maximum xs |> Maybe.withDefault 0
-
-        minY =
-            List.minimum ys |> Maybe.withDefault 0
-
-        maxY =
-            List.maximum ys |> Maybe.withDefault 0
-
-        width =
-            maxX - minX
-
-        height =
-            maxY - minY
-    in
-    Dimensions width height
+patternSize : List Coordinate -> Dimensions
+patternSize coordinates =
+    { width = range (List.map .x coordinates)
+    , height = range (List.map .y coordinates)
+    }
 
 
 centerPattern : List Coordinate -> Dimensions -> List Coordinate
-centerPattern coordinates dimensions =
+centerPattern pattern dimensions =
     let
         midX =
             dimensions.width // 2
 
+        -- Need to account for pattern not being zero'd
+        patternWidth =
+            range (List.map .x pattern)
+
         dx =
-            midX - (patternWidth coordinates // 2)
+            midX - (patternWidth // 2)
 
         dy =
             5
     in
-    List.map (offsetBy dx dy) coordinates
+    List.map (offsetBy dx dy) pattern
 
 
 applyMinSize : Dimensions -> Dimensions -> Dimensions
@@ -372,20 +350,16 @@ applyMinSize minDimensions requestedDimensions =
     }
 
 
-patternWidth : List Coordinate -> Int
-patternWidth coordinates =
-    coordinates
-        |> List.map .x
-        |> List.maximum
-        |> Maybe.withDefault 0
+range : List number -> number
+range xs =
+    let
+        min =
+            List.minimum xs |> Maybe.withDefault 0
 
-
-patternHeight : List Coordinate -> Int
-patternHeight coordinates =
-    coordinates
-        |> List.map .y
-        |> List.maximum
-        |> Maybe.withDefault 0
+        max =
+            List.maximum xs |> Maybe.withDefault 0
+    in
+    max - min
 
 
 offsetBy : Int -> Int -> Coordinate -> Coordinate

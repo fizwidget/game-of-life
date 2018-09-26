@@ -6,12 +6,12 @@ import Cell exposing (Cell(..))
 import Css exposing (..)
 import Css.Transitions as Transitions exposing (easeInOut, transition)
 import History exposing (History)
-import Html.Styled as Html exposing (Html, button, div, text, toUnstyled)
-import Html.Styled.Attributes exposing (css)
-import Html.Styled.Events exposing (onClick, onMouseDown, onMouseEnter, onMouseUp)
-import Import
+import Html.Styled as Html exposing (Html, button, div, text, textarea, toUnstyled)
+import Html.Styled.Attributes exposing (autofocus, cols, css, disabled, placeholder, rows, value)
+import Html.Styled.Events exposing (onClick, onInput, onMouseDown, onMouseEnter, onMouseUp)
 import Json.Decode as Decode exposing (Decoder)
 import Matrix exposing (Coordinate, Matrix)
+import Pattern
 import Time
 
 
@@ -39,7 +39,7 @@ type alias Cells =
 
 
 type Importer
-    = Open Import.Model
+    = Open String
     | Closed
 
 
@@ -89,7 +89,7 @@ type Msg
     | MouseOver Coordinate
     | KeyDown Key
     | OpenImporter
-    | ImportMsg Import.Msg
+    | ImporterTextChange String
 
 
 type Key
@@ -158,24 +158,15 @@ updateModel msg ({ status, mouse, cells, importer } as model) =
                     model
 
         OpenImporter ->
-            { model | importer = Open Import.init }
+            { model | importer = Open "" }
 
-        ImportMsg importMsg ->
-            case importer of
-                Open importerModel ->
-                    let
-                        ( updatedImporterModel, outMsg ) =
-                            Import.update importMsg importerModel
-                    in
-                    case outMsg of
-                        Import.ImportConfirmed config ->
-                            { model | cells = History.begin config, importer = Closed }
+        ImporterTextChange text ->
+            case Pattern.decode text of
+                Just decodedCells ->
+                    { model | cells = History.begin decodedCells, importer = Closed }
 
-                        Import.NoOp ->
-                            { model | importer = Open updatedImporterModel }
-
-                Closed ->
-                    model
+                Nothing ->
+                    { model | importer = Open text }
 
 
 undo : Model -> Model
@@ -474,8 +465,17 @@ viewSpeedButton speed =
 viewImporter : Importer -> Html Msg
 viewImporter loader =
     case loader of
-        Open model ->
-            Html.map ImportMsg (Import.view model)
+        Open text ->
+            textarea
+                [ rows 32
+                , cols 30
+                , autofocus True
+                , placeholder "Paste a Life 1.06 file here"
+                , css [ borderRadius (px 4), resize none ]
+                , value text
+                , onInput ImporterTextChange
+                ]
+                []
 
         Closed ->
             viewButton "Import" OpenImporter []

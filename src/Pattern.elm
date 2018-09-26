@@ -1,79 +1,12 @@
-module Import exposing (Model, Msg, OutMsg(..), init, update, view)
+module Pattern exposing (decode)
 
 import Cell exposing (Cell(..))
-import Css exposing (..)
-import Html.Styled exposing (Html, button, div, text, textarea)
-import Html.Styled.Attributes exposing (autofocus, cols, css, disabled, placeholder, rows, value)
-import Html.Styled.Events exposing (onClick, onInput)
 import Matrix exposing (Coordinate, Dimensions, Matrix)
 import Maybe.Extra as Maybe
 
 
-
--- MODEL
-
-
-type alias Model =
-    { input : String }
-
-
-
--- INIT
-
-
-init : Model
-init =
-    { input = "" }
-
-
-
--- UPDATE
-
-
-type Msg
-    = Change String
-
-
-type OutMsg
-    = ImportConfirmed (Matrix Cell)
-    | NoOp
-
-
-update : Msg -> Model -> ( Model, OutMsg )
-update msg model =
-    case msg of
-        Change value ->
-            ( { model | input = value }
-            , decodeMatrix value |> Maybe.map ImportConfirmed |> Maybe.withDefault NoOp
-            )
-
-
-
--- VIEW
-
-
-view : Model -> Html Msg
-view model =
-    div []
-        [ textarea
-            [ rows 32
-            , cols 30
-            , autofocus True
-            , placeholder "Paste a Life 1.06 file here"
-            , css [ borderRadius (px 4), resize none ]
-            , value model.input
-            , onInput Change
-            ]
-            []
-        ]
-
-
-
--- DECODERS
-
-
-decodeMatrix : String -> Maybe (Matrix Cell)
-decodeMatrix value =
+decode : String -> Maybe (Matrix Cell)
+decode value =
     let
         coordinates =
             value

@@ -42,7 +42,7 @@ type alias Cells =
     Matrix Cell
 
 
-type Importer
+type ImportField
     = Open String
     | Closed
 
@@ -52,7 +52,7 @@ type alias Model =
     , cells : History Cells
     , mouse : Mouse
     , speed : Speed
-    , importer : Importer
+    , importField : ImportField
     }
 
 
@@ -66,7 +66,7 @@ init =
       , cells = History.begin initialCells
       , mouse = Up
       , speed = Slow
-      , importer = Closed
+      , importField = Closed
       }
     , Cmd.none
     )
@@ -92,8 +92,8 @@ type Msg
     | MouseUp
     | MouseOver Coordinate
     | KeyDown Key
-    | OpenImporter
-    | ImporterTextChange String
+    | OpenImportField
+    | ImportFieldChange String
 
 
 type Key
@@ -109,7 +109,7 @@ update msg model =
 
 
 updateModel : Msg -> Model -> Model
-updateModel msg ({ status, mouse, cells, importer } as model) =
+updateModel msg ({ status, mouse, cells, importField } as model) =
     case msg of
         Play ->
             { model | status = Playing }
@@ -161,16 +161,16 @@ updateModel msg ({ status, mouse, cells, importer } as model) =
                 OtherKey ->
                     model
 
-        OpenImporter ->
-            { model | importer = Open "" }
+        OpenImportField ->
+            { model | importField = Open "" }
 
-        ImporterTextChange text ->
-            case decodePattern text of
-                Just decodedCells ->
-                    { model | cells = History.begin decodedCells, importer = Closed }
+        ImportFieldChange input ->
+            case decodePattern input of
+                Just decodedPattern ->
+                    { model | importField = Closed, cells = History.begin decodedPattern }
 
                 Nothing ->
-                    { model | importer = Open text }
+                    { model | importField = Open input }
 
 
 undo : Model -> Model
@@ -265,6 +265,7 @@ decodePattern value =
                 |> List.map decodeLine
                 |> Maybe.combine
 
+        -- Size is wrong :/
         matrixSize =
             coordinates
                 |> Maybe.map calculateSize
@@ -322,21 +323,23 @@ toCoordinate ( first, second ) =
 calculateSize : List Coordinate -> Dimensions
 calculateSize coordinates =
     let
+        xs =
+            List.map .x coordinates
+
+        ys =
+            List.map .y coordinates
+
         minX =
-            List.minimum (List.map .x coordinates)
-                |> Maybe.withDefault 0
+            List.minimum xs |> Maybe.withDefault 0
 
         maxX =
-            List.maximum (List.map .x coordinates)
-                |> Maybe.withDefault 0
+            List.maximum xs |> Maybe.withDefault 0
 
         minY =
-            List.minimum (List.map .y coordinates)
-                |> Maybe.withDefault 0
+            List.minimum ys |> Maybe.withDefault 0
 
         maxY =
-            List.maximum (List.map .y coordinates)
-                |> Maybe.withDefault 0
+            List.maximum ys |> Maybe.withDefault 0
 
         width =
             maxX - minX
@@ -414,7 +417,7 @@ document model =
 
 
 view : Model -> Html Msg
-view { cells, status, speed, importer } =
+view { cells, status, speed, importField } =
     let
         currentCells =
             History.now cells
@@ -429,8 +432,8 @@ view { cells, status, speed, importer } =
             , alignItems center
             ]
         ]
-        [ squareContainer <| viewCells transitionDuration currentCells
-        , viewControls status speed currentCells importer
+        [ viewCells transitionDuration currentCells |> squareContainer
+        , viewControls status speed currentCells importField
         ]
 
 
@@ -549,11 +552,11 @@ cellColor cell { x, y } =
                     rgba 101 84 192 0.8
 
 
-viewControls : Status -> Speed -> Cells -> Importer -> Html Msg
-viewControls status speed cells importer =
+viewControls : Status -> Speed -> Cells -> ImportField -> Html Msg
+viewControls status speed cells importField =
     div []
         [ bottomLeft
-            [ viewImporter importer
+            [ viewImportField importField
             , viewStatusButton status |> ifNotBlank cells
             , viewSpeedButton speed
             ]
@@ -617,23 +620,23 @@ viewSpeedButton speed =
             viewButton "Slower" (SetSpeed Slow) []
 
 
-viewImporter : Importer -> Html Msg
-viewImporter loader =
-    case loader of
-        Open text ->
+viewImportField : ImportField -> Html Msg
+viewImportField importField =
+    case importField of
+        Open input ->
             textarea
                 [ rows 32
                 , cols 30
                 , autofocus True
-                , placeholder "Paste a Life 1.06 file here"
+                , placeholder "Paste a 'Life 1.06' pattern here"
                 , css [ borderRadius (px 4), resize none ]
-                , value text
-                , onInput ImporterTextChange
+                , value input
+                , onInput ImportFieldChange
                 ]
                 []
 
         Closed ->
-            viewButton "Import" OpenImporter []
+            viewButton "Import" OpenImportField []
 
 
 viewUndoButton : Status -> Html Msg

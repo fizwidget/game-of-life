@@ -2,7 +2,6 @@ module Main exposing (main)
 
 import Browser exposing (Document)
 import Browser.Events as Events
-import Cell exposing (Cell(..))
 import Css exposing (..)
 import Css.Transitions as Transitions exposing (easeInOut, transition)
 import History exposing (History)
@@ -10,8 +9,8 @@ import Html.Styled as Html exposing (Html, button, div, text, textarea, toUnstyl
 import Html.Styled.Attributes exposing (autofocus, cols, css, disabled, placeholder, rows, value)
 import Html.Styled.Events exposing (onClick, onInput, onMouseDown, onMouseEnter, onMouseUp)
 import Json.Decode as Decode exposing (Decoder)
-import Matrix exposing (Coordinate, Matrix)
-import Pattern
+import Matrix exposing (Coordinate, Dimensions, Matrix)
+import Maybe.Extra as Maybe
 import Time
 
 
@@ -32,6 +31,11 @@ type Mouse
 type Speed
     = Slow
     | Fast
+
+
+type Cell
+    = Alive
+    | Dead
 
 
 type alias Cells =
@@ -161,7 +165,7 @@ updateModel msg ({ status, mouse, cells, importer } as model) =
             { model | importer = Open "" }
 
         ImporterTextChange text ->
-            case Pattern.decode text of
+            case decodePattern text of
                 Just decodedCells ->
                     { model | cells = History.begin decodedCells, importer = Closed }
 
@@ -245,6 +249,157 @@ toggleCell cell =
 
         Dead ->
             Alive
+
+
+
+-- DECODE
+
+
+decodePattern : String -> Maybe (Matrix Cell)
+decodePattern value =
+    let
+        coordinates =
+            value
+                |> String.lines
+                |> dropHeader
+                |> List.map decodeLine
+                |> Maybe.combine
+
+        matrixSize =
+            coordinates
+                |> Maybe.map calculateSize
+                |> Maybe.map (applyMinSize { width = 18, height = 18 })
+
+        centeredCoordinates =
+            Maybe.map2 centerPattern coordinates matrixSize
+
+        emptyMatrix =
+            Maybe.map (\size -> Matrix.create size Dead) matrixSize
+    in
+    Maybe.map2 initializeMatrix centeredCoordinates emptyMatrix
+
+
+dropHeader : List String -> List String
+dropHeader lines =
+    case lines of
+        "#Life 1.06" :: tail ->
+            tail
+
+        _ ->
+            lines
+
+
+decodeLine : String -> Maybe Coordinate
+decodeLine line =
+    line
+        |> String.split " "
+        |> toPair
+        |> Maybe.andThen toCoordinate
+
+
+toPair : List String -> Maybe ( String, String )
+toPair values =
+    case values of
+        first :: second :: _ ->
+            Just ( first, second )
+
+        _ ->
+            Nothing
+
+
+toCoordinate : ( String, String ) -> Maybe Coordinate
+toCoordinate ( first, second ) =
+    let
+        x =
+            String.toInt first
+
+        y =
+            String.toInt second
+    in
+    Maybe.map2 Coordinate x y
+
+
+calculateSize : List Coordinate -> Dimensions
+calculateSize coordinates =
+    let
+        minX =
+            List.minimum (List.map .x coordinates)
+                |> Maybe.withDefault 0
+
+        maxX =
+            List.maximum (List.map .x coordinates)
+                |> Maybe.withDefault 0
+
+        minY =
+            List.minimum (List.map .y coordinates)
+                |> Maybe.withDefault 0
+
+        maxY =
+            List.maximum (List.map .y coordinates)
+                |> Maybe.withDefault 0
+
+        width =
+            maxX - minX
+
+        height =
+            maxY - minY
+    in
+    Dimensions width height
+
+
+centerPattern : List Coordinate -> Dimensions -> List Coordinate
+centerPattern coordinates dimensions =
+    let
+        midX =
+            dimensions.width // 2
+
+        dx =
+            midX - (patternWidth coordinates // 2)
+
+        dy =
+            5
+    in
+    List.map (offsetBy dx dy) coordinates
+
+
+applyMinSize : Dimensions -> Dimensions -> Dimensions
+applyMinSize minDimensions requestedDimensions =
+    { width = max minDimensions.width requestedDimensions.width
+    , height = max minDimensions.height requestedDimensions.height
+    }
+
+
+patternWidth : List Coordinate -> Int
+patternWidth coordinates =
+    coordinates
+        |> List.map .x
+        |> List.maximum
+        |> Maybe.withDefault 0
+
+
+patternHeight : List Coordinate -> Int
+patternHeight coordinates =
+    coordinates
+        |> List.map .y
+        |> List.maximum
+        |> Maybe.withDefault 0
+
+
+offsetBy : Int -> Int -> Coordinate -> Coordinate
+offsetBy dx dy { x, y } =
+    { x = x + dx
+    , y = y + dy
+    }
+
+
+initializeMatrix : List Coordinate -> Matrix Cell -> Matrix Cell
+initializeMatrix coordinates matrix =
+    List.foldl reduce matrix coordinates
+
+
+reduce : Coordinate -> Matrix Cell -> Matrix Cell
+reduce coordinate matrix =
+    Matrix.set Alive coordinate matrix
 
 
 

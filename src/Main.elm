@@ -11,6 +11,7 @@ import Html.Styled.Events exposing (onClick, onInput, onMouseDown, onMouseEnter,
 import Json.Decode as Decode exposing (Decoder)
 import Matrix exposing (Coordinate, Dimensions, Matrix)
 import Maybe.Extra as Maybe
+import Pattern exposing (Pattern)
 import Time
 
 
@@ -251,127 +252,45 @@ toggleCell cell =
             Alive
 
 
-
--- DECODE
-
-
 decodePattern : String -> Maybe (Matrix Cell)
-decodePattern value =
+decodePattern text =
+    Pattern.parseLife106Format text
+        |> Maybe.map matrixFrom
+
+
+matrixFrom : Pattern -> Matrix Cell
+matrixFrom pattern =
     let
-        coordinates =
-            value
-                |> String.lines
-                |> dropHeader
-                |> List.map decodeLine
-                |> Maybe.combine
+        matrixWidth =
+            Pattern.width pattern
+                |> (*) 2
+                |> max 18
 
-        -- Size is wrong :/
+        matrixHeight =
+            Pattern.height pattern
+                |> (*) 2
+                |> max 18
+
         matrixSize =
-            coordinates
-                |> Maybe.map patternSize
-                |> Maybe.map (applyMinSize { width = 18, height = 18 })
+            { width = matrixWidth, height = matrixHeight }
 
-        centeredCoordinates =
-            Maybe.map2 centerPattern coordinates matrixSize
+        matrixCenter =
+            ( matrixWidth // 2, matrixHeight // 2 )
+
+        centeredPattern =
+            Pattern.centerAt matrixCenter pattern
 
         emptyMatrix =
-            Maybe.map (\size -> Matrix.create size Dead) matrixSize
+            Matrix.create matrixSize Dead
     in
-    Maybe.map2 initializeMatrix centeredCoordinates emptyMatrix
+    initializeMatrix centeredPattern emptyMatrix
 
 
-dropHeader : List String -> List String
-dropHeader lines =
-    case lines of
-        "#Life 1.06" :: tail ->
-            tail
-
-        _ ->
-            lines
-
-
-decodeLine : String -> Maybe Coordinate
-decodeLine line =
-    line
-        |> String.split " "
-        |> toPair
-        |> Maybe.andThen toCoordinate
-
-
-toPair : List String -> Maybe ( String, String )
-toPair values =
-    case values of
-        first :: second :: [] ->
-            Just ( first, second )
-
-        _ ->
-            Nothing
-
-
-toCoordinate : ( String, String ) -> Maybe Coordinate
-toCoordinate ( first, second ) =
-    let
-        ( x, y ) =
-            ( String.toInt first, String.toInt second )
-    in
-    Maybe.map2 Coordinate x y
-
-
-patternSize : List Coordinate -> Dimensions
-patternSize coordinates =
-    { width = range (List.map .x coordinates)
-    , height = range (List.map .y coordinates)
-    }
-
-
-centerPattern : List Coordinate -> Dimensions -> List Coordinate
-centerPattern pattern dimensions =
-    let
-        midX =
-            dimensions.width // 2
-
-        -- Need to account for pattern not being zero'd
-        patternWidth =
-            range (List.map .x pattern)
-
-        dx =
-            midX - (patternWidth // 2)
-
-        dy =
-            5
-    in
-    List.map (offsetBy dx dy) pattern
-
-
-applyMinSize : Dimensions -> Dimensions -> Dimensions
-applyMinSize minDimensions requestedDimensions =
-    { width = max minDimensions.width requestedDimensions.width
-    , height = max minDimensions.height requestedDimensions.height
-    }
-
-
-range : List number -> number
-range xs =
-    let
-        min =
-            List.minimum xs |> Maybe.withDefault 0
-
-        max =
-            List.maximum xs |> Maybe.withDefault 0
-    in
-    max - min
-
-
-offsetBy : Int -> Int -> Coordinate -> Coordinate
-offsetBy dx dy { x, y } =
-    { x = x + dx
-    , y = y + dy
-    }
-
-
-initializeMatrix : List Coordinate -> Matrix Cell -> Matrix Cell
-initializeMatrix coordinates matrix =
-    List.foldl reduce matrix coordinates
+initializeMatrix : Pattern -> Matrix Cell -> Matrix Cell
+initializeMatrix pattern matrix =
+    Pattern.toCoordinates pattern
+        |> List.map (\( x, y ) -> { x = y, y = y })
+        |> List.foldl reduce matrix
 
 
 reduce : Coordinate -> Matrix Cell -> Matrix Cell

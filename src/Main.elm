@@ -290,8 +290,10 @@ createCells pattern =
         emptyMatrix =
             Matrix.create size Dead
     in
-    Pattern.toCoordinates pattern
-        |> List.foldl (Matrix.set Alive) emptyMatrix
+    List.foldl
+        (Matrix.set Alive)
+        emptyMatrix
+        (Pattern.toCoordinates pattern)
 
 
 

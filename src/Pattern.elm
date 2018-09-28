@@ -11,7 +11,10 @@ import Maybe.Extra as Maybe
 
 
 type alias Coordinate =
-    ( Int, Int )
+    { x : Int
+    , y : Int
+    }
+
 
 type Pattern
     = Pattern (List Coordinate)
@@ -65,17 +68,17 @@ toCoordinate ( first, second ) =
         ( x, y ) =
             ( String.toInt first, String.toInt second )
     in
-    Maybe.map2 Tuple.pair x y
+    Maybe.map2 Coordinate x y
 
 
 width : Pattern -> Int
 width (Pattern coordinates) =
-    range (List.map Tuple.first coordinates)
+    range (List.map .x coordinates)
 
 
 height : Pattern -> Int
 height (Pattern coordinates) =
-    range (List.map Tuple.second coordinates)
+    range (List.map .y coordinates)
 
 
 range : List number -> number
@@ -91,13 +94,13 @@ range xs =
 
 
 centerAt : Coordinate -> Pattern -> Pattern
-centerAt ( x, y ) (Pattern pattern) =
+centerAt { x, y } (Pattern pattern) =
     let
         xs =
-            List.map Tuple.first pattern
+            List.map .x pattern
 
         ys =
-            List.map Tuple.second pattern
+            List.map .y pattern
 
         minX =
             List.minimum xs |> Maybe.withDefault 0
@@ -115,5 +118,7 @@ centerAt ( x, y ) (Pattern pattern) =
 
 
 offsetBy : Int -> Int -> Coordinate -> Coordinate
-offsetBy dx dy ( x, y ) =
-    ( x + dx, y + dy )
+offsetBy dx dy { x, y } =
+    { x = x + dx
+    , y = y + dy
+    }

@@ -85,7 +85,7 @@ initialCells =
 type Msg
     = Play
     | Pause
-    | Tick
+    | Step
     | Undo
     | Redo
     | SetSpeed Speed
@@ -118,9 +118,9 @@ updateModel msg ({ status, mouse, cells, importField } as model) =
         Pause ->
             { model | status = Paused }
 
-        Tick ->
+        Step ->
             { model | cells = History.record step cells }
-                |> pauseIfSettled
+                |> pauseIfStable
 
         Undo ->
             undo model
@@ -142,11 +142,11 @@ updateModel msg ({ status, mouse, cells, importField } as model) =
 
         MouseOver coordinate ->
             case mouse of
-                Up ->
-                    model
-
                 Down ->
                     { model | cells = History.record (toggleCoordinate coordinate) cells }
+
+                Up ->
+                    model
 
         KeyDown key ->
             case key of
@@ -165,13 +165,16 @@ updateModel msg ({ status, mouse, cells, importField } as model) =
         OpenImportField ->
             { model | importField = Open "" }
 
-        ImportFieldChange input ->
-            case decodePattern input of
-                Just decodedPattern ->
-                    { model | importField = Closed, cells = History.begin decodedPattern }
-
+        ImportFieldChange text ->
+            case parseCells text of
                 Nothing ->
-                    { model | importField = Open input }
+                    { model | importField = Open text }
+
+                Just parsedCells ->
+                    { model
+                        | importField = Closed
+                        , cells = History.record (always parsedCells) cells
+                    }
 
 
 undo : Model -> Model
@@ -200,13 +203,13 @@ toggleStatus model =
             { model | status = Playing }
 
 
-pauseIfSettled : Model -> Model
-pauseIfSettled ({ status, cells } as model) =
-    if History.didChange cells then
-        model
+pauseIfStable : Model -> Model
+pauseIfStable ({ status, cells } as model) =
+    if History.isStable cells then
+        { model | status = Paused }
 
     else
-        { model | status = Paused }
+        model
 
 
 step : Cells -> Cells
@@ -252,50 +255,43 @@ toggleCell cell =
             Alive
 
 
-decodePattern : String -> Maybe (Matrix Cell)
-decodePattern text =
+parseCells : String -> Maybe Cells
+parseCells text =
     Pattern.parseLife106Format text
-        |> Maybe.map matrixFrom
+        |> Maybe.map createCells
 
 
-matrixFrom : Pattern -> Matrix Cell
-matrixFrom pattern =
+createCells : Pattern -> Cells
+createCells pattern =
     let
-        matrixWidth =
+        width =
             Pattern.width pattern
                 |> (*) 2
                 |> max 18
 
-        matrixHeight =
+        height =
             Pattern.height pattern
                 |> (*) 2
                 |> max 18
 
-        matrixSize =
-            { width = matrixWidth, height = matrixHeight }
+        size =
+            { width = width
+            , height = height
+            }
 
-        matrixCenter =
-            ( matrixWidth // 2, matrixHeight // 2 )
+        center =
+            { x = width // 2
+            , y = height // 2
+            }
 
         centeredPattern =
-            Pattern.centerAt matrixCenter pattern
+            Pattern.centerAt center pattern
 
         emptyMatrix =
-            Matrix.create matrixSize Dead
+            Matrix.create size Dead
     in
-    initializeMatrix centeredPattern emptyMatrix
-
-
-initializeMatrix : Pattern -> Matrix Cell -> Matrix Cell
-initializeMatrix pattern matrix =
     Pattern.toCoordinates pattern
-        |> List.map (\( x, y ) -> { x = x, y = y })
-        |> List.foldl reduce matrix
-
-
-reduce : Coordinate -> Matrix Cell -> Matrix Cell
-reduce coordinate matrix =
-    Matrix.set Alive coordinate matrix
+        |> List.foldl (Matrix.set Alive) emptyMatrix
 
 
 
@@ -582,7 +578,7 @@ tickSubscription : Status -> Speed -> Sub Msg
 tickSubscription status speed =
     case status of
         Playing ->
-            Time.every (tickInterval speed) (always Tick)
+            Time.every (tickInterval speed) (always Step)
 
         Paused ->
             Sub.none

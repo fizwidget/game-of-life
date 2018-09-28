@@ -257,7 +257,7 @@ toggleCell cell =
 
 parseCells : String -> Maybe Cells
 parseCells text =
-    Pattern.parseLife106Format text
+    Pattern.parseLife106 text
         |> Maybe.map createCells
 
 

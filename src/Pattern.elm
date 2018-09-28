@@ -2,7 +2,7 @@ module Pattern exposing
     ( Pattern
     , centerAt
     , height
-    , parseLife106Format
+    , parseLife106
     , toCoordinates
     , width
     )
@@ -20,22 +20,22 @@ type Pattern
     = Pattern (List Coordinate)
 
 
-parseLife106Format : String -> Maybe Pattern
-parseLife106Format text =
-    String.lines text
-        |> parseHeader
-        |> List.map parseCoordinate
-        |> Maybe.combine
-        |> Maybe.map Pattern
-
-
 toCoordinates : Pattern -> List Coordinate
 toCoordinates (Pattern pattern) =
     pattern
 
 
-parseHeader : List String -> List String
-parseHeader lines =
+parseLife106 : String -> Maybe Pattern
+parseLife106 text =
+    String.lines text
+        |> stripHeader
+        |> List.map parseCoordinate
+        |> Maybe.combine
+        |> Maybe.map Pattern
+
+
+stripHeader : List String -> List String
+stripHeader lines =
     case lines of
         "#Life 1.06" :: tail ->
             tail
@@ -64,11 +64,10 @@ toPair values =
 
 toCoordinate : ( String, String ) -> Maybe Coordinate
 toCoordinate ( first, second ) =
-    let
-        ( x, y ) =
-            ( String.toInt first, String.toInt second )
-    in
-    Maybe.map2 Coordinate x y
+    Maybe.map2
+        Coordinate
+        (String.toInt first)
+        (String.toInt second)
 
 
 width : Pattern -> Int

@@ -13,7 +13,6 @@ import Maybe.Extra as Maybe
 type alias Coordinate =
     ( Int, Int )
 
-
 type Pattern
     = Pattern (List Coordinate)
 

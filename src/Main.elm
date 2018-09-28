@@ -289,7 +289,7 @@ matrixFrom pattern =
 initializeMatrix : Pattern -> Matrix Cell -> Matrix Cell
 initializeMatrix pattern matrix =
     Pattern.toCoordinates pattern
-        |> List.map (\( x, y ) -> { x = y, y = y })
+        |> List.map (\( x, y ) -> { x = x, y = y })
         |> List.foldl reduce matrix
 
 
@@ -407,7 +407,7 @@ calculateTransitionDuration speed =
 
 cellSize : Cells -> Percentage
 cellSize cells =
-    100.0 / (Matrix.height cells |> toFloat)
+    100.0 / (Matrix.width cells |> toFloat)
 
 
 cellContentSize : Cell -> Percentage

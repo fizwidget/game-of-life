@@ -5,7 +5,7 @@ module Matrix exposing
     , all
     , coordinateMap
     , create
-    , foldl
+    , fold
     , get
     , height
     , map
@@ -124,8 +124,8 @@ coordinateMap f (Matrix dimensions array) =
         |> Matrix dimensions
 
 
-foldl : (a -> b -> b) -> b -> Matrix a -> b
-foldl f initial (Matrix _ array) =
+fold : (a -> b -> b) -> b -> Matrix a -> b
+fold f initial (Matrix _ array) =
     Array.foldl f initial array
 
 

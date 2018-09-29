@@ -40,8 +40,8 @@ type ImportField
 
 
 type alias Model =
-    { status : Status
-    , cells : History Cells
+    { cells : History Cells
+    , status : Status
     , mouse : Mouse
     , speed : Speed
     , importField : ImportField
@@ -54,14 +54,17 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { status = Paused
-      , cells = History.begin Simulation.begin
-      , mouse = Up
-      , speed = Slow
-      , importField = Closed
-      }
-    , Cmd.none
-    )
+    ( initialModel, Cmd.none )
+
+
+initialModel : Model
+initialModel =
+    { status = Paused
+    , cells = History.begin Simulation.begin
+    , mouse = Up
+    , speed = Slow
+    , importField = Closed
+    }
 
 
 
@@ -118,7 +121,7 @@ updateModel msg model =
             undo model
 
         Redo ->
-            redo model
+            redoOrStep model
 
         SetSpeed speed ->
             { model | speed = speed }
@@ -126,7 +129,7 @@ updateModel msg model =
         MouseDown coordinate ->
             { model
                 | mouse = Down
-                , cells = History.record (Simulation.toggleCell coordinate) model.cells
+                , cells = toggleCell coordinate model.cells
             }
 
         MouseUp ->
@@ -135,7 +138,7 @@ updateModel msg model =
         MouseOver coordinate ->
             case model.mouse of
                 Down ->
-                    { model | cells = History.record (Simulation.toggleCell coordinate) model.cells }
+                    { model | cells = toggleCell coordinate model.cells }
 
                 Up ->
                     model
@@ -146,7 +149,7 @@ updateModel msg model =
                     undo model
 
                 RightKey ->
-                    redo model
+                    redoOrStep model
 
                 PKey ->
                     toggleStatus model
@@ -177,8 +180,8 @@ undo model =
     }
 
 
-redo : Model -> Model
-redo model =
+redoOrStep : Model -> Model
+redoOrStep model =
     { model
         | status = Paused
         , cells =
@@ -204,6 +207,11 @@ pauseIfStable model =
 
     else
         model
+
+
+toggleCell : Coordinate -> History Cells -> History Cells
+toggleCell coordinate cells =
+    History.record (Simulation.toggleCell coordinate) cells
 
 
 parseCells : String -> Maybe Cells

@@ -10,14 +10,14 @@ module Pattern exposing
 import Maybe.Extra as Maybe
 
 
+type Pattern
+    = Pattern (List Coordinate)
+
+
 type alias Coordinate =
     { x : Int
     , y : Int
     }
-
-
-type Pattern
-    = Pattern (List Coordinate)
 
 
 toCoordinates : Pattern -> List Coordinate
@@ -28,14 +28,16 @@ toCoordinates (Pattern pattern) =
 parseLife106 : String -> Maybe Pattern
 parseLife106 text =
     String.lines text
-        |> stripHeader
+        |> List.map String.trim
+        |> List.filter (not << String.isEmpty)
+        |> stripOptionalHeader
         |> List.map parseCoordinate
         |> Maybe.combine
         |> Maybe.map Pattern
 
 
-stripHeader : List String -> List String
-stripHeader lines =
+stripOptionalHeader : List String -> List String
+stripOptionalHeader lines =
     case lines of
         "#Life 1.06" :: tail ->
             tail
@@ -72,16 +74,16 @@ toCoordinate ( first, second ) =
 
 width : Pattern -> Int
 width (Pattern coordinates) =
-    range (List.map .x coordinates)
+    maxDifference (List.map .x coordinates)
 
 
 height : Pattern -> Int
 height (Pattern coordinates) =
-    range (List.map .y coordinates)
+    maxDifference (List.map .y coordinates)
 
 
-range : List number -> number
-range xs =
+maxDifference : List number -> number
+maxDifference xs =
     let
         min =
             List.minimum xs |> Maybe.withDefault 0

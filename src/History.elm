@@ -42,7 +42,7 @@ redo : History a -> Maybe (History a)
 redo (History past present future) =
     case future of
         nextPresent :: nextFuture ->
-            Just <| History (present :: past) nextPresent nextFuture
+            Just (History (present :: past) nextPresent nextFuture)
 
         [] ->
             Nothing

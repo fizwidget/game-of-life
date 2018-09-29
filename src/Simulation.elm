@@ -76,14 +76,6 @@ beginWithPattern pattern =
 
 
 
--- SIMULATION
-
-
-type alias Milliseconds =
-    Float
-
-
-
 -- STEP
 
 
@@ -146,15 +138,19 @@ isFinished =
 -- VIEW
 
 
+type alias Percentage =
+    Float
+
+
+type alias Milliseconds =
+    Float
+
+
 type alias Handlers msg =
     { mouseOver : Coordinate -> msg
     , mouseDown : Coordinate -> msg
     , mouseUp : msg
     }
-
-
-type alias Percentage =
-    Float
 
 
 view : Milliseconds -> Cells -> Handlers msg -> Html msg

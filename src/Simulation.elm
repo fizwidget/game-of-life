@@ -1,8 +1,8 @@
-module Life exposing
+module Simulation exposing
     ( Cell(..)
     , Cells
-    , allDead
-    , empty
+    , begin
+    , isFinished
     , step
     , toggleCoordinate
     , view
@@ -35,8 +35,8 @@ type alias Cells =
 -- CREATE
 
 
-empty : Cells
-empty =
+begin : Cells
+begin =
     Matrix.create { width = 18, height = 18 } Dead
 
 
@@ -138,8 +138,8 @@ toggleCell cell =
 -- UTILS
 
 
-allDead : Cells -> Bool
-allDead =
+isFinished : Cells -> Bool
+isFinished =
     Matrix.all ((==) Dead)
 
 

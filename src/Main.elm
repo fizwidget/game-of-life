@@ -9,9 +9,9 @@ import Html.Styled as Html exposing (Html, button, div, text, textarea, toUnstyl
 import Html.Styled.Attributes exposing (autofocus, cols, css, disabled, placeholder, rows, value)
 import Html.Styled.Events exposing (onClick, onInput)
 import Json.Decode as Decode exposing (Decoder)
-import Life exposing (Cell(..), Cells)
 import Maybe.Extra as Maybe
 import Pattern exposing (Pattern)
+import Simulation exposing (Cell(..), Cells)
 import Time
 
 
@@ -55,7 +55,7 @@ type alias Model =
 init : ( Model, Cmd Msg )
 init =
     ( { status = Paused
-      , cells = History.begin Life.empty
+      , cells = History.begin Simulation.begin
       , mouse = Up
       , speed = Slow
       , importField = Closed
@@ -111,7 +111,7 @@ updateModel msg model =
             { model | status = Paused }
 
         Step ->
-            { model | cells = History.record Life.step model.cells }
+            { model | cells = History.record Simulation.step model.cells }
                 |> pauseIfStable
 
         Undo ->
@@ -126,7 +126,7 @@ updateModel msg model =
         MouseDown coordinate ->
             { model
                 | mouse = Down
-                , cells = History.record (Life.toggleCoordinate coordinate) model.cells
+                , cells = History.record (Simulation.toggleCoordinate coordinate) model.cells
             }
 
         MouseUp ->
@@ -135,7 +135,7 @@ updateModel msg model =
         MouseOver coordinate ->
             case model.mouse of
                 Down ->
-                    { model | cells = History.record (Life.toggleCoordinate coordinate) model.cells }
+                    { model | cells = History.record (Simulation.toggleCoordinate coordinate) model.cells }
 
                 Up ->
                     model
@@ -183,7 +183,7 @@ redo model =
         | status = Paused
         , cells =
             History.redo model.cells
-                |> Maybe.withDefault (History.record Life.step model.cells)
+                |> Maybe.withDefault (History.record Simulation.step model.cells)
     }
 
 
@@ -209,7 +209,7 @@ pauseIfStable model =
 parseCells : String -> Maybe Cells
 parseCells text =
     Pattern.parseLife106 text
-        |> Maybe.map Life.withPattern
+        |> Maybe.map Simulation.withPattern
 
 
 
@@ -218,7 +218,7 @@ parseCells text =
 
 document : Model -> Document Msg
 document model =
-    { title = "Game of Life"
+    { title = "Game of Simulation"
     , body = [ view model |> toUnstyled ]
     }
 
@@ -245,7 +245,7 @@ view { cells, status, speed, importField } =
             , alignItems center
             ]
         ]
-        [ Life.view transitionDuration currentCells handlers
+        [ Simulation.view transitionDuration currentCells handlers
         , viewControls status speed currentCells importField
         ]
 
@@ -260,7 +260,7 @@ viewControls status speed cells importField =
     div []
         [ bottomLeft
             [ viewImportField importField
-            , viewStatusButton status |> ifCellsAlive cells
+            , viewStatusButton status |> unlessSimulationFinished cells
             , viewSpeedButton speed
             ]
         , bottomRight
@@ -294,9 +294,9 @@ bottomRight =
         ]
 
 
-ifCellsAlive : Cells -> Html msg -> Html msg
-ifCellsAlive cells children =
-    if Life.allDead cells then
+unlessSimulationFinished : Cells -> Html msg -> Html msg
+unlessSimulationFinished cells children =
+    if Simulation.isFinished cells then
         div [] []
 
     else

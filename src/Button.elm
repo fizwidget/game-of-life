@@ -1,4 +1,4 @@
-module Main exposing (view)
+module Button exposing (view)
 
 import Css exposing (..)
 import Css.Transitions as Transitions exposing (easeInOut, transition)

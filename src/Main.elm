@@ -10,6 +10,7 @@ import Html.Styled.Attributes exposing (autofocus, cols, css, disabled, placehol
 import Html.Styled.Events exposing (onClick, onInput)
 import Json.Decode as Decode exposing (Decoder)
 import Maybe.Extra as Maybe
+import Overlay
 import Pattern exposing (Pattern)
 import Simulation exposing (Cell(..), Cells)
 import Time
@@ -265,41 +266,17 @@ calculateTransitionDuration speed =
 
 viewControls : Status -> Speed -> Cells -> ImportField -> Html Msg
 viewControls status speed cells importField =
-    div []
-        [ bottomLeft
+    Overlay.view
+        { bottomLeft =
             [ viewImportField importField
             , viewStatusButton status |> unlessSimulationFinished cells
             , viewSpeedButton speed
             ]
-        , bottomRight
+        , bottomRight =
             [ viewUndoButton status
             , viewRedoButton status
             ]
-        ]
-
-
-bottomLeft : List (Html msg) -> Html msg
-bottomLeft =
-    div
-        [ css
-            [ position fixed
-            , left (px 20)
-            , bottom (px 20)
-            , displayFlex
-            , flexDirection column
-            ]
-        ]
-
-
-bottomRight : List (Html msg) -> Html msg
-bottomRight =
-    div
-        [ css
-            [ position fixed
-            , right (px 20)
-            , bottom (px 20)
-            ]
-        ]
+        }
 
 
 unlessSimulationFinished : Cells -> Html msg -> Html msg

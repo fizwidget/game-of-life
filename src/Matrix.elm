@@ -145,7 +145,7 @@ neighbours : Matrix a -> Coordinate -> List a
 neighbours matrix coordinate =
     [ ( 1, 1 ), ( 1, 0 ), ( 1, -1 ), ( 0, -1 ), ( -1, -1 ), ( -1, 0 ), ( -1, 1 ), ( 0, 1 ) ]
         |> List.map (offsetBy coordinate)
-        |> List.filterMap ((\b a -> get a b) matrix)
+        |> List.filterMap (\neighbour -> get neighbour matrix)
 
 
 offsetBy : Coordinate -> ( Int, Int ) -> Coordinate

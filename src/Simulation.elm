@@ -5,7 +5,7 @@ module Simulation exposing
     , beginWithPattern
     , isFinished
     , step
-    , toggleCoordinate
+    , toggleCell
     , view
     )
 
@@ -119,19 +119,18 @@ liveNeighbours cells coordinate =
 -- TOGGLE
 
 
-toggleCoordinate : Coordinate -> Cells -> Cells
-toggleCoordinate coordinate cells =
-    Matrix.update toggleCell coordinate cells
+toggleCell : Coordinate -> Cells -> Cells
+toggleCell coordinate cells =
+    let
+        toggle cell =
+            case cell of
+                Alive ->
+                    Dead
 
-
-toggleCell : Cell -> Cell
-toggleCell cell =
-    case cell of
-        Alive ->
-            Dead
-
-        Dead ->
-            Alive
+                Dead ->
+                    Alive
+    in
+    Matrix.update toggle coordinate cells
 
 
 

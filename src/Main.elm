@@ -79,7 +79,7 @@ type Msg
     | MouseUp
     | MouseOver Coordinate
     | KeyDown Key
-    | OpenImportField
+    | ImportFieldOpen
     | ImportFieldChange String
 
 
@@ -126,7 +126,7 @@ updateModel msg model =
         MouseDown coordinate ->
             { model
                 | mouse = Down
-                , cells = History.record (Simulation.toggleCoordinate coordinate) model.cells
+                , cells = History.record (Simulation.toggleCell coordinate) model.cells
             }
 
         MouseUp ->
@@ -135,7 +135,7 @@ updateModel msg model =
         MouseOver coordinate ->
             case model.mouse of
                 Down ->
-                    { model | cells = History.record (Simulation.toggleCoordinate coordinate) model.cells }
+                    { model | cells = History.record (Simulation.toggleCell coordinate) model.cells }
 
                 Up ->
                     model
@@ -154,7 +154,7 @@ updateModel msg model =
                 OtherKey ->
                     model
 
-        OpenImportField ->
+        ImportFieldOpen ->
             { model | importField = Open "" }
 
         ImportFieldChange text ->
@@ -326,20 +326,20 @@ viewSpeedButton speed =
 viewImportField : ImportField -> Html Msg
 viewImportField importField =
     case importField of
-        Open input ->
+        Closed ->
+            viewButton "Import" ImportFieldOpen []
+
+        Open text ->
             textarea
-                [ rows 32
+                [ rows 22
                 , cols 30
                 , autofocus True
                 , placeholder "Paste a 'Life 1.06' pattern here"
                 , css [ borderRadius (px 4), resize none ]
-                , value input
+                , value text
                 , onInput ImportFieldChange
                 ]
                 []
-
-        Closed ->
-            viewButton "Import" OpenImportField []
 
 
 viewUndoButton : Status -> Html Msg

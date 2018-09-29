@@ -2,8 +2,8 @@ module Main exposing (main)
 
 import Browser exposing (Document)
 import Browser.Events as Events
+import Button
 import Css exposing (..)
-import Css.Transitions as Transitions exposing (easeInOut, transition)
 import History exposing (History)
 import Html.Styled as Html exposing (Html, button, div, text, textarea, toUnstyled)
 import Html.Styled.Attributes exposing (autofocus, cols, css, disabled, placeholder, rows, value)
@@ -292,27 +292,27 @@ viewStatusButton : Status -> Html Msg
 viewStatusButton status =
     case status of
         Playing ->
-            viewButton "Pause" Pause []
+            Button.view "Pause" Pause []
 
         Paused ->
-            viewButton "Play" Play [ backgroundColor (rgba 54 179 126 0.8) ]
+            Button.view "Play" Play [ backgroundColor (rgba 54 179 126 0.8) ]
 
 
 viewSpeedButton : Speed -> Html Msg
 viewSpeedButton speed =
     case speed of
         Slow ->
-            viewButton "Faster" (SetSpeed Fast) []
+            Button.view "Faster" (SetSpeed Fast) []
 
         Fast ->
-            viewButton "Slower" (SetSpeed Slow) []
+            Button.view "Slower" (SetSpeed Slow) []
 
 
 viewImportField : ImportField -> Html Msg
 viewImportField importField =
     case importField of
         Closed ->
-            viewButton "Import" ImportFieldOpen []
+            Button.view "Import" ImportFieldOpen []
 
         Open text ->
             textarea
@@ -329,36 +329,12 @@ viewImportField importField =
 
 viewUndoButton : Status -> Html Msg
 viewUndoButton status =
-    viewButton "⬅︎" Undo []
+    Button.view "⬅︎" Undo []
 
 
 viewRedoButton : Status -> Html Msg
 viewRedoButton status =
-    viewButton "➡︎" Redo []
-
-
-viewButton : String -> Msg -> List Style -> Html Msg
-viewButton description clickMsg styles =
-    button
-        [ onClick clickMsg, css (buttonStyles ++ styles) ]
-        [ text description ]
-
-
-buttonStyles : List Style
-buttonStyles =
-    [ width (px 100)
-    , height (px 40)
-    , margin (px 5)
-    , border2 (px 0) none
-    , borderRadius (px 15)
-    , color (rgb 255 255 255)
-    , backgroundColor (rgba 179 186 197 0.6)
-    , fontSize (px 20)
-    , transition
-        [ Transitions.backgroundColor3 200 0 easeInOut
-        , Transitions.visibility3 200 0 easeInOut
-        ]
-    ]
+    Button.view "➡︎" Redo []
 
 
 

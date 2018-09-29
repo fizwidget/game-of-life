@@ -2,11 +2,11 @@ module Simulation exposing
     ( Cell(..)
     , Cells
     , begin
+    , beginWithPattern
     , isFinished
     , step
     , toggleCoordinate
     , view
-    , withPattern
     )
 
 import Css exposing (..)
@@ -40,8 +40,8 @@ begin =
     Matrix.create { width = 18, height = 18 } Dead
 
 
-withPattern : Pattern -> Cells
-withPattern pattern =
+beginWithPattern : Pattern -> Cells
+beginWithPattern pattern =
     let
         width =
             Pattern.width pattern
@@ -72,7 +72,7 @@ withPattern pattern =
     List.foldl
         (Matrix.set Alive)
         emptyMatrix
-        (Pattern.toCoordinates pattern)
+        (Pattern.toCoordinates centeredPattern)
 
 
 

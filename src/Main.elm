@@ -209,7 +209,7 @@ pauseIfStable model =
 parseCells : String -> Maybe Cells
 parseCells text =
     Pattern.parseLife106 text
-        |> Maybe.map Simulation.withPattern
+        |> Maybe.map Simulation.beginWithPattern
 
 
 
@@ -218,7 +218,7 @@ parseCells text =
 
 document : Model -> Document Msg
 document model =
-    { title = "Game of Simulation"
+    { title = "Game of Life"
     , body = [ view model |> toUnstyled ]
     }
 

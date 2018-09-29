@@ -102,7 +102,7 @@ update msg model =
 
 
 updateModel : Msg -> Model -> Model
-updateModel msg ({ status, mouse, cells, importField } as model) =
+updateModel msg model =
     case msg of
         Play ->
             { model | status = Playing }
@@ -111,7 +111,7 @@ updateModel msg ({ status, mouse, cells, importField } as model) =
             { model | status = Paused }
 
         Step ->
-            { model | cells = History.record Life.step cells }
+            { model | cells = History.record Life.step model.cells }
                 |> pauseIfStable
 
         Undo ->
@@ -126,16 +126,16 @@ updateModel msg ({ status, mouse, cells, importField } as model) =
         MouseDown coordinate ->
             { model
                 | mouse = Down
-                , cells = History.record (Life.toggleCoordinate coordinate) cells
+                , cells = History.record (Life.toggleCoordinate coordinate) model.cells
             }
 
         MouseUp ->
             { model | mouse = Up }
 
         MouseOver coordinate ->
-            case mouse of
+            case model.mouse of
                 Down ->
-                    { model | cells = History.record (Life.toggleCoordinate coordinate) cells }
+                    { model | cells = History.record (Life.toggleCoordinate coordinate) model.cells }
 
                 Up ->
                     model
@@ -165,7 +165,7 @@ updateModel msg ({ status, mouse, cells, importField } as model) =
                 Just parsedCells ->
                     { model
                         | importField = Closed
-                        , cells = History.record (always parsedCells) cells
+                        , cells = History.record (always parsedCells) model.cells
                     }
 
 
@@ -178,10 +178,12 @@ undo model =
 
 
 redo : Model -> Model
-redo ({ cells } as model) =
+redo model =
     { model
         | status = Paused
-        , cells = History.redo cells |> Maybe.withDefault (History.record Life.step cells)
+        , cells =
+            History.redo model.cells
+                |> Maybe.withDefault (History.record Life.step model.cells)
     }
 
 
@@ -196,8 +198,8 @@ toggleStatus model =
 
 
 pauseIfStable : Model -> Model
-pauseIfStable ({ status, cells } as model) =
-    if History.isStable cells then
+pauseIfStable model =
+    if History.isStable model.cells then
         { model | status = Paused }
 
     else
@@ -258,7 +260,7 @@ viewControls status speed cells importField =
     div []
         [ bottomLeft
             [ viewImportField importField
-            , viewStatusButton status |> ifNotBlank cells
+            , viewStatusButton status |> ifCellsAlive cells
             , viewSpeedButton speed
             ]
         , bottomRight
@@ -292,8 +294,8 @@ bottomRight =
         ]
 
 
-ifNotBlank : Cells -> Html msg -> Html msg
-ifNotBlank cells children =
+ifCellsAlive : Cells -> Html msg -> Html msg
+ifCellsAlive cells children =
     if Life.allDead cells then
         div [] []
 

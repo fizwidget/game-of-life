@@ -83,13 +83,17 @@ type alias Milliseconds =
     Float
 
 
+
+-- STEP
+
+
 step : Cells -> Cells
 step cells =
-    Matrix.coordinateMap (updateCell cells) cells
+    Matrix.coordinateMap (stepCell cells) cells
 
 
-updateCell : Cells -> Coordinate -> Cell -> Cell
-updateCell cells coordinate cell =
+stepCell : Cells -> Coordinate -> Cell -> Cell
+stepCell cells coordinate cell =
     case ( cell, liveNeighbours cells coordinate ) of
         ( Alive, 2 ) ->
             Alive
@@ -109,6 +113,10 @@ liveNeighbours cells coordinate =
     Matrix.neighbours cells coordinate
         |> List.filter ((==) Alive)
         |> List.length
+
+
+
+-- TOGGLE
 
 
 toggleCoordinate : Coordinate -> Cells -> Cells

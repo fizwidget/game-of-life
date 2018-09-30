@@ -10,7 +10,9 @@ import Html.Styled.Events exposing (onClick)
 view : String -> msg -> List Style -> Html msg
 view description clickMsg styles =
     button
-        [ onClick clickMsg, css (buttonStyles ++ styles) ]
+        [ css (buttonStyles ++ styles)
+        , onClick clickMsg
+        ]
         [ text description ]
 
 

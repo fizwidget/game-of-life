@@ -5,14 +5,13 @@ import Browser.Events as Events
 import Button
 import Css exposing (..)
 import History exposing (History)
-import Html.Styled as Html exposing (Html, button, div, text, textarea, toUnstyled)
-import Html.Styled.Attributes exposing (autofocus, cols, css, disabled, placeholder, rows, value)
-import Html.Styled.Events exposing (onClick, onInput)
+import Html.Styled as Html exposing (Html, div, textarea, toUnstyled)
+import Html.Styled.Attributes exposing (autofocus, cols, css, placeholder, rows, value)
+import Html.Styled.Events exposing (onInput)
 import Json.Decode as Decode exposing (Decoder)
-import Maybe.Extra as Maybe
 import Overlay
 import Pattern exposing (Pattern)
-import Simulation exposing (Cell(..), Cells)
+import Simulation exposing (Cells)
 import Time
 
 

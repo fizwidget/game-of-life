@@ -24,8 +24,8 @@ viewBottomLeft =
     div
         [ css
             [ position fixed
-            , left (px 20)
-            , bottom (px 20)
+            , left sectionPadding
+            , bottom sectionPadding
             , displayFlex
             , flexDirection column
             ]
@@ -37,7 +37,12 @@ viewBottomRight =
     div
         [ css
             [ position fixed
-            , right (px 20)
-            , bottom (px 20)
+            , right sectionPadding
+            , bottom sectionPadding
             ]
         ]
+
+
+sectionPadding : Px
+sectionPadding =
+    px 20

@@ -76,7 +76,7 @@ beginWithPattern pattern =
 
 
 
--- STEP
+-- OPERATIONS
 
 
 step : Cells -> Cells
@@ -86,7 +86,7 @@ step cells =
 
 stepCell : Cells -> Coordinate -> Cell -> Cell
 stepCell cells coordinate cell =
-    case ( cell, liveNeighbours cells coordinate ) of
+    case ( cell, countLiveNeighbours cells coordinate ) of
         ( Alive, 2 ) ->
             Alive
 
@@ -100,15 +100,11 @@ stepCell cells coordinate cell =
             Dead
 
 
-liveNeighbours : Cells -> Coordinate -> Int
-liveNeighbours cells coordinate =
+countLiveNeighbours : Cells -> Coordinate -> Int
+countLiveNeighbours cells coordinate =
     Matrix.neighbours cells coordinate
         |> List.filter ((==) Alive)
         |> List.length
-
-
-
--- TOGGLE
 
 
 toggleCell : Coordinate -> Cells -> Cells
@@ -123,10 +119,6 @@ toggleCell coordinate cells =
                     Alive
     in
     Matrix.update toggle coordinate cells
-
-
-
--- UTILS
 
 
 isFinished : Cells -> Bool

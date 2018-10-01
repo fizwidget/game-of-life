@@ -176,7 +176,9 @@ undo : Model -> Model
 undo model =
     { model
         | status = Paused
-        , world = History.undo model.world
+        , world =
+            History.undo model.world
+                |> Maybe.withDefault model.world
     }
 
 

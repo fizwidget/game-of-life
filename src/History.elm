@@ -28,14 +28,14 @@ record step (History past present _) =
     History (present :: past) (step present) []
 
 
-undo : History a -> History a
+undo : History a -> Maybe (History a)
 undo (History past present future) =
     case past of
         nextPresent :: nextPast ->
-            History nextPast nextPresent (present :: future)
+            Just (History nextPast nextPresent (present :: future))
 
         [] ->
-            History past present future
+            Nothing
 
 
 redo : History a -> Maybe (History a)

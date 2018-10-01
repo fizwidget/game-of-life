@@ -1,7 +1,7 @@
 module History exposing
     ( History
     , begin
-    , isStable
+    , isUnchanging
     , now
     , record
     , redo
@@ -48,8 +48,8 @@ redo (History past present future) =
             Nothing
 
 
-isStable : History a -> Bool
-isStable (History past present _) =
+isUnchanging : History a -> Bool
+isUnchanging (History past present _) =
     List.head past
         |> Maybe.map ((==) present)
         |> Maybe.withDefault True

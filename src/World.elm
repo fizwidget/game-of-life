@@ -1,12 +1,12 @@
-module Simulation exposing
+module World exposing
     ( Cell(..)
-    , Cells
-    , begin
-    , beginWithPattern
+    , World
+    , empty
     , isFinished
     , step
     , toggleCell
     , view
+    , withPattern
     )
 
 import Css exposing (..)
@@ -31,17 +31,22 @@ type alias Cells =
     Matrix Cell
 
 
+type World
+    = World Cells
+
+
 
 -- CREATE
 
 
-begin : Cells
-begin =
+empty : World
+empty =
     Matrix.create { width = 18, height = 18 } Dead
+        |> World
 
 
-beginWithPattern : Pattern -> Cells
-beginWithPattern pattern =
+withPattern : Pattern -> World
+withPattern pattern =
     let
         width =
             Pattern.width pattern
@@ -66,22 +71,24 @@ beginWithPattern pattern =
         centeredPattern =
             Pattern.centerAt center pattern
 
-        emptyMatrix =
+        deadCells =
             Matrix.create size Dead
     in
-    List.foldl
-        (Matrix.set Alive)
-        emptyMatrix
-        (Pattern.toCoordinates centeredPattern)
+    World <|
+        List.foldl
+            (Matrix.set Alive)
+            deadCells
+            (Pattern.toCoordinates centeredPattern)
 
 
 
 -- OPERATIONS
 
 
-step : Cells -> Cells
-step cells =
+step : World -> World
+step (World cells) =
     Matrix.coordinateMap (stepCell cells) cells
+        |> World
 
 
 stepCell : Cells -> Coordinate -> Cell -> Cell
@@ -107,8 +114,8 @@ countLiveNeighbours cells coordinate =
         |> List.length
 
 
-toggleCell : Coordinate -> Cells -> Cells
-toggleCell coordinate cells =
+toggleCell : Coordinate -> World -> World
+toggleCell coordinate (World cells) =
     let
         toggle cell =
             case cell of
@@ -119,11 +126,12 @@ toggleCell coordinate cells =
                     Alive
     in
     Matrix.update toggle coordinate cells
+        |> World
 
 
-isFinished : Cells -> Bool
-isFinished =
-    Matrix.all ((==) Dead)
+isFinished : World -> Bool
+isFinished (World cells) =
+    Matrix.all ((==) Dead) cells
 
 
 
@@ -145,8 +153,8 @@ type alias Handlers msg =
     }
 
 
-view : Milliseconds -> Cells -> Handlers msg -> Html msg
-view transitionDuration cells handlers =
+view : Milliseconds -> World -> Handlers msg -> Html msg
+view transitionDuration world handlers =
     squareContainer <|
         div
             [ css
@@ -159,10 +167,14 @@ view transitionDuration cells handlers =
                 , height (pct 100)
                 ]
             ]
-            (cells
-                |> Matrix.coordinateMap (viewCell transitionDuration (cellSize cells) handlers)
-                |> Matrix.toList
-            )
+            (viewWorld transitionDuration world handlers)
+
+
+viewWorld : Milliseconds -> World -> Handlers msg -> List (Html msg)
+viewWorld transitionDuration (World cells) handlers =
+    cells
+        |> Matrix.coordinateMap (viewCell transitionDuration (cellSize cells) handlers)
+        |> Matrix.toList
 
 
 viewCell : Milliseconds -> Percentage -> Handlers msg -> Coordinate -> Cell -> Html msg

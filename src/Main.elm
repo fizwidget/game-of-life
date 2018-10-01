@@ -115,7 +115,7 @@ updateModel msg model =
 
         Step ->
             { model | world = History.record World.step model.world }
-                |> pauseIfStable
+                |> pauseIfUnchanged
 
         Undo ->
             undo model
@@ -202,9 +202,9 @@ toggleStatus model =
             { model | status = Playing }
 
 
-pauseIfStable : Model -> Model
-pauseIfStable model =
-    if History.isUnchanging model.world then
+pauseIfUnchanged : Model -> Model
+pauseIfUnchanged model =
+    if History.isUnchanged model.world then
         { model | status = Paused }
 
     else

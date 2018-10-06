@@ -12,7 +12,7 @@ module Simulation exposing
 import Css exposing (..)
 import Css.Transitions as Transitions exposing (easeInOut, transition)
 import Html.Styled as Html exposing (Html, div)
-import Html.Styled.Attributes exposing (css)
+import Html.Styled.Attributes exposing (class, css, style)
 import Html.Styled.Events exposing (onMouseDown, onMouseEnter, onMouseUp)
 import Matrix exposing (Coordinate, Matrix)
 import Pattern exposing (Pattern)
@@ -172,13 +172,9 @@ viewSimulation transitionDuration (Simulation cells) handlers =
 viewCell : Milliseconds -> Percentage -> Handlers msg -> Coordinate -> Cell -> Html msg
 viewCell transitionDuration size handlers coordinate cell =
     div
-        [ css
-            [ width (pct size)
-            , height (pct size)
-            , displayFlex
-            , justifyContent center
-            , alignItems center
-            ]
+        [ class "cell"
+        , style "width" (percentage size)
+        , style "height" (percentage size)
         , onMouseDown (handlers.mouseDown coordinate)
         , onMouseUp handlers.mouseUp
         , onMouseEnter (handlers.mouseOver coordinate)
@@ -188,20 +184,22 @@ viewCell transitionDuration size handlers coordinate cell =
 
 viewCellContent : Milliseconds -> Cell -> Coordinate -> Html msg
 viewCellContent transitionDuration cell coordinate =
+    let
+        size =
+            cellContentSize cell
+    in
     div
-        [ css
-            [ width (pct (cellContentSize cell))
-            , height (pct (cellContentSize cell))
-            , backgroundColor (cellColor cell coordinate)
-            , borderRadius (pct 30)
-            , transition
-                [ Transitions.backgroundColor3 transitionDuration 0 easeInOut
-                , Transitions.width transitionDuration
-                , Transitions.height transitionDuration
-                ]
-            ]
+        [ class "cell-content"
+        , class (cellColor cell coordinate)
+        , style "width" (percentage size)
+        , style "height" (percentage size)
         ]
         []
+
+
+percentage : Float -> String
+percentage value =
+    String.fromFloat value ++ "%"
 
 
 cellSize : Cells -> Percentage
@@ -219,25 +217,25 @@ cellContentSize cell =
             40
 
 
-cellColor : Cell -> Coordinate -> Color
+cellColor : Cell -> Coordinate -> String
 cellColor cell { x, y } =
     case cell of
         Dead ->
-            rgb 244 245 247
+            "dead-cell"
 
         Alive ->
             case ( modBy 2 x == 0, modBy 2 y == 0 ) of
                 ( True, True ) ->
-                    rgba 255 171 0 0.8
+                    "live-cell-1"
 
                 ( True, False ) ->
-                    rgba 54 179 126 0.8
+                    "live-cell-2"
 
                 ( False, True ) ->
-                    rgba 0 184 217 0.8
+                    "live-cell-3"
 
                 ( False, False ) ->
-                    rgba 101 84 192 0.8
+                    "live-cell-4"
 
 
 squareContainer : Html msg -> Html msg

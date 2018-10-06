@@ -48,31 +48,23 @@ empty =
 withPattern : Pattern -> World
 withPattern pattern =
     let
-        width =
-            Pattern.width pattern
-                |> (*) 2
-                |> max 18
-
-        height =
-            Pattern.height pattern
-                |> (*) 2
-                |> max 18
-
         size =
-            { width = width
-            , height = height
-            }
+            max (Pattern.width pattern) (Pattern.height pattern)
+                |> toFloat
+                |> (*) 1.2
+                |> max 18
+                |> Basics.round
 
         center =
-            { x = width // 2
-            , y = height // 2
+            { x = size // 2
+            , y = size // 2
             }
 
         centeredPattern =
             Pattern.centerAt center pattern
 
         deadCells =
-            Matrix.create size Dead
+            Matrix.create { width = size, height = size } Dead
     in
     World <|
         List.foldl

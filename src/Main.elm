@@ -8,8 +8,8 @@ import Html.Attributes exposing (autofocus, class, cols, placeholder, rows, valu
 import Html.Events exposing (onClick, onInput)
 import Json.Decode as Decode exposing (Decoder)
 import Pattern exposing (Pattern)
-import Simulation exposing (Simulation)
 import Time
+import World exposing (World)
 
 
 
@@ -42,7 +42,7 @@ type alias UserInput =
 
 
 type alias Model =
-    { simulation : History Simulation
+    { world : History World
     , status : Status
     , mouse : Mouse
     , speed : Speed
@@ -62,7 +62,7 @@ init =
 initialModel : Model
 initialModel =
     { status = Paused
-    , simulation = History.begin Simulation.begin
+    , world = History.begin World.create
     , mouse = Up
     , speed = Slow
     , importField = Closed
@@ -116,7 +116,7 @@ updateModel msg model =
             { model | status = Paused }
 
         Step ->
-            { model | simulation = History.record Simulation.step model.simulation }
+            { model | world = History.record World.step model.world }
                 |> pauseIfUnchanged
 
         Undo ->
@@ -131,7 +131,7 @@ updateModel msg model =
         MouseDown coordinate ->
             { model
                 | mouse = Down
-                , simulation = toggleCell coordinate model.simulation
+                , world = toggleCell coordinate model.world
             }
 
         MouseUp ->
@@ -140,7 +140,7 @@ updateModel msg model =
         MouseOver coordinate ->
             case model.mouse of
                 Down ->
-                    { model | simulation = toggleCell coordinate model.simulation }
+                    { model | world = toggleCell coordinate model.world }
 
                 Up ->
                     model
@@ -167,10 +167,10 @@ updateModel msg model =
                 Nothing ->
                     { model | importField = Open text }
 
-                Just newSimulation ->
+                Just newWorld ->
                     { model
                         | importField = Closed
-                        , simulation = History.record (always newSimulation) model.simulation
+                        , world = History.record (always newWorld) model.world
                     }
 
 
@@ -178,9 +178,9 @@ undo : Model -> Model
 undo model =
     { model
         | status = Paused
-        , simulation =
-            History.undo model.simulation
-                |> Maybe.withDefault model.simulation
+        , world =
+            History.undo model.world
+                |> Maybe.withDefault model.world
     }
 
 
@@ -188,9 +188,9 @@ redoOrStep : Model -> Model
 redoOrStep model =
     { model
         | status = Paused
-        , simulation =
-            History.redo model.simulation
-                |> Maybe.withDefault (History.record Simulation.step model.simulation)
+        , world =
+            History.redo model.world
+                |> Maybe.withDefault (History.record World.step model.world)
     }
 
 
@@ -206,22 +206,22 @@ toggleStatus model =
 
 pauseIfUnchanged : Model -> Model
 pauseIfUnchanged model =
-    if History.isUnchanged model.simulation then
+    if History.isUnchanged model.world then
         { model | status = Paused }
 
     else
         model
 
 
-toggleCell : Coordinate -> History Simulation -> History Simulation
-toggleCell coordinate simulation =
-    History.record (Simulation.toggleCell coordinate) simulation
+toggleCell : Coordinate -> History World -> History World
+toggleCell coordinate world =
+    History.record (World.toggleCell coordinate) world
 
 
-parsePattern : String -> Maybe Simulation
+parsePattern : String -> Maybe World
 parsePattern text =
     Pattern.parseLife106 text
-        |> Maybe.map Simulation.beginWithPattern
+        |> Maybe.map World.createWithPattern
 
 
 
@@ -236,10 +236,10 @@ document model =
 
 
 view : Model -> Html Msg
-view { simulation, status, speed, importField } =
+view { world, status, speed, importField } =
     let
-        currentSimulation =
-            History.now simulation
+        currentWorld =
+            History.now world
 
         transitionDuration =
             calculateTransitionDuration speed
@@ -252,8 +252,8 @@ view { simulation, status, speed, importField } =
     in
     div
         [ class "center-content" ]
-        [ Simulation.view transitionDuration currentSimulation handlers
-        , viewControls status speed currentSimulation importField
+        [ World.view transitionDuration currentWorld handlers
+        , viewControls status speed currentWorld importField
         ]
 
 
@@ -262,24 +262,24 @@ calculateTransitionDuration speed =
     tickInterval speed + 200
 
 
-viewControls : Status -> Speed -> Simulation -> ImportField -> Html Msg
-viewControls status speed simulation importField =
+viewControls : Status -> Speed -> World -> ImportField -> Html Msg
+viewControls status speed world importField =
     div []
-        [ div [ class "bottom-left" ]
-            [ viewStatusButton status simulation
+        [ div [ class "bottom-left-overlay" ]
+            [ viewStatusButton status world
             , viewSpeedButton speed
             , viewImportField importField
             ]
-        , div [ class "bottom-right" ]
+        , div [ class "bottom-right-overlay" ]
             [ viewUndoButton status
             , viewRedoButton status
             ]
         ]
 
 
-viewStatusButton : Status -> Simulation -> Html Msg
-viewStatusButton status simulation =
-    case ( status, Simulation.isFinished simulation ) of
+viewStatusButton : Status -> World -> Html Msg
+viewStatusButton status world =
+    case ( status, World.isFinished world ) of
         ( Paused, True ) ->
             viewButton "Play" Play []
 

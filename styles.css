@@ -79,13 +79,13 @@
 
 /* Overlay */
 
-.bottom-left {
+.bottom-left-overlay {
     position: fixed;
     left: 20px;
     bottom: 20px;
 }
 
-.bottom-right {
+.bottom-right-overlay {
     position: fixed;
     right: 20px;
     bottom: 20px;

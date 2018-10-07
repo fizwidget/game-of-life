@@ -1,8 +1,8 @@
-module Simulation exposing
+module World exposing
     ( Cell(..)
-    , Simulation
-    , begin
-    , beginWithPattern
+    , World
+    , create
+    , createWithPattern
     , isFinished
     , step
     , toggleCell
@@ -29,22 +29,22 @@ type alias Cells =
     Matrix Cell
 
 
-type Simulation
-    = Simulation Cells
+type World
+    = World Cells
 
 
 
 -- CREATE
 
 
-begin : Simulation
-begin =
+create : World
+create =
     Matrix.create { width = 18, height = 18 } Dead
-        |> Simulation
+        |> World
 
 
-beginWithPattern : Pattern -> Simulation
-beginWithPattern pattern =
+createWithPattern : Pattern -> World
+createWithPattern pattern =
     let
         size =
             max (Pattern.width pattern) (Pattern.height pattern)
@@ -64,7 +64,7 @@ beginWithPattern pattern =
         deadCells =
             Matrix.create { width = size, height = size } Dead
     in
-    Simulation <|
+    World <|
         List.foldl
             (Matrix.set Alive)
             deadCells
@@ -75,10 +75,10 @@ beginWithPattern pattern =
 -- OPERATIONS
 
 
-step : Simulation -> Simulation
-step (Simulation cells) =
+step : World -> World
+step (World cells) =
     Matrix.coordinateMap (stepCell cells) cells
-        |> Simulation
+        |> World
 
 
 stepCell : Cells -> Coordinate -> Cell -> Cell
@@ -104,8 +104,8 @@ countLiveNeighbours cells coordinate =
         |> List.length
 
 
-toggleCell : Coordinate -> Simulation -> Simulation
-toggleCell coordinate (Simulation cells) =
+toggleCell : Coordinate -> World -> World
+toggleCell coordinate (World cells) =
     let
         toggle cell =
             case cell of
@@ -116,11 +116,11 @@ toggleCell coordinate (Simulation cells) =
                     Alive
     in
     Matrix.update toggle coordinate cells
-        |> Simulation
+        |> World
 
 
-isFinished : Simulation -> Bool
-isFinished (Simulation cells) =
+isFinished : World -> Bool
+isFinished (World cells) =
     Matrix.all ((==) Dead) cells
 
 
@@ -143,15 +143,15 @@ type alias Handlers msg =
     }
 
 
-view : Milliseconds -> Simulation -> Handlers msg -> Html msg
-view transitionDuration simulation handlers =
+view : Milliseconds -> World -> Handlers msg -> Html msg
+view transitionDuration world handlers =
     div
         [ class "square-container" ]
-        [ viewCells transitionDuration simulation handlers ]
+        [ viewCells transitionDuration world handlers ]
 
 
-viewCells : Milliseconds -> Simulation -> Handlers msg -> Html msg
-viewCells transitionDuration (Simulation cells) handlers =
+viewCells : Milliseconds -> World -> Handlers msg -> Html msg
+viewCells transitionDuration (World cells) handlers =
     div
         [ class "cells-container" ]
         (cells

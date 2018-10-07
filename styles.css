@@ -36,9 +36,9 @@
     height: 70%;
     background-color: blue;
     border-radius: 30%;
-    transition: background-color 0.5s ease-in-out,
-                width 0.5s,
-                height 0.5s;
+    transition: background-color 0.2s ease-in-out,
+                width 0.2s,
+                height 0.2s;
 }
 
 .dead-cell {

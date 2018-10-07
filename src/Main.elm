@@ -373,7 +373,7 @@ tickInterval speed =
             300
 
         Fast ->
-            1
+            50
 
 
 keyDownSubscription : Sub Msg

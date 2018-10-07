@@ -24,8 +24,6 @@
 }
 
 .cell {
-    width: 10%;
-    height: 10%;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -34,7 +32,6 @@
 .cell-content {
     width: 70%;
     height: 70%;
-    background-color: blue;
     border-radius: 30%;
     transition: background-color 0.2s ease-in-out,
                 width 0.2s,
@@ -99,14 +96,14 @@
 
 /* Import field */
 
-.importer {
+.import-field {
     border-radius: 4px;
     resize: none;
 }
 
 /* Utils */
 
-.center {
+.center-content {
     display: flex;
     align-items: center;
     justify-content: center;

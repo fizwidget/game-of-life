@@ -161,7 +161,7 @@ viewSimulation transitionDuration (Simulation cells) handlers =
 viewCell : Milliseconds -> Percentage -> Handlers msg -> Coordinate -> Cell -> Html msg
 viewCell transitionDuration size handlers coordinate cell =
     div
-        [ class "cell"
+        [ class "center-content"
         , style "width" (percentage size)
         , style "height" (percentage size)
         , onMouseDown (handlers.mouseDown coordinate)
@@ -186,7 +186,7 @@ viewCellContent transitionDuration cell coordinate =
         []
 
 
-percentage : Float -> String
+percentage : Percentage -> String
 percentage value =
     String.fromFloat value ++ "%"
 

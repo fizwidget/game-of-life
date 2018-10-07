@@ -247,7 +247,7 @@ view { simulation, status, speed, importField } =
             }
     in
     div
-        [ class "center" ]
+        [ class "center-content" ]
         [ Simulation.view transitionDuration currentSimulation handlers
         , viewControls status speed currentSimulation importField
         ]
@@ -317,7 +317,7 @@ viewImportField importField =
                 , cols 30
                 , autofocus True
                 , placeholder "Paste a 'Life 1.06' pattern here"
-                , class "importer"
+                , class "import-field"
                 , value text
                 , onInput ImportFieldChange
                 ]

@@ -33,8 +33,12 @@ type Speed
 
 
 type ImportField
-    = Open String
+    = Open UserInput
     | Closed
+
+
+type alias UserInput =
+    String
 
 
 type alias Model =
@@ -81,7 +85,7 @@ type Msg
     | MouseOver Coordinate
     | KeyDown Key
     | ImportFieldOpen
-    | ImportFieldChange String
+    | ImportFieldChange UserInput
 
 
 type Key

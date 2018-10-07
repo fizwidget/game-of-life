@@ -9,11 +9,9 @@ module Simulation exposing
     , view
     )
 
-import Css exposing (..)
-import Css.Transitions as Transitions exposing (easeInOut, transition)
-import Html.Styled as Html exposing (Html, div)
-import Html.Styled.Attributes exposing (class, css, style)
-import Html.Styled.Events exposing (onMouseDown, onMouseEnter, onMouseUp)
+import Html exposing (Html, div)
+import Html.Attributes exposing (class, style)
+import Html.Events exposing (onMouseDown, onMouseEnter, onMouseUp)
 import Matrix exposing (Coordinate, Matrix)
 import Pattern exposing (Pattern)
 
@@ -149,16 +147,7 @@ view : Milliseconds -> Simulation -> Handlers msg -> Html msg
 view transitionDuration simulation handlers =
     squareContainer <|
         div
-            [ css
-                [ displayFlex
-                , alignItems center
-                , justifyContent center
-                , flexWrap wrap
-                , position absolute
-                , width (pct 100)
-                , height (pct 100)
-                ]
-            ]
+            [ class "cells" ]
             (viewSimulation transitionDuration simulation handlers)
 
 
@@ -241,14 +230,5 @@ cellColor cell { x, y } =
 squareContainer : Html msg -> Html msg
 squareContainer content =
     div
-        [ css
-            [ position relative
-            , width (pct 100)
-            , after
-                [ property "content" "''"
-                , display block
-                , paddingBottom (pct 100)
-                ]
-            ]
-        ]
+        [ class "square-container" ]
         [ content ]

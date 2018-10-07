@@ -2,14 +2,11 @@ module Main exposing (main)
 
 import Browser exposing (Document)
 import Browser.Events as Events
-import Button
-import Css exposing (..)
 import History exposing (History)
-import Html.Styled as Html exposing (Html, div, textarea, toUnstyled)
-import Html.Styled.Attributes exposing (autofocus, cols, css, placeholder, rows, value)
-import Html.Styled.Events exposing (onInput)
+import Html exposing (Attribute, Html, button, div, text, textarea)
+import Html.Attributes exposing (autofocus, class, cols, placeholder, rows, value)
+import Html.Events exposing (onClick, onInput)
 import Json.Decode as Decode exposing (Decoder)
-import Overlay
 import Pattern exposing (Pattern)
 import Simulation exposing (Simulation)
 import Time
@@ -32,6 +29,7 @@ type Mouse
 type Speed
     = Slow
     | Fast
+    | FullSpeed
 
 
 type ImportField
@@ -229,7 +227,7 @@ parsePattern text =
 document : Model -> Document Msg
 document model =
     { title = "Game of Life"
-    , body = [ view model |> toUnstyled ]
+    , body = [ view model ]
     }
 
 
@@ -249,12 +247,7 @@ view { simulation, status, speed, importField } =
             }
     in
     div
-        [ css
-            [ displayFlex
-            , justifyContent center
-            , alignItems center
-            ]
-        ]
+        [ class "center" ]
         [ Simulation.view transitionDuration currentSimulation handlers
         , viewControls status speed currentSimulation importField
         ]
@@ -267,17 +260,17 @@ calculateTransitionDuration speed =
 
 viewControls : Status -> Speed -> Simulation -> ImportField -> Html Msg
 viewControls status speed simulation importField =
-    Overlay.view
-        { bottomLeft =
+    div []
+        [ div [ class "bottom-left" ]
             [ viewImportField importField
             , viewStatusButton status |> hideIfFinished simulation
             , viewSpeedButton speed
             ]
-        , bottomRight =
+        , div [ class "bottom-right" ]
             [ viewUndoButton status
             , viewRedoButton status
             ]
-        }
+        ]
 
 
 hideIfFinished : Simulation -> Html msg -> Html msg
@@ -293,27 +286,30 @@ viewStatusButton : Status -> Html Msg
 viewStatusButton status =
     case status of
         Playing ->
-            Button.view "Pause" Pause []
+            viewButton "Pause" Pause []
 
         Paused ->
-            Button.view "Play" Play [ backgroundColor (rgba 54 179 126 0.8) ]
+            viewButton "Play" Play [ class "play-button" ]
 
 
 viewSpeedButton : Speed -> Html Msg
 viewSpeedButton speed =
     case speed of
         Slow ->
-            Button.view "Faster" (SetSpeed Fast) []
+            viewButton "Faster" (SetSpeed Fast) []
 
         Fast ->
-            Button.view "Slower" (SetSpeed Slow) []
+            viewButton "Faster!" (SetSpeed FullSpeed) []
+
+        FullSpeed ->
+            viewButton "Slower" (SetSpeed Slow) []
 
 
 viewImportField : ImportField -> Html Msg
 viewImportField importField =
     case importField of
         Closed ->
-            Button.view "Import" ImportFieldOpen []
+            viewButton "Import" ImportFieldOpen []
 
         Open text ->
             textarea
@@ -321,7 +317,7 @@ viewImportField importField =
                 , cols 30
                 , autofocus True
                 , placeholder "Paste a 'Life 1.06' pattern here"
-                , css [ borderRadius (px 4), resize none ]
+                , class "importer"
                 , value text
                 , onInput ImportFieldChange
                 ]
@@ -330,12 +326,19 @@ viewImportField importField =
 
 viewUndoButton : Status -> Html Msg
 viewUndoButton status =
-    Button.view "⬅︎" Undo []
+    viewButton "⬅︎" Undo []
 
 
 viewRedoButton : Status -> Html Msg
 viewRedoButton status =
-    Button.view "➡︎" Redo []
+    viewButton "➡︎" Redo []
+
+
+viewButton : String -> msg -> List (Attribute msg) -> Html msg
+viewButton description clickMsg attrs =
+    button
+        ([ class "button", onClick clickMsg ] ++ attrs)
+        [ text description ]
 
 
 
@@ -368,6 +371,9 @@ tickInterval speed =
 
         Fast ->
             300
+
+        FullSpeed ->
+            1
 
 
 keyDownSubscription : Sub Msg

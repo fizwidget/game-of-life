@@ -73,7 +73,7 @@
                 visibility 200 ease-in-out;
 }
 
-.play-button {
+.green-button {
     background-color: rgba(54, 179, 126, 0.8)
 }
 
@@ -83,8 +83,6 @@
     position: fixed;
     left: 20px;
     bottom: 20px;
-    display: flex;
-    flex-direction: column;
 }
 
 .bottom-right {

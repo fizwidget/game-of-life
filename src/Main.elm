@@ -333,10 +333,12 @@ viewRedoButton status =
 
 
 viewButton : String -> msg -> List (Attribute msg) -> Html msg
-viewButton description clickMsg attrs =
-    button
-        ([ class "button", onClick clickMsg ] ++ attrs)
-        [ text description ]
+viewButton description clickMsg customAttributes =
+    let
+        attributes =
+            [ class "button", onClick clickMsg ] ++ customAttributes
+    in
+    button attributes [ text description ]
 
 
 

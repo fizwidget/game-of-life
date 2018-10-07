@@ -145,25 +145,27 @@ type alias Handlers msg =
 
 view : Milliseconds -> Simulation -> Handlers msg -> Html msg
 view transitionDuration simulation handlers =
-    squareContainer <|
-        div
-            [ class "cells" ]
-            (viewSimulation transitionDuration simulation handlers)
+    div
+        [ class "square-container" ]
+        [ viewCells transitionDuration simulation handlers ]
 
 
-viewSimulation : Milliseconds -> Simulation -> Handlers msg -> List (Html msg)
-viewSimulation transitionDuration (Simulation cells) handlers =
-    cells
-        |> Matrix.coordinateMap (viewCell transitionDuration (cellSize cells) handlers)
-        |> Matrix.toList
+viewCells : Milliseconds -> Simulation -> Handlers msg -> Html msg
+viewCells transitionDuration (Simulation cells) handlers =
+    div
+        [ class "cells-container" ]
+        (cells
+            |> Matrix.coordinateMap (viewCell transitionDuration (cellSize cells) handlers)
+            |> Matrix.toList
+        )
 
 
 viewCell : Milliseconds -> Percentage -> Handlers msg -> Coordinate -> Cell -> Html msg
-viewCell transitionDuration size handlers coordinate cell =
+viewCell transitionDuration relativeSize handlers coordinate cell =
     div
         [ class "center-content"
-        , style "width" (percentage size)
-        , style "height" (percentage size)
+        , style "width" (percentageStyle relativeSize)
+        , style "height" (percentageStyle relativeSize)
         , onMouseDown (handlers.mouseDown coordinate)
         , onMouseUp handlers.mouseUp
         , onMouseEnter (handlers.mouseOver coordinate)
@@ -180,14 +182,14 @@ viewCellContent transitionDuration cell coordinate =
     div
         [ class "cell-content"
         , class (cellColor cell coordinate)
-        , style "width" (percentage size)
-        , style "height" (percentage size)
+        , style "width" (percentageStyle size)
+        , style "height" (percentageStyle size)
         ]
         []
 
 
-percentage : Percentage -> String
-percentage value =
+percentageStyle : Percentage -> String
+percentageStyle value =
     String.fromFloat value ++ "%"
 
 
@@ -225,10 +227,3 @@ cellColor cell { x, y } =
 
                 ( False, False ) ->
                     "live-cell-4"
-
-
-squareContainer : Html msg -> Html msg
-squareContainer content =
-    div
-        [ class "square-container" ]
-        [ content ]

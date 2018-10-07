@@ -5,7 +5,6 @@ module Matrix exposing
     , all
     , coordinateMap
     , create
-    , fold
     , get
     , height
     , map
@@ -124,16 +123,12 @@ coordinateMap f (Matrix dimensions array) =
         |> Matrix dimensions
 
 
-fold : (a -> b -> b) -> b -> Matrix a -> b
-fold f initial (Matrix _ array) =
-    Array.foldl f initial array
-
-
 all : (a -> Bool) -> Matrix a -> Bool
 all predicate (Matrix _ array) =
     array
-        |> Array.filter (predicate >> not)
-        |> Array.isEmpty
+        |> Array.filter predicate
+        |> Array.length
+        |> (==) (Array.length array)
 
 
 toList : Matrix a -> List a

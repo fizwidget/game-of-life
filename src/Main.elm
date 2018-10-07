@@ -28,8 +28,8 @@ type Mouse
 
 type Speed
     = Slow
+    | Medium
     | Fast
-    | FullSpeed
 
 
 type ImportField
@@ -296,13 +296,13 @@ viewSpeedButton : Speed -> Html Msg
 viewSpeedButton speed =
     case speed of
         Slow ->
-            viewButton "Faster" (SetSpeed Fast) []
+            viewButton "Medium" (SetSpeed Medium) []
+
+        Medium ->
+            viewButton "Fast" (SetSpeed Fast) []
 
         Fast ->
-            viewButton "Faster!" (SetSpeed FullSpeed) []
-
-        FullSpeed ->
-            viewButton "Slower" (SetSpeed Slow) []
+            viewButton "Slow" (SetSpeed Slow) []
 
 
 viewImportField : ImportField -> Html Msg
@@ -369,10 +369,10 @@ tickInterval speed =
         Slow ->
             600
 
-        Fast ->
+        Medium ->
             300
 
-        FullSpeed ->
+        Fast ->
             1
 
 

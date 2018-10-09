@@ -78,24 +78,17 @@ initialModel =
 type Msg
     = Play
     | Pause
-    | Step
+    | Tick
     | Undo
     | Redo
     | SetSpeed Speed
     | SetZoom World.Zoom
     | MouseDown Coordinate
-    | MouseUp
     | MouseOver Coordinate
-    | KeyDown Key
+    | MouseUp
     | ImportFieldOpen
     | ImportFieldChange UserInput
-
-
-type Key
-    = LeftKey
-    | RightKey
-    | PKey
-    | OtherKey
+    | NoOp
 
 
 type alias Coordinate =
@@ -118,7 +111,7 @@ updateModel msg model =
         Pause ->
             { model | status = Paused }
 
-        Step ->
+        Tick ->
             { model | world = History.record World.step model.world }
                 |> pauseIfUnchanged
 
@@ -140,9 +133,6 @@ updateModel msg model =
                 , world = toggleCell coordinate model.world
             }
 
-        MouseUp ->
-            { model | mouse = Up }
-
         MouseOver coordinate ->
             case model.mouse of
                 Down ->
@@ -151,19 +141,8 @@ updateModel msg model =
                 Up ->
                     model
 
-        KeyDown key ->
-            case key of
-                LeftKey ->
-                    undo model
-
-                RightKey ->
-                    redoOrStep model
-
-                PKey ->
-                    toggleStatus model
-
-                OtherKey ->
-                    model
+        MouseUp ->
+            { model | mouse = Up }
 
         ImportFieldOpen ->
             { model | importField = Open "" }
@@ -179,6 +158,9 @@ updateModel msg model =
                         , world = History.record (always newWorld) model.world
                         , zoom = World.Small
                     }
+
+        NoOp ->
+            model
 
 
 undo : Model -> Model
@@ -369,7 +351,7 @@ viewButton description clickMsg customAttributes =
 subscriptions : Model -> Sub Msg
 subscriptions { status, speed } =
     Sub.batch
-        [ keyDownSubscription
+        [ keyDownSubscription status
         , tickSubscription status speed
         ]
 
@@ -378,7 +360,7 @@ tickSubscription : Status -> Speed -> Sub Msg
 tickSubscription status speed =
     case status of
         Playing ->
-            Time.every (tickInterval speed) (always Step)
+            Time.every (tickInterval speed) (always Tick)
 
         Paused ->
             Sub.none
@@ -397,32 +379,36 @@ tickInterval speed =
             50
 
 
-keyDownSubscription : Sub Msg
-keyDownSubscription =
-    Events.onKeyDown keyDecoder
-        |> Sub.map KeyDown
+keyDownSubscription : Status -> Sub Msg
+keyDownSubscription status =
+    Events.onKeyDown (keyDecoder status)
 
 
-keyDecoder : Decoder Key
-keyDecoder =
+keyDecoder : Status -> Decoder Msg
+keyDecoder status =
     Decode.field "key" Decode.string
-        |> Decode.map toKey
+        |> Decode.map (toMsg status)
 
 
-toKey : String -> Key
-toKey value =
-    case value of
+toMsg : Status -> String -> Msg
+toMsg status key =
+    case key of
         "ArrowLeft" ->
-            LeftKey
+            Undo
 
         "ArrowRight" ->
-            RightKey
+            Redo
 
         "p" ->
-            PKey
+            case status of
+                Playing ->
+                    Pause
+
+                Paused ->
+                    Play
 
         _ ->
-            OtherKey
+            NoOp
 
 
 type alias Milliseconds =

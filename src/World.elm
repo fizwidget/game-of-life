@@ -145,9 +145,9 @@ type alias Handlers msg =
 
 
 type Zoom
-    = Small
-    | Medium
-    | Large
+    = Far
+    | Normal
+    | Close
 
 
 view : Milliseconds -> World -> Zoom -> Handlers msg -> Html msg
@@ -172,13 +172,13 @@ zoomStyles zoom =
     let
         percentage =
             case zoom of
-                Small ->
+                Far ->
                     percentageStyle 100
 
-                Medium ->
+                Normal ->
                     percentageStyle 150
 
-                Large ->
+                Close ->
                     percentageStyle 200
     in
     [ style "width" percentage

@@ -66,7 +66,7 @@ initialModel =
     , world = History.begin World.create
     , mouse = Up
     , speed = Slow
-    , zoom = World.Small
+    , zoom = World.Normal
     , importField = Closed
     }
 
@@ -156,7 +156,7 @@ updateModel msg model =
                     { model
                         | importField = Closed
                         , world = History.record (always newWorld) model.world
-                        , zoom = World.Small
+                        , zoom = World.Normal
                     }
 
         NoOp ->
@@ -233,6 +233,8 @@ view { world, status, speed, zoom, importField } =
         transitionDuration =
             calculateTransitionDuration speed
 
+        -- Refactor mouse stuff to keep `isSelectionActive` in model, then
+        -- determine whether to dispatch `ToggleCell` or `NoOp` here.
         handlers =
             { mouseOver = MouseOver
             , mouseDown = MouseDown
@@ -296,14 +298,14 @@ viewSpeedButton speed =
 viewZoomButton : World.Zoom -> Html Msg
 viewZoomButton zoom =
     case zoom of
-        World.Small ->
-            viewButton "1X" (SetZoom World.Medium) []
+        World.Far ->
+            viewButton "1X" (SetZoom World.Normal) []
 
-        World.Medium ->
-            viewButton "1.5X" (SetZoom World.Large) []
+        World.Normal ->
+            viewButton "1.5X" (SetZoom World.Close) []
 
-        World.Large ->
-            viewButton "2X" (SetZoom World.Small) []
+        World.Close ->
+            viewButton "2X" (SetZoom World.Far) []
 
 
 viewImportField : ImportField -> Html Msg

@@ -1,6 +1,7 @@
 module World exposing
     ( Cell(..)
     , World
+    , Zoom(..)
     , create
     , createWithPattern
     , isFinished
@@ -9,7 +10,7 @@ module World exposing
     , view
     )
 
-import Html exposing (Html, div)
+import Html exposing (Attribute, Html, div)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onMouseDown, onMouseEnter, onMouseUp)
 import Matrix exposing (Coordinate, Matrix)
@@ -143,21 +144,46 @@ type alias Handlers msg =
     }
 
 
-view : Milliseconds -> World -> Handlers msg -> Html msg
-view transitionDuration world handlers =
+type Zoom
+    = Small
+    | Medium
+    | Large
+
+
+view : Milliseconds -> World -> Zoom -> Handlers msg -> Html msg
+view transitionDuration world zoom handlers =
     div
         [ class "square-container" ]
-        [ viewCells transitionDuration world handlers ]
+        [ viewCells transitionDuration world zoom handlers ]
 
 
-viewCells : Milliseconds -> World -> Handlers msg -> Html msg
-viewCells transitionDuration (World cells) handlers =
+viewCells : Milliseconds -> World -> Zoom -> Handlers msg -> Html msg
+viewCells transitionDuration (World cells) zoom handlers =
     div
-        [ class "cells-container" ]
+        ([ class "cells-container" ] ++ zoomStyles zoom)
         (cells
             |> Matrix.coordinateMap (viewCell transitionDuration (cellSize cells) handlers)
             |> Matrix.toList
         )
+
+
+zoomStyles : Zoom -> List (Attribute msg)
+zoomStyles zoom =
+    let
+        percentage =
+            case zoom of
+                Small ->
+                    percentageStyle 100
+
+                Medium ->
+                    percentageStyle 150
+
+                Large ->
+                    percentageStyle 200
+    in
+    [ style "width" percentage
+    , style "height" percentage
+    ]
 
 
 viewCell : Milliseconds -> Percentage -> Handlers msg -> Coordinate -> Cell -> Html msg

@@ -46,6 +46,7 @@ type alias Model =
     , status : Status
     , mouse : Mouse
     , speed : Speed
+    , zoom : World.Zoom
     , importField : ImportField
     }
 
@@ -65,6 +66,7 @@ initialModel =
     , world = History.begin World.create
     , mouse = Up
     , speed = Slow
+    , zoom = World.Small
     , importField = Closed
     }
 
@@ -80,6 +82,7 @@ type Msg
     | Undo
     | Redo
     | SetSpeed Speed
+    | SetZoom World.Zoom
     | MouseDown Coordinate
     | MouseUp
     | MouseOver Coordinate
@@ -127,6 +130,9 @@ updateModel msg model =
 
         SetSpeed speed ->
             { model | speed = speed }
+
+        SetZoom zoom ->
+            { model | zoom = zoom }
 
         MouseDown coordinate ->
             { model
@@ -236,7 +242,7 @@ document model =
 
 
 view : Model -> Html Msg
-view { world, status, speed, importField } =
+view { world, status, speed, zoom, importField } =
     let
         currentWorld =
             History.now world
@@ -252,8 +258,8 @@ view { world, status, speed, importField } =
     in
     div
         [ class "center-content" ]
-        [ World.view transitionDuration currentWorld handlers
-        , viewControls status speed currentWorld importField
+        [ World.view transitionDuration currentWorld zoom handlers
+        , viewControls status speed zoom currentWorld importField
         ]
 
 
@@ -262,12 +268,13 @@ calculateTransitionDuration speed =
     tickInterval speed + 200
 
 
-viewControls : Status -> Speed -> World -> ImportField -> Html Msg
-viewControls status speed world importField =
+viewControls : Status -> Speed -> World.Zoom -> World -> ImportField -> Html Msg
+viewControls status speed zoom world importField =
     div []
         [ div [ class "bottom-left-overlay" ]
             [ viewStatusButton status world
             , viewSpeedButton speed
+            , viewZoomButton zoom
             , viewImportField importField
             ]
         , div [ class "bottom-right-overlay" ]
@@ -294,13 +301,26 @@ viewSpeedButton : Speed -> Html Msg
 viewSpeedButton speed =
     case speed of
         Slow ->
-            viewButton "Medium" (SetSpeed Medium) []
+            viewButton "Slow" (SetSpeed Medium) []
 
         Medium ->
-            viewButton "Fast" (SetSpeed Fast) []
+            viewButton "Medium" (SetSpeed Fast) []
 
         Fast ->
-            viewButton "Slow" (SetSpeed Slow) []
+            viewButton "Fast" (SetSpeed Slow) []
+
+
+viewZoomButton : World.Zoom -> Html Msg
+viewZoomButton zoom =
+    case zoom of
+        World.Small ->
+            viewButton "1X" (SetZoom World.Medium) []
+
+        World.Medium ->
+            viewButton "1.5X" (SetZoom World.Large) []
+
+        World.Large ->
+            viewButton "2X" (SetZoom World.Small) []
 
 
 viewImportField : ImportField -> Html Msg

@@ -177,6 +177,7 @@ updateModel msg model =
                     { model
                         | importField = Closed
                         , world = History.record (always newWorld) model.world
+                        , zoom = World.Small
                     }
 
 

@@ -1,6 +1,7 @@
 module Pattern exposing
     ( Pattern
     , centerAt
+    , generator
     , height
     , parseLife106
     , toCoordinates
@@ -8,6 +9,7 @@ module Pattern exposing
     )
 
 import Maybe.Extra as Maybe
+import Random exposing (Generator)
 
 
 type Pattern
@@ -23,6 +25,10 @@ type alias Coordinate =
 toCoordinates : Pattern -> List Coordinate
 toCoordinates (Pattern pattern) =
     pattern
+
+
+
+-- Parsing
 
 
 parseLife106 : String -> Maybe Pattern
@@ -70,6 +76,41 @@ toCoordinate ( first, second ) =
         Coordinate
         (String.toInt first)
         (String.toInt second)
+
+
+
+-- Random generation
+
+
+type alias BoundingBox =
+    { width : Int
+    , height : Int
+    }
+
+
+generator : Generator Pattern
+generator =
+    let
+        boundingBox =
+            { width = 18, height = 18 }
+
+        coordinateCount =
+            (boundingBox.width * boundingBox.height) // 4
+    in
+    Random.list coordinateCount (coordinateGenerator boundingBox)
+        |> Random.map Pattern
+
+
+coordinateGenerator : BoundingBox -> Generator Coordinate
+coordinateGenerator boundingBox =
+    Random.map2
+        Coordinate
+        (Random.int 0 (boundingBox.width - 1))
+        (Random.int 0 (boundingBox.height - 1))
+
+
+
+-- Utils
 
 
 width : Pattern -> Int

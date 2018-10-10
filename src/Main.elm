@@ -8,6 +8,7 @@ import Html.Attributes exposing (autofocus, class, cols, placeholder, rows, valu
 import Html.Events exposing (onClick, onInput)
 import Json.Decode as Decode exposing (Decoder)
 import Pattern exposing (Pattern)
+import Random
 import Time
 import World exposing (World)
 
@@ -57,7 +58,7 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( initialModel, Cmd.none )
+    noCmd initialModel
 
 
 initialModel : Model
@@ -66,7 +67,7 @@ initialModel =
     , world = History.begin World.create
     , mouse = Up
     , speed = Slow
-    , zoom = World.Normal
+    , zoom = World.Far
     , importField = Closed
     }
 
@@ -88,6 +89,8 @@ type Msg
     | MouseUp
     | ImportFieldOpen
     | ImportFieldChange UserInput
+    | Randomize
+    | RandomizationComplete Pattern
     | NoOp
 
 
@@ -99,68 +102,99 @@ type alias Coordinate =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( updateModel msg model, Cmd.none )
-
-
-updateModel : Msg -> Model -> Model
-updateModel msg model =
     case msg of
         Play ->
             { model | status = Playing }
+                |> noCmd
 
         Pause ->
             { model | status = Paused }
+                |> noCmd
 
         Tick ->
             { model | world = History.record World.step model.world }
                 |> pauseIfUnchanged
+                |> noCmd
 
         Undo ->
             undo model
+                |> noCmd
 
         Redo ->
             redoOrStep model
+                |> noCmd
 
         SetSpeed speed ->
             { model | speed = speed }
+                |> noCmd
 
         SetZoom zoom ->
             { model | zoom = zoom }
+                |> noCmd
 
         MouseDown coordinate ->
-            { model
-                | mouse = Down
-                , world = toggleCell coordinate model.world
-            }
+            noCmd
+                { model
+                    | mouse = Down
+                    , world = toggleCell coordinate model.world
+                }
 
         MouseOver coordinate ->
             case model.mouse of
                 Down ->
                     { model | world = toggleCell coordinate model.world }
+                        |> noCmd
 
                 Up ->
                     model
+                        |> noCmd
 
         MouseUp ->
             { model | mouse = Up }
+                |> noCmd
 
         ImportFieldOpen ->
             { model | importField = Open "" }
+                |> noCmd
 
         ImportFieldChange text ->
             case parsePattern text of
                 Nothing ->
                     { model | importField = Open text }
+                        |> noCmd
 
                 Just newWorld ->
-                    { model
-                        | importField = Closed
-                        , world = History.record (always newWorld) model.world
-                        , zoom = World.Normal
-                    }
+                    noCmd
+                        { model
+                            | importField = Closed
+                            , world = History.record (always newWorld) model.world
+                            , zoom = World.Normal
+                        }
+
+        Randomize ->
+            model
+                |> withCmd randomizePattern
+
+        RandomizationComplete randomPattern ->
+            let
+                randomWorld =
+                    World.createWithPattern randomPattern
+            in
+            { model | world = History.record (always randomWorld) model.world }
+                |> noCmd
 
         NoOp ->
-            model
+            noCmd model
+
+
+noCmd : Model -> ( Model, Cmd msg )
+noCmd model =
+    ( model, Cmd.none )
+
+
+withCmd : Cmd Msg -> Model -> ( Model, Cmd Msg )
+withCmd cmd model =
+    ( model, cmd )
 
 
 undo : Model -> Model
@@ -211,6 +245,11 @@ parsePattern : String -> Maybe World
 parsePattern text =
     Pattern.parseLife106 text
         |> Maybe.map World.createWithPattern
+
+
+randomizePattern : Cmd Msg
+randomizePattern =
+    Random.generate RandomizationComplete Pattern.generator
 
 
 
@@ -265,6 +304,7 @@ viewControls status speed zoom world importField =
         , div [ class "bottom-right-overlay" ]
             [ viewUndoButton status
             , viewRedoButton status
+            , viewRandomizeButton
             ]
         ]
 
@@ -284,28 +324,36 @@ viewStatusButton status world =
 
 viewSpeedButton : Speed -> Html Msg
 viewSpeedButton speed =
+    let
+        onClick =
+            SetSpeed (nextSpeed speed)
+    in
     case speed of
         Slow ->
-            viewButton "Slow" (SetSpeed Medium) []
+            viewButton "Slow" onClick []
 
         Medium ->
-            viewButton "Medium" (SetSpeed Fast) []
+            viewButton "Medium" onClick []
 
         Fast ->
-            viewButton "Fast" (SetSpeed Slow) []
+            viewButton "Fast" onClick []
 
 
 viewZoomButton : World.Zoom -> Html Msg
 viewZoomButton zoom =
+    let
+        onClick =
+            SetZoom (nextZoomLevel zoom)
+    in
     case zoom of
         World.Far ->
-            viewButton "1X" (SetZoom World.Normal) []
+            viewButton "1X" onClick []
 
         World.Normal ->
-            viewButton "1.5X" (SetZoom World.Close) []
+            viewButton "1.5X" onClick []
 
         World.Close ->
-            viewButton "2X" (SetZoom World.Far) []
+            viewButton "2X" onClick []
 
 
 viewImportField : ImportField -> Html Msg
@@ -337,6 +385,11 @@ viewRedoButton status =
     viewButton "➡︎" Redo []
 
 
+viewRandomizeButton : Html Msg
+viewRandomizeButton =
+    viewButton "Random" Randomize []
+
+
 viewButton : String -> msg -> List (Attribute msg) -> Html msg
 viewButton description clickMsg customAttributes =
     let
@@ -346,14 +399,40 @@ viewButton description clickMsg customAttributes =
     button attributes [ text description ]
 
 
+nextSpeed : Speed -> Speed
+nextSpeed speed =
+    case speed of
+        Slow ->
+            Medium
+
+        Medium ->
+            Fast
+
+        Fast ->
+            Slow
+
+
+nextZoomLevel : World.Zoom -> World.Zoom
+nextZoomLevel zoom =
+    case zoom of
+        World.Far ->
+            World.Normal
+
+        World.Normal ->
+            World.Close
+
+        World.Close ->
+            World.Far
+
+
 
 -- SUBSCRIPTIONS
 
 
 subscriptions : Model -> Sub Msg
-subscriptions { status, speed } =
+subscriptions { status, speed, zoom } =
     Sub.batch
-        [ keyDownSubscription status
+        [ keyDownSubscription status speed zoom
         , tickSubscription status speed
         ]
 
@@ -381,19 +460,19 @@ tickInterval speed =
             50
 
 
-keyDownSubscription : Status -> Sub Msg
-keyDownSubscription status =
-    Events.onKeyDown (keyDecoder status)
+keyDownSubscription : Status -> Speed -> World.Zoom -> Sub Msg
+keyDownSubscription status speed zoom =
+    Events.onKeyDown (keyDecoder status speed zoom)
 
 
-keyDecoder : Status -> Decoder Msg
-keyDecoder status =
+keyDecoder : Status -> Speed -> World.Zoom -> Decoder Msg
+keyDecoder status speed zoom =
     Decode.field "key" Decode.string
-        |> Decode.map (toMsg status)
+        |> Decode.map (toMsg status speed zoom)
 
 
-toMsg : Status -> String -> Msg
-toMsg status key =
+toMsg : Status -> Speed -> World.Zoom -> String -> Msg
+toMsg status speed zoom key =
     case key of
         "ArrowLeft" ->
             Undo
@@ -408,6 +487,15 @@ toMsg status key =
 
                 Paused ->
                     Play
+
+        "s" ->
+            SetSpeed (nextSpeed speed)
+
+        "r" ->
+            Randomize
+
+        "z" ->
+            SetZoom (nextZoomLevel zoom)
 
         _ ->
             NoOp

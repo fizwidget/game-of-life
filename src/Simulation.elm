@@ -1,6 +1,7 @@
-module World exposing
+module Simulation exposing
     ( Cell(..)
-    , World
+    , Simulation
+    , Speed(..)
     , Zoom(..)
     , create
     , createWithPattern
@@ -30,21 +31,21 @@ type alias Cells =
     Matrix Cell
 
 
-type World
-    = World Cells
+type Simulation
+    = Simulation Cells
 
 
 
 -- CREATE
 
 
-create : World
+create : Simulation
 create =
     Matrix.create { width = 18, height = 18 } Dead
-        |> World
+        |> Simulation
 
 
-createWithPattern : Pattern -> World
+createWithPattern : Pattern -> Simulation
 createWithPattern pattern =
     let
         size =
@@ -65,7 +66,7 @@ createWithPattern pattern =
         deadCells =
             Matrix.create { width = size, height = size } Dead
     in
-    World <|
+    Simulation <|
         List.foldl
             (Matrix.set Alive)
             deadCells
@@ -76,10 +77,10 @@ createWithPattern pattern =
 -- OPERATIONS
 
 
-step : World -> World
-step (World cells) =
+step : Simulation -> Simulation
+step (Simulation cells) =
     Matrix.coordinateMap (stepCell cells) cells
-        |> World
+        |> Simulation
 
 
 stepCell : Cells -> Coordinate -> Cell -> Cell
@@ -105,8 +106,8 @@ countLiveNeighbours cells coordinate =
         |> List.length
 
 
-toggleCell : Coordinate -> World -> World
-toggleCell coordinate (World cells) =
+toggleCell : Coordinate -> Simulation -> Simulation
+toggleCell coordinate (Simulation cells) =
     let
         toggle cell =
             case cell of
@@ -117,11 +118,11 @@ toggleCell coordinate (World cells) =
                     Alive
     in
     Matrix.update toggle coordinate cells
-        |> World
+        |> Simulation
 
 
-isFinished : World -> Bool
-isFinished (World cells) =
+isFinished : Simulation -> Bool
+isFinished (Simulation cells) =
     Matrix.all ((==) Dead) cells
 
 
@@ -144,21 +145,27 @@ type alias Handlers msg =
     }
 
 
+type Speed
+    = Slow
+    | Medium
+    | Fast
+
+
 type Zoom
     = Far
     | Normal
     | Close
 
 
-view : Milliseconds -> World -> Zoom -> Handlers msg -> Html msg
-view transitionDuration world zoom handlers =
+view : Milliseconds -> Simulation -> Zoom -> Handlers msg -> Html msg
+view transitionDuration simulation zoom handlers =
     div
         [ class "square-container" ]
-        [ viewCells transitionDuration world zoom handlers ]
+        [ viewCells transitionDuration simulation zoom handlers ]
 
 
-viewCells : Milliseconds -> World -> Zoom -> Handlers msg -> Html msg
-viewCells transitionDuration (World cells) zoom handlers =
+viewCells : Milliseconds -> Simulation -> Zoom -> Handlers msg -> Html msg
+viewCells transitionDuration (Simulation cells) zoom handlers =
     div
         ([ class "cells-container" ] ++ zoomStyles zoom)
         (cells

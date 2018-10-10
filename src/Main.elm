@@ -83,8 +83,8 @@ type Msg
     | MouseUp
     | ImportFieldOpen
     | ImportFieldChange UserInput
-    | Randomize
-    | RandomizationComplete Pattern
+    | RandomizeRequest
+    | RandomizeResponse Pattern
     | NoOp
 
 
@@ -165,11 +165,10 @@ update msg model =
                             , zoom = Normal
                         }
 
-        Randomize ->
-            model
-                |> withCmd randomizePattern
+        RandomizeRequest ->
+            ( model, randomizePattern )
 
-        RandomizationComplete randomPattern ->
+        RandomizeResponse randomPattern ->
             let
                 randomSimulation =
                     Simulation.createWithPattern randomPattern
@@ -184,11 +183,6 @@ update msg model =
 noCmd : Model -> ( Model, Cmd msg )
 noCmd model =
     ( model, Cmd.none )
-
-
-withCmd : Cmd Msg -> Model -> ( Model, Cmd Msg )
-withCmd cmd model =
-    ( model, cmd )
 
 
 undo : Model -> Model
@@ -243,7 +237,7 @@ parsePattern text =
 
 randomizePattern : Cmd Msg
 randomizePattern =
-    Random.generate RandomizationComplete Pattern.generator
+    Random.generate RandomizeResponse Pattern.generator
 
 
 
@@ -381,7 +375,7 @@ viewRedoButton status =
 
 viewRandomizeButton : Html Msg
 viewRandomizeButton =
-    viewButton "Random" Randomize []
+    viewButton "Random" RandomizeRequest []
 
 
 viewButton : String -> msg -> List (Attribute msg) -> Html msg
@@ -486,7 +480,7 @@ toMsg status speed zoom key =
             SetSpeed (nextSpeed speed)
 
         "r" ->
-            Randomize
+            RandomizeRequest
 
         "z" ->
             SetZoom (nextZoomLevel zoom)

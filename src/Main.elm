@@ -169,7 +169,7 @@ update msg model =
                     model
                         |> closeImportField
                         |> resetZoom
-                        |> setPattern parsedPattern
+                        |> displayPattern parsedPattern
                         |> withoutCmd
 
         RandomPatternRequest ->
@@ -178,11 +178,25 @@ update msg model =
 
         RandomPatternResponse randomPattern ->
             model
-                |> setPattern randomPattern
+                |> displayPattern randomPattern
                 |> withoutCmd
 
         NoOp ->
             withoutCmd model
+
+
+
+-- UPDATE HELPERS
+
+
+withCmd : Cmd Msg -> Model -> ( Model, Cmd Msg )
+withCmd cmd model =
+    ( model, cmd )
+
+
+withoutCmd : Model -> ( Model, Cmd msg )
+withoutCmd model =
+    ( model, Cmd.none )
 
 
 pauseSimulation : Model -> Model
@@ -210,8 +224,8 @@ closeImportField model =
     { model | importField = Closed }
 
 
-setPattern : Pattern -> Model -> Model
-setPattern pattern model =
+displayPattern : Pattern -> Model -> Model
+displayPattern pattern model =
     let
         newSimulation =
             Simulation.startWithPattern pattern
@@ -222,39 +236,29 @@ setPattern pattern model =
 toggleCell : Coordinate -> Model -> Model
 toggleCell coordinate model =
     History.record (Simulation.toggleCell coordinate) model.simulation
-        |> setSimulationHistory model
+        |> setSimulation model
 
 
 stepSimulation : Model -> Model
 stepSimulation model =
     History.record Simulation.step model.simulation
-        |> setSimulationHistory model
-
-
-withoutCmd : Model -> ( Model, Cmd msg )
-withoutCmd model =
-    ( model, Cmd.none )
-
-
-withCmd : Cmd Msg -> Model -> ( Model, Cmd Msg )
-withCmd cmd model =
-    ( model, cmd )
+        |> setSimulation model
 
 
 tryUndo : Model -> Maybe Model
 tryUndo model =
     History.undo model.simulation
-        |> Maybe.map (setSimulationHistory model)
+        |> Maybe.map (setSimulation model)
 
 
 tryRedo : Model -> Maybe Model
 tryRedo model =
     History.redo model.simulation
-        |> Maybe.map (setSimulationHistory model)
+        |> Maybe.map (setSimulation model)
 
 
-setSimulationHistory : Model -> History Simulation -> Model
-setSimulationHistory model simulation =
+setSimulation : Model -> History Simulation -> Model
+setSimulation model simulation =
     { model | simulation = simulation }
 
 

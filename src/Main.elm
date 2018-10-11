@@ -269,12 +269,6 @@ pauseIfUnchanged model =
         model
 
 
-parsePattern : String -> Maybe Simulation
-parsePattern text =
-    Pattern.parseLife106 text
-        |> Maybe.map Simulation.startWithPattern
-
-
 requestRandomPattern : Cmd Msg
 requestRandomPattern =
     Random.generate RandomPatternResponse Pattern.generator

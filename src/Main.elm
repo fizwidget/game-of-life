@@ -9,7 +9,7 @@ import Html.Events exposing (onClick, onInput)
 import Json.Decode as Decode exposing (Decoder)
 import Pattern exposing (Pattern)
 import Random
-import Simulation exposing (Simulation, Speed(..), Zoom(..))
+import Simulation exposing (Simulation, Zoom(..))
 import Time
 
 
@@ -20,6 +20,12 @@ import Time
 type Status
     = Paused
     | Playing
+
+
+type Speed
+    = Slow
+    | Medium
+    | Fast
 
 
 type Mouse
@@ -58,7 +64,7 @@ init =
 initialModel : Model
 initialModel =
     { status = Paused
-    , simulation = History.begin Simulation.create
+    , simulation = History.begin Simulation.start
     , mouse = Up
     , speed = Slow
     , zoom = Far
@@ -71,20 +77,19 @@ initialModel =
 
 
 type Msg
-    = Play
-    | Pause
-    | Tick
-    | Undo
+    = Undo
     | Redo
-    | SetSpeed Speed
-    | SetZoom Zoom
+    | ClockTick
+    | ChangeStatus Status
+    | ChangeSpeed Speed
+    | ChangeZoom Zoom
     | MouseDown Coordinate
     | MouseOver Coordinate
     | MouseUp
     | ImportFieldOpen
     | ImportFieldChange UserInput
-    | RandomizeRequest
-    | RandomizeResponse Pattern
+    | RandomPatternRequest
+    | RandomPatternResponse Pattern
     | NoOp
 
 
@@ -97,46 +102,48 @@ type alias Coordinate =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Play ->
-            { model | status = Playing }
-                |> noCmd
-
-        Pause ->
-            { model | status = Paused }
-                |> noCmd
-
-        Tick ->
-            { model | simulation = History.record Simulation.step model.simulation }
-                |> pauseIfUnchanged
-                |> noCmd
-
         Undo ->
-            undo model
+            model
+                |> pauseSimulation
+                |> undoLastChange
+                |> Maybe.withDefault model
                 |> noCmd
 
         Redo ->
-            redoOrStep model
+            model
+                |> pauseSimulation
+                |> redoLastChange
+                |> Maybe.withDefault (stepSimulation model)
                 |> noCmd
 
-        SetSpeed speed ->
+        ClockTick ->
+            model
+                |> stepSimulation
+                |> pauseIfUnchanged
+                |> noCmd
+
+        ChangeStatus status ->
+            { model | status = status }
+                |> noCmd
+
+        ChangeSpeed speed ->
             { model | speed = speed }
                 |> noCmd
 
-        SetZoom zoom ->
+        ChangeZoom zoom ->
             { model | zoom = zoom }
                 |> noCmd
 
         MouseDown coordinate ->
-            noCmd
-                { model
-                    | mouse = Down
-                    , simulation = toggleCell coordinate model.simulation
-                }
+            { model | mouse = Down }
+                |> toggleCell coordinate
+                |> noCmd
 
         MouseOver coordinate ->
             case model.mouse of
                 Down ->
-                    { model | simulation = toggleCell coordinate model.simulation }
+                    model
+                        |> toggleCell coordinate
                         |> noCmd
 
                 Up ->
@@ -148,36 +155,82 @@ update msg model =
                 |> noCmd
 
         ImportFieldOpen ->
-            { model | importField = Open "" }
+            model
+                |> openImportField
                 |> noCmd
 
-        ImportFieldChange text ->
-            case parsePattern text of
+        ImportFieldChange userInput ->
+            case Pattern.parseLife106 userInput of
                 Nothing ->
-                    { model | importField = Open text }
+                    model
+                        |> updateImportField userInput
                         |> noCmd
 
-                Just newSimulation ->
-                    noCmd
-                        { model
-                            | importField = Closed
-                            , simulation = History.record (always newSimulation) model.simulation
-                            , zoom = Normal
-                        }
+                Just parsedPattern ->
+                    model
+                        |> closeImportField
+                        |> resetZoom
+                        |> setPattern parsedPattern
+                        |> noCmd
 
-        RandomizeRequest ->
-            ( model, randomizePattern )
+        RandomPatternRequest ->
+            model
+                |> withCmd requestRandomPattern
 
-        RandomizeResponse randomPattern ->
-            let
-                randomSimulation =
-                    Simulation.createWithPattern randomPattern
-            in
-            { model | simulation = History.record (always randomSimulation) model.simulation }
+        RandomPatternResponse randomPattern ->
+            model
+                |> setPattern randomPattern
                 |> noCmd
 
         NoOp ->
-            noCmd model
+            model
+                |> noCmd
+
+
+pauseSimulation : Model -> Model
+pauseSimulation model =
+    { model | status = Paused }
+
+
+resetZoom : Model -> Model
+resetZoom model =
+    { model | zoom = Far }
+
+
+openImportField : Model -> Model
+openImportField model =
+    { model | importField = Open "" }
+
+
+updateImportField : UserInput -> Model -> Model
+updateImportField userInput model =
+    { model | importField = Open userInput }
+
+
+closeImportField : Model -> Model
+closeImportField model =
+    { model | importField = Closed }
+
+
+setPattern : Pattern -> Model -> Model
+setPattern pattern model =
+    let
+        simulationWithPattern =
+            Simulation.startWithPattern pattern
+    in
+    { model | simulation = History.record (always simulationWithPattern) model.simulation }
+
+
+toggleCell : Coordinate -> Model -> Model
+toggleCell coordinate model =
+    History.record (Simulation.toggleCell coordinate) model.simulation
+        |> setSimulationHistory model
+
+
+stepSimulation : Model -> Model
+stepSimulation model =
+    History.record Simulation.step model.simulation
+        |> setSimulationHistory model
 
 
 noCmd : Model -> ( Model, Cmd msg )
@@ -185,59 +238,46 @@ noCmd model =
     ( model, Cmd.none )
 
 
-undo : Model -> Model
-undo model =
-    { model
-        | status = Paused
-        , simulation =
-            History.undo model.simulation
-                |> Maybe.withDefault model.simulation
-    }
+withCmd : Cmd Msg -> Model -> ( Model, Cmd Msg )
+withCmd cmd model =
+    ( model, cmd )
 
 
-redoOrStep : Model -> Model
-redoOrStep model =
-    { model
-        | status = Paused
-        , simulation =
-            History.redo model.simulation
-                |> Maybe.withDefault (History.record Simulation.step model.simulation)
-    }
+undoLastChange : Model -> Maybe Model
+undoLastChange model =
+    History.undo model.simulation
+        |> Maybe.map (setSimulationHistory model)
 
 
-toggleStatus : Model -> Model
-toggleStatus model =
-    case model.status of
-        Playing ->
-            { model | status = Paused }
+redoLastChange : Model -> Maybe Model
+redoLastChange model =
+    History.redo model.simulation
+        |> Maybe.map (setSimulationHistory model)
 
-        Paused ->
-            { model | status = Playing }
+
+setSimulationHistory : Model -> History Simulation -> Model
+setSimulationHistory model simulation =
+    { model | simulation = simulation }
 
 
 pauseIfUnchanged : Model -> Model
 pauseIfUnchanged model =
     if History.isUnchanged model.simulation then
-        { model | status = Paused }
+        pauseSimulation model
 
     else
         model
 
 
-toggleCell : Coordinate -> History Simulation -> History Simulation
-toggleCell coordinate simulation =
-    History.record (Simulation.toggleCell coordinate) simulation
-
-
 parsePattern : String -> Maybe Simulation
 parsePattern text =
     Pattern.parseLife106 text
-        |> Maybe.map Simulation.createWithPattern
+        |> Maybe.map Simulation.startWithPattern
 
 
-randomizePattern : Cmd Msg
-randomizePattern =
-    Random.generate RandomizeResponse Pattern.generator
+requestRandomPattern : Cmd Msg
+requestRandomPattern =
+    Random.generate RandomPatternResponse Pattern.generator
 
 
 
@@ -257,11 +297,6 @@ view { simulation, status, speed, zoom, importField } =
         currentSimulation =
             History.now simulation
 
-        transitionDuration =
-            calculateTransitionDuration speed
-
-        -- Refactor mouse stuff to keep `isSelectionActive` in model, then
-        -- determine whether to dispatch `ToggleCell` or `NoOp` here.
         handlers =
             { mouseOver = MouseOver
             , mouseDown = MouseDown
@@ -270,14 +305,9 @@ view { simulation, status, speed, zoom, importField } =
     in
     div
         [ class "center-content" ]
-        [ Simulation.view transitionDuration currentSimulation zoom handlers
+        [ Simulation.view currentSimulation zoom handlers
         , viewControls status speed zoom currentSimulation importField
         ]
-
-
-calculateTransitionDuration : Speed -> Milliseconds
-calculateTransitionDuration speed =
-    tickInterval speed + 200
 
 
 viewControls : Status -> Speed -> Zoom -> Simulation -> ImportField -> Html Msg
@@ -301,20 +331,20 @@ viewStatusButton : Status -> Simulation -> Html Msg
 viewStatusButton status simulation =
     case ( status, Simulation.isFinished simulation ) of
         ( Paused, True ) ->
-            viewButton "Play" Play []
+            viewButton "Play" (ChangeStatus Playing) []
 
         ( Paused, False ) ->
-            viewButton "Play" Play [ class "green-button" ]
+            viewButton "Play" (ChangeStatus Playing) [ class "green-button" ]
 
         ( Playing, _ ) ->
-            viewButton "Pause" Pause []
+            viewButton "Pause" (ChangeStatus Paused) []
 
 
 viewSpeedButton : Speed -> Html Msg
 viewSpeedButton speed =
     let
         onClick =
-            SetSpeed (nextSpeed speed)
+            ChangeSpeed (nextSpeed speed)
     in
     case speed of
         Slow ->
@@ -331,7 +361,7 @@ viewZoomButton : Zoom -> Html Msg
 viewZoomButton zoom =
     let
         onClick =
-            SetZoom (nextZoomLevel zoom)
+            ChangeZoom (nextZoomLevel zoom)
     in
     case zoom of
         Far ->
@@ -375,7 +405,7 @@ viewRedoButton status =
 
 viewRandomizeButton : Html Msg
 viewRandomizeButton =
-    viewButton "Random" RandomizeRequest []
+    viewButton "Random" RandomPatternRequest []
 
 
 viewButton : String -> msg -> List (Attribute msg) -> Html msg
@@ -429,7 +459,7 @@ tickSubscription : Status -> Speed -> Sub Msg
 tickSubscription status speed =
     case status of
         Playing ->
-            Time.every (tickInterval speed) (always Tick)
+            Time.every (tickInterval speed) (always ClockTick)
 
         Paused ->
             Sub.none
@@ -469,21 +499,22 @@ toMsg status speed zoom key =
             Redo
 
         "p" ->
-            case status of
-                Playing ->
-                    Pause
+            ChangeStatus <|
+                case status of
+                    Playing ->
+                        Paused
 
-                Paused ->
-                    Play
+                    Paused ->
+                        Playing
 
         "s" ->
-            SetSpeed (nextSpeed speed)
+            ChangeSpeed (nextSpeed speed)
 
         "r" ->
-            RandomizeRequest
+            RandomPatternRequest
 
         "z" ->
-            SetZoom (nextZoomLevel zoom)
+            ChangeZoom (nextZoomLevel zoom)
 
         _ ->
             NoOp

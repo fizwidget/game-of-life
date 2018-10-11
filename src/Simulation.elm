@@ -1,11 +1,10 @@
 module Simulation exposing
     ( Cell(..)
     , Simulation
-    , Speed(..)
     , Zoom(..)
-    , create
-    , createWithPattern
     , isFinished
+    , start
+    , startWithPattern
     , step
     , toggleCell
     , view
@@ -39,14 +38,14 @@ type Simulation
 -- CREATE
 
 
-create : Simulation
-create =
+start : Simulation
+start =
     Matrix.create { width = 18, height = 18 } Dead
         |> Simulation
 
 
-createWithPattern : Pattern -> Simulation
-createWithPattern pattern =
+startWithPattern : Pattern -> Simulation
+startWithPattern pattern =
     let
         size =
             max (Pattern.width pattern) (Pattern.height pattern)
@@ -145,31 +144,25 @@ type alias Handlers msg =
     }
 
 
-type Speed
-    = Slow
-    | Medium
-    | Fast
-
-
 type Zoom
     = Far
     | Normal
     | Close
 
 
-view : Milliseconds -> Simulation -> Zoom -> Handlers msg -> Html msg
-view transitionDuration simulation zoom handlers =
+view : Simulation -> Zoom -> Handlers msg -> Html msg
+view simulation zoom handlers =
     div
         [ class "square-container" ]
-        [ viewCells transitionDuration simulation zoom handlers ]
+        [ viewCells simulation zoom handlers ]
 
 
-viewCells : Milliseconds -> Simulation -> Zoom -> Handlers msg -> Html msg
-viewCells transitionDuration (Simulation cells) zoom handlers =
+viewCells : Simulation -> Zoom -> Handlers msg -> Html msg
+viewCells (Simulation cells) zoom handlers =
     div
         ([ class "cells-container" ] ++ zoomStyles zoom)
         (cells
-            |> Matrix.coordinateMap (viewCell transitionDuration (cellSize cells) handlers)
+            |> Matrix.coordinateMap (viewCell (cellSize cells) handlers)
             |> Matrix.toList
         )
 
@@ -193,8 +186,8 @@ zoomStyles zoom =
     ]
 
 
-viewCell : Milliseconds -> Percentage -> Handlers msg -> Coordinate -> Cell -> Html msg
-viewCell transitionDuration relativeSize handlers coordinate cell =
+viewCell : Percentage -> Handlers msg -> Coordinate -> Cell -> Html msg
+viewCell relativeSize handlers coordinate cell =
     div
         [ class "center-content"
         , style "width" (percentageStyle relativeSize)
@@ -203,11 +196,11 @@ viewCell transitionDuration relativeSize handlers coordinate cell =
         , onMouseUp handlers.mouseUp
         , onMouseEnter (handlers.mouseOver coordinate)
         ]
-        [ viewCellContent transitionDuration cell coordinate ]
+        [ viewCellContent cell coordinate ]
 
 
-viewCellContent : Milliseconds -> Cell -> Coordinate -> Html msg
-viewCellContent transitionDuration cell coordinate =
+viewCellContent : Cell -> Coordinate -> Html msg
+viewCellContent cell coordinate =
     let
         size =
             cellContentSize cell

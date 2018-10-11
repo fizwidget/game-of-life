@@ -39,8 +39,8 @@ type alias Coordinate =
 
 
 create : Dimensions -> a -> Matrix a
-create dimensions value =
-    Array.repeat (dimensions.width * dimensions.height) value
+create dimensions defaultValue =
+    Array.repeat (dimensions.width * dimensions.height) defaultValue
         |> Matrix dimensions
 
 

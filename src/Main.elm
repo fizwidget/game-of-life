@@ -58,7 +58,7 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    noCmd initialModel
+    withoutCmd initialModel
 
 
 initialModel : Model
@@ -105,73 +105,72 @@ update msg model =
         Undo ->
             model
                 |> pauseSimulation
-                |> undoLastChange
+                |> tryUndo
                 |> Maybe.withDefault model
-                |> noCmd
+                |> withoutCmd
 
         Redo ->
             model
                 |> pauseSimulation
-                |> redoLastChange
+                |> tryRedo
                 |> Maybe.withDefault (stepSimulation model)
-                |> noCmd
+                |> withoutCmd
 
         ClockTick ->
             model
                 |> stepSimulation
                 |> pauseIfUnchanged
-                |> noCmd
+                |> withoutCmd
 
         ChangeStatus status ->
             { model | status = status }
-                |> noCmd
+                |> withoutCmd
 
         ChangeSpeed speed ->
             { model | speed = speed }
-                |> noCmd
+                |> withoutCmd
 
         ChangeZoom zoom ->
             { model | zoom = zoom }
-                |> noCmd
+                |> withoutCmd
 
         MouseDown coordinate ->
             { model | mouse = Down }
                 |> toggleCell coordinate
-                |> noCmd
+                |> withoutCmd
 
         MouseOver coordinate ->
             case model.mouse of
                 Down ->
                     model
                         |> toggleCell coordinate
-                        |> noCmd
+                        |> withoutCmd
 
                 Up ->
-                    model
-                        |> noCmd
+                    withoutCmd model
 
         MouseUp ->
             { model | mouse = Up }
-                |> noCmd
+                |> withoutCmd
 
         ImportFieldOpen ->
             model
                 |> openImportField
-                |> noCmd
+                |> withoutCmd
 
         ImportFieldChange userInput ->
             case Pattern.parseLife106 userInput of
                 Nothing ->
                     model
-                        |> updateImportField userInput
-                        |> noCmd
+                        |> setImportField userInput
+                        |> withoutCmd
 
                 Just parsedPattern ->
                     model
                         |> closeImportField
                         |> resetZoom
                         |> setPattern parsedPattern
-                        |> noCmd
+                        |> withoutCmd
 
         RandomPatternRequest ->
             model
@@ -180,11 +179,10 @@ update msg model =
         RandomPatternResponse randomPattern ->
             model
                 |> setPattern randomPattern
-                |> noCmd
+                |> withoutCmd
 
         NoOp ->
-            model
-                |> noCmd
+            withoutCmd model
 
 
 pauseSimulation : Model -> Model
@@ -202,8 +200,8 @@ openImportField model =
     { model | importField = Open "" }
 
 
-updateImportField : UserInput -> Model -> Model
-updateImportField userInput model =
+setImportField : UserInput -> Model -> Model
+setImportField userInput model =
     { model | importField = Open userInput }
 
 
@@ -215,10 +213,10 @@ closeImportField model =
 setPattern : Pattern -> Model -> Model
 setPattern pattern model =
     let
-        simulationWithPattern =
+        newSimulation =
             Simulation.startWithPattern pattern
     in
-    { model | simulation = History.record (always simulationWithPattern) model.simulation }
+    { model | simulation = History.record (always newSimulation) model.simulation }
 
 
 toggleCell : Coordinate -> Model -> Model
@@ -233,8 +231,8 @@ stepSimulation model =
         |> setSimulationHistory model
 
 
-noCmd : Model -> ( Model, Cmd msg )
-noCmd model =
+withoutCmd : Model -> ( Model, Cmd msg )
+withoutCmd model =
     ( model, Cmd.none )
 
 
@@ -243,14 +241,14 @@ withCmd cmd model =
     ( model, cmd )
 
 
-undoLastChange : Model -> Maybe Model
-undoLastChange model =
+tryUndo : Model -> Maybe Model
+tryUndo model =
     History.undo model.simulation
         |> Maybe.map (setSimulationHistory model)
 
 
-redoLastChange : Model -> Maybe Model
-redoLastChange model =
+tryRedo : Model -> Maybe Model
+tryRedo model =
     History.redo model.simulation
         |> Maybe.map (setSimulationHistory model)
 

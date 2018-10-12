@@ -151,11 +151,11 @@ type Zoom
     | Close
 
 
-view : GameOfLife -> Zoom -> Handlers msg -> Html msg
-view simulation zoom handlers =
+view : Zoom -> GameOfLife -> Handlers msg -> Html msg
+view zoom game handlers =
     div
         [ class "square-container" ]
-        [ viewCells simulation zoom handlers ]
+        [ viewCells game zoom handlers ]
 
 
 viewCells : GameOfLife -> Zoom -> Handlers msg -> Html msg

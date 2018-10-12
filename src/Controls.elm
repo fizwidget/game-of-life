@@ -49,8 +49,8 @@ view :
     Status
     -> Speed
     -> Zoom
-    -> GameOfLife
     -> ImportField
+    -> GameOfLife
     -> Handlers msg
     -> Html msg
 view status speed zoom gameOfLife importField handlers =

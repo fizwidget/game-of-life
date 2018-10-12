@@ -23,7 +23,7 @@ type Mouse
 
 
 type alias Model =
-    { gameOfLife : History GameOfLife
+    { game : History GameOfLife
     , status : Status
     , mouse : Mouse
     , speed : Speed
@@ -44,7 +44,7 @@ init =
 initialModel : Model
 initialModel =
     { status = Paused
-    , gameOfLife = History.begin GameOfLife.begin
+    , game = History.begin GameOfLife.begin
     , mouse = Up
     , speed = Slow
     , zoom = Far
@@ -210,42 +210,42 @@ displayPattern pattern model =
         newGame =
             GameOfLife.beginWithPattern pattern
     in
-    History.record (always newGame) model.gameOfLife
+    History.record (always newGame) model.game
         |> setGame model
 
 
 toggleCell : Coordinate -> Model -> Model
 toggleCell coordinate model =
-    History.record (GameOfLife.toggleCell coordinate) model.gameOfLife
+    History.record (GameOfLife.toggleCell coordinate) model.game
         |> setGame model
 
 
 stepSimulation : Model -> Model
 stepSimulation model =
-    History.record GameOfLife.step model.gameOfLife
+    History.record GameOfLife.step model.game
         |> setGame model
 
 
 maybeUndo : Model -> Maybe Model
 maybeUndo model =
-    History.undo model.gameOfLife
+    History.undo model.game
         |> Maybe.map (setGame model)
 
 
 maybeRedo : Model -> Maybe Model
 maybeRedo model =
-    History.redo model.gameOfLife
+    History.redo model.game
         |> Maybe.map (setGame model)
 
 
 setGame : Model -> History GameOfLife -> Model
-setGame model gameOfLife =
-    { model | gameOfLife = gameOfLife }
+setGame model game =
+    { model | game = game }
 
 
 pauseIfUnchanged : Model -> Model
 pauseIfUnchanged model =
-    if History.isUnchanged model.gameOfLife then
+    if History.isUnchanged model.game then
         pause model
 
     else
@@ -272,23 +272,17 @@ view : Model -> Html Msg
 view model =
     div
         [ class "center-content" ]
-        [ viewGameOfLife model, viewControls model ]
+        [ viewGame model
+        , viewControls model
+        ]
 
 
-viewGameOfLife : Model -> Html Msg
-viewGameOfLife model =
+viewGame : Model -> Html Msg
+viewGame model =
     GameOfLife.view
-        (History.now model.gameOfLife)
         model.zoom
-        gameOfLifeHandlers
-
-
-gameOfLifeHandlers : GameOfLife.Handlers Msg
-gameOfLifeHandlers =
-    { mouseOver = MouseOver
-    , mouseDown = MouseDown
-    , mouseUp = MouseUp
-    }
+        (History.now model.game)
+        gameHandlers
 
 
 viewControls : Model -> Html Msg
@@ -297,9 +291,17 @@ viewControls model =
         model.status
         model.speed
         model.zoom
-        (History.now model.gameOfLife)
         model.importField
+        (History.now model.game)
         (controlHandlers model)
+
+
+gameHandlers : GameOfLife.Handlers Msg
+gameHandlers =
+    { mouseOver = MouseOver
+    , mouseDown = MouseDown
+    , mouseUp = MouseUp
+    }
 
 
 controlHandlers : Model -> Controls.Handlers Msg

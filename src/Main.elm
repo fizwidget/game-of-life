@@ -5,9 +5,8 @@ import Browser.Events as Events
 import Controls exposing (ImportField(..), Speed(..), Status(..), UserInput)
 import GameOfLife exposing (GameOfLife, Zoom(..))
 import History exposing (History)
-import Html exposing (Attribute, Html, button, div, text, textarea)
-import Html.Attributes exposing (autofocus, class, cols, placeholder, rows, value)
-import Html.Events exposing (onClick, onInput)
+import Html exposing (Html, div)
+import Html.Attributes exposing (class)
 import Json.Decode as Decode exposing (Decoder)
 import Pattern exposing (Pattern)
 import Random
@@ -273,15 +272,23 @@ view : Model -> Html Msg
 view model =
     div
         [ class "center-content" ]
-        [ viewGame model, viewControls model ]
+        [ viewGameOfLife model, viewControls model ]
 
 
-viewGame : Model -> Html Msg
-viewGame model =
+viewGameOfLife : Model -> Html Msg
+viewGameOfLife model =
     GameOfLife.view
         (History.now model.gameOfLife)
         model.zoom
         gameOfLifeHandlers
+
+
+gameOfLifeHandlers : GameOfLife.Handlers Msg
+gameOfLifeHandlers =
+    { mouseOver = MouseOver
+    , mouseDown = MouseDown
+    , mouseUp = MouseUp
+    }
 
 
 viewControls : Model -> Html Msg
@@ -293,14 +300,6 @@ viewControls model =
         (History.now model.gameOfLife)
         model.importField
         (controlHandlers model)
-
-
-gameOfLifeHandlers : GameOfLife.Handlers Msg
-gameOfLifeHandlers =
-    { mouseOver = MouseOver
-    , mouseDown = MouseDown
-    , mouseUp = MouseUp
-    }
 
 
 controlHandlers : Model -> Controls.Handlers Msg

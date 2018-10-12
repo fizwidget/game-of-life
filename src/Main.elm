@@ -2,6 +2,7 @@ module Main exposing (main)
 
 import Browser exposing (Document)
 import Browser.Events as Events
+import Controls exposing (ImportField(..), Speed(..), Status(..), UserInput)
 import History exposing (History)
 import Html exposing (Attribute, Html, button, div, text, textarea)
 import Html.Attributes exposing (autofocus, class, cols, placeholder, rows, value)
@@ -17,29 +18,9 @@ import Time
 -- MODEL
 
 
-type Status
-    = Paused
-    | Playing
-
-
-type Speed
-    = Slow
-    | Medium
-    | Fast
-
-
 type Mouse
     = Up
     | Down
-
-
-type ImportField
-    = Open UserInput
-    | Closed
-
-
-type alias UserInput =
-    String
 
 
 type alias Model =
@@ -230,7 +211,8 @@ displayPattern pattern model =
         newSimulation =
             Simulation.startWithPattern pattern
     in
-    { model | simulation = History.record (always newSimulation) model.simulation }
+    History.record (always newSimulation) model.simulation
+        |> setSimulation model
 
 
 toggleCell : Coordinate -> Model -> Model
@@ -288,129 +270,50 @@ document model =
 
 
 view : Model -> Html Msg
-view { simulation, status, speed, zoom, importField } =
+view model =
     let
-        currentSimulation =
-            History.now simulation
+        simulation =
+            History.now model.simulation
 
-        handlers =
-            { mouseOver = MouseOver
-            , mouseDown = MouseDown
-            , mouseUp = MouseUp
-            }
+        simulationView =
+            Simulation.view
+                simulation
+                model.zoom
+                simulationHandlers
+
+        controlsView =
+            Controls.view
+                model.status
+                model.speed
+                model.zoom
+                simulation
+                model.importField
+                (controlHandlers model)
     in
     div
         [ class "center-content" ]
-        [ Simulation.view currentSimulation zoom handlers
-        , viewControls status speed zoom currentSimulation importField
-        ]
+        [ simulationView, controlsView ]
 
 
-viewControls : Status -> Speed -> Zoom -> Simulation -> ImportField -> Html Msg
-viewControls status speed zoom simulation importField =
-    div []
-        [ div [ class "bottom-left-overlay" ]
-            [ viewStatusButton status simulation
-            , viewSpeedButton speed
-            , viewZoomButton zoom
-            , viewImportField importField
-            ]
-        , div [ class "bottom-right-overlay" ]
-            [ viewUndoButton status
-            , viewRedoButton status
-            , viewRandomizeButton
-            ]
-        ]
+simulationHandlers : Simulation.Handlers Msg
+simulationHandlers =
+    { mouseOver = MouseOver
+    , mouseDown = MouseDown
+    , mouseUp = MouseUp
+    }
 
 
-viewStatusButton : Status -> Simulation -> Html Msg
-viewStatusButton status simulation =
-    case ( status, Simulation.isFinished simulation ) of
-        ( Paused, True ) ->
-            viewButton "Play" (ChangeStatus Playing) []
-
-        ( Paused, False ) ->
-            viewButton "Play" (ChangeStatus Playing) [ class "green-button" ]
-
-        ( Playing, _ ) ->
-            viewButton "Pause" (ChangeStatus Paused) []
-
-
-viewSpeedButton : Speed -> Html Msg
-viewSpeedButton speed =
-    let
-        onClick =
-            ChangeSpeed (nextSpeed speed)
-    in
-    case speed of
-        Slow ->
-            viewButton "Slow" onClick []
-
-        Medium ->
-            viewButton "Medium" onClick []
-
-        Fast ->
-            viewButton "Fast" onClick []
-
-
-viewZoomButton : Zoom -> Html Msg
-viewZoomButton zoom =
-    let
-        onClick =
-            ChangeZoom (nextZoomLevel zoom)
-    in
-    case zoom of
-        Far ->
-            viewButton "1X" onClick []
-
-        Normal ->
-            viewButton "1.5X" onClick []
-
-        Close ->
-            viewButton "2X" onClick []
-
-
-viewImportField : ImportField -> Html Msg
-viewImportField importField =
-    case importField of
-        Closed ->
-            viewButton "Import" ImportFieldOpen []
-
-        Open text ->
-            textarea
-                [ rows 22
-                , cols 30
-                , autofocus True
-                , placeholder "Paste a 'Life 1.06' pattern here"
-                , class "import-field"
-                , value text
-                , onInput ImportFieldChange
-                ]
-                []
-
-
-viewUndoButton : Status -> Html Msg
-viewUndoButton status =
-    viewButton "⬅︎" Undo []
-
-
-viewRedoButton : Status -> Html Msg
-viewRedoButton status =
-    viewButton "➡︎" Redo []
-
-
-viewRandomizeButton : Html Msg
-viewRandomizeButton =
-    viewButton "Random" RandomPatternRequest []
-
-
-viewButton : String -> msg -> List (Attribute msg) -> Html msg
-viewButton description clickMsg customAttributes =
-    let
-        attributes =
-            [ class "button", onClick clickMsg ] ++ customAttributes
-    in
-    button attributes [ text description ]
+controlHandlers : Model -> Controls.Handlers Msg
+controlHandlers { speed, zoom, status } =
+    { speedChange = ChangeSpeed (nextSpeed speed)
+    , zoomChange = ChangeZoom (nextZoomLevel zoom)
+    , statusChange = ChangeStatus (nextStatus status)
+    , undo = Undo
+    , redo = Redo
+    , randomize = RandomPatternRequest
+    , importFieldOpen = ImportFieldOpen
+    , importFieldChange = ImportFieldChange
+    }
 
 
 nextSpeed : Speed -> Speed
@@ -437,6 +340,16 @@ nextZoomLevel zoom =
 
         Close ->
             Far
+
+
+nextStatus : Status -> Status
+nextStatus status =
+    case status of
+        Playing ->
+            Paused
+
+        Paused ->
+            Playing
 
 
 

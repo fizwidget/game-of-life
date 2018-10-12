@@ -1,5 +1,6 @@
 module Simulation exposing
     ( Cell(..)
+    , Handlers
     , Simulation
     , Zoom(..)
     , isFinished

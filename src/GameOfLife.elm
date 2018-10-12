@@ -1,11 +1,11 @@
-module Simulation exposing
+module GameOfLife exposing
     ( Cell(..)
+    , GameOfLife
     , Handlers
-    , Simulation
     , Zoom(..)
+    , begin
+    , beginWithPattern
     , isFinished
-    , start
-    , startWithPattern
     , step
     , toggleCell
     , view
@@ -31,22 +31,22 @@ type alias Cells =
     Matrix Cell
 
 
-type Simulation
-    = Simulation Cells
+type GameOfLife
+    = GameOfLife Cells
 
 
 
 -- CREATE
 
 
-start : Simulation
-start =
+begin : GameOfLife
+begin =
     Matrix.create { width = 18, height = 18 } Dead
-        |> Simulation
+        |> GameOfLife
 
 
-startWithPattern : Pattern -> Simulation
-startWithPattern pattern =
+beginWithPattern : Pattern -> GameOfLife
+beginWithPattern pattern =
     let
         size =
             max (Pattern.width pattern) (Pattern.height pattern)
@@ -66,7 +66,7 @@ startWithPattern pattern =
         deadCells =
             Matrix.create { width = size, height = size } Dead
     in
-    Simulation <|
+    GameOfLife <|
         List.foldl
             (Matrix.set Alive)
             deadCells
@@ -77,10 +77,10 @@ startWithPattern pattern =
 -- OPERATIONS
 
 
-step : Simulation -> Simulation
-step (Simulation cells) =
+step : GameOfLife -> GameOfLife
+step (GameOfLife cells) =
     Matrix.coordinateMap (stepCell cells) cells
-        |> Simulation
+        |> GameOfLife
 
 
 stepCell : Cells -> Coordinate -> Cell -> Cell
@@ -106,8 +106,8 @@ countLiveNeighbours cells coordinate =
         |> List.length
 
 
-toggleCell : Coordinate -> Simulation -> Simulation
-toggleCell coordinate (Simulation cells) =
+toggleCell : Coordinate -> GameOfLife -> GameOfLife
+toggleCell coordinate (GameOfLife cells) =
     let
         toggle cell =
             case cell of
@@ -118,11 +118,11 @@ toggleCell coordinate (Simulation cells) =
                     Alive
     in
     Matrix.update toggle coordinate cells
-        |> Simulation
+        |> GameOfLife
 
 
-isFinished : Simulation -> Bool
-isFinished (Simulation cells) =
+isFinished : GameOfLife -> Bool
+isFinished (GameOfLife cells) =
     Matrix.all ((==) Dead) cells
 
 
@@ -151,15 +151,15 @@ type Zoom
     | Close
 
 
-view : Simulation -> Zoom -> Handlers msg -> Html msg
+view : GameOfLife -> Zoom -> Handlers msg -> Html msg
 view simulation zoom handlers =
     div
         [ class "square-container" ]
         [ viewCells simulation zoom handlers ]
 
 
-viewCells : Simulation -> Zoom -> Handlers msg -> Html msg
-viewCells (Simulation cells) zoom handlers =
+viewCells : GameOfLife -> Zoom -> Handlers msg -> Html msg
+viewCells (GameOfLife cells) zoom handlers =
     div
         ([ class "cells-container" ] ++ zoomStyles zoom)
         (cells

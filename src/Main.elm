@@ -3,6 +3,7 @@ module Main exposing (main)
 import Browser exposing (Document)
 import Browser.Events as Events
 import Controls exposing (ImportField(..), Speed(..), Status(..), UserInput)
+import GameOfLife exposing (GameOfLife, Zoom(..))
 import History exposing (History)
 import Html exposing (Attribute, Html, button, div, text, textarea)
 import Html.Attributes exposing (autofocus, class, cols, placeholder, rows, value)
@@ -10,7 +11,6 @@ import Html.Events exposing (onClick, onInput)
 import Json.Decode as Decode exposing (Decoder)
 import Pattern exposing (Pattern)
 import Random
-import Simulation exposing (Simulation, Zoom(..))
 import Time
 
 
@@ -24,7 +24,7 @@ type Mouse
 
 
 type alias Model =
-    { simulation : History Simulation
+    { gameOfLife : History GameOfLife
     , status : Status
     , mouse : Mouse
     , speed : Speed
@@ -45,7 +45,7 @@ init =
 initialModel : Model
 initialModel =
     { status = Paused
-    , simulation = History.begin Simulation.start
+    , gameOfLife = History.begin GameOfLife.begin
     , mouse = Up
     , speed = Slow
     , zoom = Far
@@ -85,15 +85,15 @@ update msg model =
     case msg of
         Undo ->
             model
-                |> pauseSimulation
-                |> tryUndo
+                |> pause
+                |> maybeUndo
                 |> Maybe.withDefault model
                 |> withoutCmd
 
         Redo ->
             model
-                |> pauseSimulation
-                |> tryRedo
+                |> pause
+                |> maybeRedo
                 |> Maybe.withDefault (stepSimulation model)
                 |> withoutCmd
 
@@ -180,8 +180,8 @@ withoutCmd model =
     ( model, Cmd.none )
 
 
-pauseSimulation : Model -> Model
-pauseSimulation model =
+pause : Model -> Model
+pause model =
     { model | status = Paused }
 
 
@@ -208,46 +208,46 @@ closeImportField model =
 displayPattern : Pattern -> Model -> Model
 displayPattern pattern model =
     let
-        newSimulation =
-            Simulation.startWithPattern pattern
+        newGame =
+            GameOfLife.beginWithPattern pattern
     in
-    History.record (always newSimulation) model.simulation
-        |> setSimulation model
+    History.record (always newGame) model.gameOfLife
+        |> setGame model
 
 
 toggleCell : Coordinate -> Model -> Model
 toggleCell coordinate model =
-    History.record (Simulation.toggleCell coordinate) model.simulation
-        |> setSimulation model
+    History.record (GameOfLife.toggleCell coordinate) model.gameOfLife
+        |> setGame model
 
 
 stepSimulation : Model -> Model
 stepSimulation model =
-    History.record Simulation.step model.simulation
-        |> setSimulation model
+    History.record GameOfLife.step model.gameOfLife
+        |> setGame model
 
 
-tryUndo : Model -> Maybe Model
-tryUndo model =
-    History.undo model.simulation
-        |> Maybe.map (setSimulation model)
+maybeUndo : Model -> Maybe Model
+maybeUndo model =
+    History.undo model.gameOfLife
+        |> Maybe.map (setGame model)
 
 
-tryRedo : Model -> Maybe Model
-tryRedo model =
-    History.redo model.simulation
-        |> Maybe.map (setSimulation model)
+maybeRedo : Model -> Maybe Model
+maybeRedo model =
+    History.redo model.gameOfLife
+        |> Maybe.map (setGame model)
 
 
-setSimulation : Model -> History Simulation -> Model
-setSimulation model simulation =
-    { model | simulation = simulation }
+setGame : Model -> History GameOfLife -> Model
+setGame model gameOfLife =
+    { model | gameOfLife = gameOfLife }
 
 
 pauseIfUnchanged : Model -> Model
 pauseIfUnchanged model =
-    if History.isUnchanged model.simulation then
-        pauseSimulation model
+    if History.isUnchanged model.gameOfLife then
+        pause model
 
     else
         model
@@ -271,32 +271,32 @@ document model =
 
 view : Model -> Html Msg
 view model =
-    let
-        simulation =
-            History.now model.simulation
-
-        simulationView =
-            Simulation.view
-                simulation
-                model.zoom
-                simulationHandlers
-
-        controlsView =
-            Controls.view
-                model.status
-                model.speed
-                model.zoom
-                simulation
-                model.importField
-                (controlHandlers model)
-    in
     div
         [ class "center-content" ]
-        [ simulationView, controlsView ]
+        [ viewGame model, viewControls model ]
 
 
-simulationHandlers : Simulation.Handlers Msg
-simulationHandlers =
+viewGame : Model -> Html Msg
+viewGame model =
+    GameOfLife.view
+        (History.now model.gameOfLife)
+        model.zoom
+        gameOfLifeHandlers
+
+
+viewControls : Model -> Html Msg
+viewControls model =
+    Controls.view
+        model.status
+        model.speed
+        model.zoom
+        (History.now model.gameOfLife)
+        model.importField
+        (controlHandlers model)
+
+
+gameOfLifeHandlers : GameOfLife.Handlers Msg
+gameOfLifeHandlers =
     { mouseOver = MouseOver
     , mouseDown = MouseDown
     , mouseUp = MouseUp

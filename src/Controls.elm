@@ -7,10 +7,10 @@ module Controls exposing
     , view
     )
 
+import GameOfLife exposing (GameOfLife, Zoom(..))
 import Html exposing (Attribute, Html, button, div, text, textarea)
 import Html.Attributes exposing (autofocus, class, cols, placeholder, rows, value)
 import Html.Events exposing (onClick, onInput)
-import Simulation exposing (Simulation, Zoom(..))
 
 
 type ImportField
@@ -49,14 +49,14 @@ view :
     Status
     -> Speed
     -> Zoom
-    -> Simulation
+    -> GameOfLife
     -> ImportField
     -> Handlers msg
     -> Html msg
-view status speed zoom simulation importField handlers =
+view status speed zoom gameOfLife importField handlers =
     div []
         [ div [ class "bottom-left-overlay" ]
-            [ viewStatusButton status simulation handlers.statusChange
+            [ viewStatusButton status gameOfLife handlers.statusChange
             , viewSpeedButton speed handlers.speedChange
             , viewZoomButton zoom handlers.zoomChange
             , viewImportField importField handlers.importFieldOpen handlers.importFieldChange
@@ -69,9 +69,9 @@ view status speed zoom simulation importField handlers =
         ]
 
 
-viewStatusButton : Status -> Simulation -> msg -> Html msg
-viewStatusButton status simulation clickMsg =
-    case ( status, Simulation.isFinished simulation ) of
+viewStatusButton : Status -> GameOfLife -> msg -> Html msg
+viewStatusButton status gameOfLife clickMsg =
+    case ( status, GameOfLife.isFinished gameOfLife ) of
         ( Paused, True ) ->
             viewButton "Play" clickMsg []
 

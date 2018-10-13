@@ -1,7 +1,7 @@
 module GameOfLife exposing
     ( Cell(..)
+    , Events
     , GameOfLife
-    , Handlers
     , Zoom(..)
     , begin
     , beginWithPattern
@@ -134,14 +134,10 @@ type alias Percentage =
     Float
 
 
-type alias Milliseconds =
-    Float
-
-
-type alias Handlers msg =
-    { mouseOver : Coordinate -> msg
-    , mouseDown : Coordinate -> msg
-    , mouseUp : msg
+type alias Events msg =
+    { onMouseOver : Coordinate -> msg
+    , onMouseDown : Coordinate -> msg
+    , onMouseUp : msg
     }
 
 
@@ -151,14 +147,14 @@ type Zoom
     | Close
 
 
-view : Zoom -> GameOfLife -> Handlers msg -> Html msg
-view zoom game handlers =
+view : GameOfLife -> Zoom -> Events msg -> Html msg
+view game zoom handlers =
     div
         [ class "square-container" ]
         [ viewCells game zoom handlers ]
 
 
-viewCells : GameOfLife -> Zoom -> Handlers msg -> Html msg
+viewCells : GameOfLife -> Zoom -> Events msg -> Html msg
 viewCells (GameOfLife cells) zoom handlers =
     div
         ([ class "cells-container" ] ++ zoomStyles zoom)
@@ -187,15 +183,15 @@ zoomStyles zoom =
     ]
 
 
-viewCell : Percentage -> Handlers msg -> Coordinate -> Cell -> Html msg
+viewCell : Percentage -> Events msg -> Coordinate -> Cell -> Html msg
 viewCell relativeSize handlers coordinate cell =
     div
         [ class "center-content"
         , style "width" (percentageStyle relativeSize)
         , style "height" (percentageStyle relativeSize)
-        , onMouseDown (handlers.mouseDown coordinate)
-        , onMouseUp handlers.mouseUp
-        , onMouseEnter (handlers.mouseOver coordinate)
+        , onMouseDown (handlers.onMouseDown coordinate)
+        , onMouseUp handlers.onMouseUp
+        , onMouseEnter (handlers.onMouseOver coordinate)
         ]
         [ viewCellContent cell coordinate ]
 

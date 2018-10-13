@@ -1,9 +1,10 @@
 module Controls exposing
-    ( Handlers
+    ( Events
     , ImportField(..)
     , Speed(..)
     , Status(..)
     , UserInput
+    , onKeyDown
     , view
     )
 
@@ -11,6 +12,10 @@ import GameOfLife exposing (GameOfLife, Zoom(..))
 import Html exposing (Attribute, Html, button, div, text, textarea)
 import Html.Attributes exposing (autofocus, class, cols, placeholder, rows, value)
 import Html.Events exposing (onClick, onInput)
+
+
+
+-- TYPES
 
 
 type ImportField
@@ -33,38 +38,43 @@ type Speed
     | Fast
 
 
-type alias Handlers msg =
-    { speedChange : msg
-    , zoomChange : msg
-    , statusChange : msg
-    , undo : msg
-    , redo : msg
-    , randomize : msg
-    , importFieldOpen : msg
-    , importFieldChange : UserInput -> msg
+type alias Events msg =
+    { onSpeedChange : msg
+    , onZoomChange : msg
+    , onStatusChange : msg
+    , onUndo : msg
+    , onRedo : msg
+    , onRandomize : msg
+    , onImportFieldOpen : msg
+    , onImportFieldChange : UserInput -> msg
+    , noOp : msg
     }
 
 
+
+-- VIEW
+
+
 view :
-    Status
+    GameOfLife
+    -> Status
     -> Speed
     -> Zoom
     -> ImportField
-    -> GameOfLife
-    -> Handlers msg
+    -> Events msg
     -> Html msg
-view status speed zoom gameOfLife importField handlers =
+view gameOfLife status speed zoom importField handlers =
     div []
         [ div [ class "bottom-left-overlay" ]
-            [ viewStatusButton status gameOfLife handlers.statusChange
-            , viewSpeedButton speed handlers.speedChange
-            , viewZoomButton zoom handlers.zoomChange
-            , viewImportField importField handlers.importFieldOpen handlers.importFieldChange
+            [ viewStatusButton status gameOfLife handlers.onStatusChange
+            , viewSpeedButton speed handlers.onSpeedChange
+            , viewZoomButton zoom handlers.onZoomChange
+            , viewImportField importField handlers.onImportFieldOpen handlers.onImportFieldChange
             ]
         , div [ class "bottom-right-overlay" ]
-            [ viewUndoButton status handlers.undo
-            , viewRedoButton status handlers.redo
-            , viewRandomizeButton handlers.randomize
+            [ viewUndoButton status handlers.onUndo
+            , viewRedoButton status handlers.onRedo
+            , viewRandomizeButton handlers.onRandomize
             ]
         ]
 
@@ -149,3 +159,36 @@ viewButton description clickMsg customAttributes =
             [ class "button", onClick clickMsg ] ++ customAttributes
     in
     button attributes [ text description ]
+
+
+
+-- KEYBOARD
+
+
+type alias Key =
+    String
+
+
+onKeyDown : Status -> Speed -> Zoom -> Events msg -> Key -> msg
+onKeyDown status speed zoom events key =
+    case key of
+        "ArrowLeft" ->
+            events.onUndo
+
+        "ArrowRight" ->
+            events.onRedo
+
+        "p" ->
+            events.onStatusChange
+
+        "s" ->
+            events.onSpeedChange
+
+        "r" ->
+            events.onRandomize
+
+        "z" ->
+            events.onZoomChange
+
+        _ ->
+            events.noOp

@@ -280,40 +280,41 @@ view model =
 viewGame : Model -> Html Msg
 viewGame model =
     GameOfLife.view
-        model.zoom
         (History.now model.game)
-        gameHandlers
+        model.zoom
+        gameEvents
 
 
 viewControls : Model -> Html Msg
 viewControls model =
     Controls.view
+        (History.now model.game)
         model.status
         model.speed
         model.zoom
         model.importField
-        (History.now model.game)
-        (controlHandlers model)
+        (controlEvents model)
 
 
-gameHandlers : GameOfLife.Handlers Msg
-gameHandlers =
-    { mouseOver = MouseOver
-    , mouseDown = MouseDown
-    , mouseUp = MouseUp
+gameEvents : GameOfLife.Events Msg
+gameEvents =
+    { onMouseOver = MouseOver
+    , onMouseDown = MouseDown
+    , onMouseUp = MouseUp
     }
 
 
-controlHandlers : Model -> Controls.Handlers Msg
-controlHandlers { speed, zoom, status } =
-    { speedChange = ChangeSpeed (nextSpeed speed)
-    , zoomChange = ChangeZoom (nextZoomLevel zoom)
-    , statusChange = ChangeStatus (nextStatus status)
-    , undo = Undo
-    , redo = Redo
-    , randomize = RandomPatternRequest
-    , importFieldOpen = ImportFieldOpen
-    , importFieldChange = ImportFieldChange
+controlEvents : Model -> Controls.Events Msg
+controlEvents { speed, zoom, status } =
+    { onSpeedChange = ChangeSpeed (nextSpeed speed)
+    , onZoomChange = ChangeZoom (nextZoomLevel zoom)
+    , onStatusChange = ChangeStatus (nextStatus status)
+    , onUndo = Undo
+    , onRedo = Redo
+    , onRandomize = RandomPatternRequest
+    , onImportFieldOpen = ImportFieldOpen
+    , onImportFieldChange = ImportFieldChange
+    , noOp = NoOp
     }
 
 
@@ -358,10 +359,10 @@ nextStatus status =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions { status, speed, zoom } =
+subscriptions model =
     Sub.batch
-        [ keyDownSubscription status speed zoom
-        , tickSubscription status speed
+        [ keyDownSubscription model
+        , tickSubscription model.status model.speed
         ]
 
 
@@ -373,6 +374,10 @@ tickSubscription status speed =
 
         Paused ->
             Sub.none
+
+
+type alias Milliseconds =
+    Float
 
 
 tickInterval : Speed -> Milliseconds
@@ -388,54 +393,21 @@ tickInterval speed =
             50
 
 
-keyDownSubscription : Status -> Speed -> Zoom -> Sub Msg
-keyDownSubscription status speed zoom =
+keyDownSubscription : Model -> Sub Msg
+keyDownSubscription model =
+    let
+        keyDecoder =
+            Decode.field "key" Decode.string
+
+        onKeyDown =
+            Controls.onKeyDown
+                model.status
+                model.speed
+                model.zoom
+                (controlEvents model)
+    in
     Events.onKeyDown keyDecoder
-        |> Sub.map (toMsg status speed zoom)
-
-
-keyDecoder : Decoder Key
-keyDecoder =
-    Decode.field "key" Decode.string
-
-
-toMsg : Status -> Speed -> Zoom -> Key -> Msg
-toMsg status speed zoom key =
-    case key of
-        "ArrowLeft" ->
-            Undo
-
-        "ArrowRight" ->
-            Redo
-
-        "p" ->
-            ChangeStatus <|
-                case status of
-                    Playing ->
-                        Paused
-
-                    Paused ->
-                        Playing
-
-        "s" ->
-            ChangeSpeed (nextSpeed speed)
-
-        "r" ->
-            RandomPatternRequest
-
-        "z" ->
-            ChangeZoom (nextZoomLevel zoom)
-
-        _ ->
-            NoOp
-
-
-type alias Key =
-    String
-
-
-type alias Milliseconds =
-    Float
+        |> Sub.map onKeyDown
 
 
 

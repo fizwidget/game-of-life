@@ -204,7 +204,7 @@ viewCellContent cell coordinate =
     in
     div
         [ class "cell-content"
-        , class (cellColor cell coordinate)
+        , cellBackgroundColor cell coordinate
         , style "width" (percentageStyle size)
         , style "height" (percentageStyle size)
         ]
@@ -231,22 +231,39 @@ cellContentSize cell =
             40
 
 
-cellColor : Cell -> Coordinate -> String
-cellColor cell { x, y } =
+cellBackgroundColor : Cell -> Coordinate -> Attribute msg
+cellBackgroundColor cell { x, y } =
     case cell of
         Dead ->
-            "dead-cell"
+            backgroundColor 244 245 247 1.0
 
         Alive ->
             case ( modBy 2 x == 0, modBy 2 y == 0 ) of
                 ( True, True ) ->
-                    "live-cell-1"
+                    backgroundColor 255 171 0 0.8
 
                 ( True, False ) ->
-                    "live-cell-2"
+                    backgroundColor 54 179 126 0.8
 
                 ( False, True ) ->
-                    "live-cell-3"
+                    backgroundColor 0 184 217 0.8
 
                 ( False, False ) ->
-                    "live-cell-4"
+                    backgroundColor 101 84 192 0.8
+
+
+backgroundColor : Int -> Int -> Int -> Float -> Attribute msg
+backgroundColor red green blue alpha =
+    let
+        colorString =
+            "rgba("
+                ++ String.fromInt red
+                ++ ", "
+                ++ String.fromInt green
+                ++ ", "
+                ++ String.fromInt blue
+                ++ ", "
+                ++ String.fromFloat alpha
+                ++ ")"
+    in
+    style "background-color" colorString

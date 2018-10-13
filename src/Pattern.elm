@@ -54,8 +54,7 @@ stripOptionalHeader lines =
 
 parseCoordinate : String -> Maybe Coordinate
 parseCoordinate line =
-    line
-        |> String.split " "
+    String.split " " line
         |> toPair
         |> Maybe.andThen toCoordinate
 

@@ -265,11 +265,11 @@ gameEvents =
 
 controlEvents : Model -> Controls.Events Msg
 controlEvents { speed, zoom, status } =
-    { onSpeedChange = ChangeSpeed (nextSpeed speed)
+    { onUndo = Undo
+    , onRedo = Redo
+    , onSpeedChange = ChangeSpeed (nextSpeed speed)
     , onZoomChange = ChangeZoom (nextZoomLevel zoom)
     , onStatusChange = ChangeStatus (nextStatus status)
-    , onUndo = Undo
-    , onRedo = Redo
     , onRandomize = RandomPatternRequest
     , onImportFieldOpen = ImportFieldOpen
     , onImportFieldChange = ImportFieldChange
@@ -359,11 +359,7 @@ keyDownSubscription model =
             Decode.field "key" Decode.string
 
         onKeyDown =
-            Controls.onKeyDown
-                model.status
-                model.speed
-                model.zoom
-                (controlEvents model)
+            Controls.onKeyDown (controlEvents model)
     in
     Events.onKeyDown keyDecoder
         |> Sub.map onKeyDown

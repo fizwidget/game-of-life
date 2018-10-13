@@ -165,8 +165,8 @@ type alias Key =
     String
 
 
-onKeyDown : Status -> Speed -> Zoom -> Events msg -> Key -> msg
-onKeyDown status speed zoom events key =
+onKeyDown : Events msg -> Key -> msg
+onKeyDown events key =
     case key of
         "ArrowLeft" ->
             events.onUndo

@@ -8,7 +8,7 @@ module Controls exposing
     , view
     )
 
-import GameOfLife exposing (GameOfLife, Zoom(..))
+import GameOfLife exposing (Zoom(..))
 import Html exposing (Attribute, Html, button, div, text, textarea)
 import Html.Attributes exposing (autofocus, class, cols, placeholder, rows, value)
 import Html.Events exposing (onClick, onInput)
@@ -16,15 +16,6 @@ import Html.Events exposing (onClick, onInput)
 
 
 -- TYPES
-
-
-type ImportField
-    = Open UserInput
-    | Closed
-
-
-type alias UserInput =
-    String
 
 
 type Status
@@ -38,12 +29,21 @@ type Speed
     | Fast
 
 
+type ImportField
+    = Open UserInput
+    | Closed
+
+
+type alias UserInput =
+    String
+
+
 type alias Events msg =
-    { onSpeedChange : msg
-    , onZoomChange : msg
-    , onStatusChange : msg
-    , onUndo : msg
+    { onUndo : msg
     , onRedo : msg
+    , onStatusChange : msg
+    , onSpeedChange : msg
+    , onZoomChange : msg
     , onRandomize : msg
     , onImportFieldOpen : msg
     , onImportFieldChange : UserInput -> msg
@@ -56,17 +56,16 @@ type alias Events msg =
 
 
 view :
-    GameOfLife
-    -> Status
+    Status
     -> Speed
     -> Zoom
     -> ImportField
     -> Events msg
     -> Html msg
-view gameOfLife status speed zoom importField events =
+view status speed zoom importField events =
     div []
         [ div [ class "bottom-left-overlay" ]
-            [ viewStatusButton status gameOfLife events.onStatusChange
+            [ viewStatusButton status events.onStatusChange
             , viewSpeedButton speed events.onSpeedChange
             , viewZoomButton zoom events.onZoomChange
             , viewImportField importField events.onImportFieldOpen events.onImportFieldChange
@@ -79,16 +78,13 @@ view gameOfLife status speed zoom importField events =
         ]
 
 
-viewStatusButton : Status -> GameOfLife -> msg -> Html msg
-viewStatusButton status gameOfLife clickMsg =
-    case ( status, GameOfLife.isFinished gameOfLife ) of
-        ( Paused, True ) ->
-            viewButton "Play" clickMsg []
-
-        ( Paused, False ) ->
+viewStatusButton : Status -> msg -> Html msg
+viewStatusButton status clickMsg =
+    case status of
+        Paused ->
             viewButton "Play" clickMsg [ class "green-button" ]
 
-        ( Playing, _ ) ->
+        Playing ->
             viewButton "Pause" clickMsg []
 
 

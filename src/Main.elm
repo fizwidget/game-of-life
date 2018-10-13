@@ -261,7 +261,6 @@ viewGame model =
 viewControls : Model -> Html Msg
 viewControls model =
     Controls.view
-        (History.now model.game)
         model.status
         model.speed
         model.zoom

@@ -8,7 +8,7 @@ module Controls exposing
     , view
     )
 
-import Common exposing (Zoom(..))
+import Common exposing (Theme(..), Zoom(..))
 import Html exposing (Attribute, Html, button, div, text, textarea)
 import Html.Attributes exposing (autofocus, class, cols, placeholder, rows, value)
 import Html.Events exposing (onClick, onInput)
@@ -44,6 +44,7 @@ type alias Events msg =
     , onStatusChange : msg
     , onSpeedChange : msg
     , onZoomChange : msg
+    , onThemeChange : msg
     , onRandomize : msg
     , onImportFieldOpen : msg
     , onImportFieldChange : UserInput -> msg
@@ -59,15 +60,17 @@ view :
     Status
     -> Speed
     -> Zoom
+    -> Theme
     -> ImportField
     -> Events msg
     -> Html msg
-view status speed zoom importField events =
+view status speed zoom theme importField events =
     div []
         [ div [ class "bottom-left-overlay" ]
             [ viewStatusButton status events.onStatusChange
             , viewSpeedButton speed events.onSpeedChange
             , viewZoomButton zoom events.onZoomChange
+            , viewThemeButton theme events.onThemeChange
             , viewImportField importField events.onImportFieldOpen events.onImportFieldChange
             ]
         , div [ class "bottom-right-overlay" ]
@@ -112,6 +115,16 @@ viewZoomButton zoom clickMsg =
 
         Close ->
             viewButton "2X" clickMsg []
+
+
+viewThemeButton : Theme -> msg -> Html msg
+viewThemeButton theme clickMsg =
+    case theme of
+        Light ->
+            viewButton "Light" clickMsg []
+
+        Dark ->
+            viewButton "Dark" clickMsg []
 
 
 viewImportField : ImportField -> msg -> (UserInput -> msg) -> Html msg
@@ -185,6 +198,9 @@ onKeyDown events key =
 
         "z" ->
             events.onZoomChange
+
+        "t" ->
+            events.onThemeChange
 
         _ ->
             events.noOp

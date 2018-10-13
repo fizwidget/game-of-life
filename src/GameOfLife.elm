@@ -10,7 +10,7 @@ module GameOfLife exposing
     , view
     )
 
-import Common exposing (Zoom(..))
+import Common exposing (Theme(..), Zoom(..))
 import Html exposing (Attribute, Html, div)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onMouseDown, onMouseEnter, onMouseUp)
@@ -141,21 +141,26 @@ type alias Events msg =
     }
 
 
-view : GameOfLife -> Zoom -> Events msg -> Html msg
-view game zoom events =
+view : GameOfLife -> Zoom -> Theme -> Events msg -> Html msg
+view game zoom theme events =
     div
         [ class "square-container" ]
-        [ viewCells game zoom events ]
+        [ viewCells game zoom theme events ]
 
 
-viewCells : GameOfLife -> Zoom -> Events msg -> Html msg
-viewCells (GameOfLife cells) zoom events =
+viewCells : GameOfLife -> Zoom -> Theme -> Events msg -> Html msg
+viewCells (GameOfLife cells) zoom theme events =
     div
-        ([ class "cells-container" ] ++ zoomStyles zoom)
+        ([ class "cells-container" ] ++ dynamicStyles zoom theme)
         (cells
-            |> Matrix.coordinateMap (viewCell (cellSize cells) events)
+            |> Matrix.coordinateMap (viewCell (cellSize cells) theme events)
             |> Matrix.toList
         )
+
+
+dynamicStyles : Zoom -> Theme -> List (Attribute msg)
+dynamicStyles zoom theme =
+    backgroundColorStyle theme :: zoomStyles zoom
 
 
 zoomStyles : Zoom -> List (Attribute msg)
@@ -177,8 +182,18 @@ zoomStyles zoom =
     ]
 
 
-viewCell : Percentage -> Events msg -> Coordinate -> Cell -> Html msg
-viewCell relativeSize events coordinate cell =
+backgroundColorStyle : Theme -> Attribute msg
+backgroundColorStyle theme =
+    case theme of
+        Light ->
+            backgroundColor 0 0 0 0
+
+        Dark ->
+            backgroundColor 15 15 15 1
+
+
+viewCell : Percentage -> Theme -> Events msg -> Coordinate -> Cell -> Html msg
+viewCell relativeSize theme events coordinate cell =
     div
         [ class "center-content"
         , style "width" (percentageStyle relativeSize)
@@ -187,18 +202,18 @@ viewCell relativeSize events coordinate cell =
         , onMouseUp events.onMouseUp
         , onMouseEnter (events.onMouseOver coordinate)
         ]
-        [ viewCellContent cell coordinate ]
+        [ viewCellContent cell coordinate theme ]
 
 
-viewCellContent : Cell -> Coordinate -> Html msg
-viewCellContent cell coordinate =
+viewCellContent : Cell -> Coordinate -> Theme -> Html msg
+viewCellContent cell coordinate theme =
     let
         size =
             cellContentSize cell
     in
     div
         [ class "cell-content"
-        , cellBackgroundColor cell coordinate
+        , cellBackgroundColor cell coordinate theme
         , style "width" (percentageStyle size)
         , style "height" (percentageStyle size)
         ]
@@ -225,11 +240,16 @@ cellContentSize cell =
             40
 
 
-cellBackgroundColor : Cell -> Coordinate -> Attribute msg
-cellBackgroundColor cell { x, y } =
+cellBackgroundColor : Cell -> Coordinate -> Theme -> Attribute msg
+cellBackgroundColor cell { x, y } theme =
     case cell of
         Dead ->
-            backgroundColor 244 245 247 1.0
+            case theme of
+                Light ->
+                    backgroundColor 244 245 247 1.0
+
+                Dark ->
+                    backgroundColor 30 30 30 0.77
 
         Alive ->
             case ( modBy 2 x == 0, modBy 2 y == 0 ) of

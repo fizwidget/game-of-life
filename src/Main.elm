@@ -2,7 +2,7 @@ module Main exposing (main)
 
 import Browser exposing (Document)
 import Browser.Events as Events
-import Common exposing (Zoom(..))
+import Common exposing (Theme(..), Zoom(..))
 import Controls exposing (ImportField(..), Speed(..), Status(..), UserInput)
 import GameOfLife exposing (GameOfLife)
 import History exposing (History)
@@ -29,6 +29,7 @@ type alias Model =
     , mouse : Mouse
     , speed : Speed
     , zoom : Zoom
+    , theme : Theme
     , importField : ImportField
     }
 
@@ -49,6 +50,7 @@ initialModel =
     , mouse = Up
     , speed = Slow
     , zoom = Far
+    , theme = Light
     , importField = Closed
     }
 
@@ -64,6 +66,7 @@ type Msg
     | ChangeStatus Status
     | ChangeSpeed Speed
     | ChangeZoom Zoom
+    | ChangeTheme Theme
     | MouseDown Coordinate
     | MouseOver Coordinate
     | MouseUp
@@ -110,6 +113,10 @@ update msg model =
 
         ChangeZoom zoom ->
             { model | zoom = zoom }
+                |> withoutCmd
+
+        ChangeTheme theme ->
+            { model | theme = theme }
                 |> withoutCmd
 
         MouseDown coordinate ->
@@ -248,6 +255,7 @@ viewGame model =
     GameOfLife.view
         (History.now model.game)
         model.zoom
+        model.theme
         gameEventHandlers
 
 
@@ -257,6 +265,7 @@ viewControls model =
         model.status
         model.speed
         model.zoom
+        model.theme
         model.importField
         (controlEventHandlers model)
 
@@ -270,11 +279,12 @@ gameEventHandlers =
 
 
 controlEventHandlers : Model -> Controls.Events Msg
-controlEventHandlers { speed, zoom, status } =
+controlEventHandlers { speed, zoom, theme, status } =
     { onUndo = Undo
     , onRedo = Redo
     , onSpeedChange = ChangeSpeed (nextSpeed speed)
     , onZoomChange = ChangeZoom (nextZoomLevel zoom)
+    , onThemeChange = ChangeTheme (nextTheme theme)
     , onStatusChange = ChangeStatus (nextStatus status)
     , onRandomize = RandomPatternRequest
     , onImportFieldOpen = ImportFieldOpen
@@ -307,6 +317,16 @@ nextZoomLevel zoom =
 
         Close ->
             Far
+
+
+nextTheme : Theme -> Theme
+nextTheme theme =
+    case theme of
+        Light ->
+            Dark
+
+        Dark ->
+            Light
 
 
 nextStatus : Status -> Status

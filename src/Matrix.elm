@@ -103,10 +103,9 @@ set value coordinate (Matrix dimensions array) =
 
 
 update : (a -> a) -> Coordinate -> Matrix a -> Matrix a
-update f coordinate matrix =
-    matrix
-        |> get coordinate
-        |> Maybe.map f
+update transform coordinate matrix =
+    get coordinate matrix
+        |> Maybe.map transform
         |> Maybe.map (\value -> set value coordinate matrix)
         |> Maybe.withDefault matrix
 
@@ -125,10 +124,7 @@ coordinateMap f (Matrix dimensions array) =
 
 all : (a -> Bool) -> Matrix a -> Bool
 all predicate (Matrix _ array) =
-    array
-        |> Array.filter predicate
-        |> Array.length
-        |> (==) (Array.length array)
+    array == Array.filter predicate array
 
 
 toList : Matrix a -> List a

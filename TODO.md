@@ -1,3 +1,5 @@
 # TODOs
 
-* Allow zooming/panning.
+* Allow panning.
+* Themes.
+* Support other pattern formats.

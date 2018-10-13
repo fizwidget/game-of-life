@@ -88,17 +88,15 @@ update msg model =
                 |> withoutCmd
 
         Undo ->
-            model
-                |> pauseGame
-                |> tryUndoStep
+            tryUndoStep model
                 |> Maybe.withDefault model
+                |> pauseGame
                 |> withoutCmd
 
         Redo ->
-            model
-                |> pauseGame
-                |> tryRedoStep
+            tryRedoStep model
                 |> Maybe.withDefault (stepGame model)
+                |> pauseGame
                 |> withoutCmd
 
         ChangeStatus status ->
@@ -249,7 +247,7 @@ viewGame model =
     GameOfLife.view
         (History.now model.game)
         model.zoom
-        gameEvents
+        gameEventHandlers
 
 
 viewControls : Model -> Html Msg
@@ -259,19 +257,19 @@ viewControls model =
         model.speed
         model.zoom
         model.importField
-        (controlEvents model)
+        (controlEventHandlers model)
 
 
-gameEvents : GameOfLife.Events Msg
-gameEvents =
+gameEventHandlers : GameOfLife.Events Msg
+gameEventHandlers =
     { onMouseOver = MouseOver
     , onMouseDown = MouseDown
     , onMouseUp = MouseUp
     }
 
 
-controlEvents : Model -> Controls.Events Msg
-controlEvents { speed, zoom, status } =
+controlEventHandlers : Model -> Controls.Events Msg
+controlEventHandlers { speed, zoom, status } =
     { onUndo = Undo
     , onRedo = Redo
     , onSpeedChange = ChangeSpeed (nextSpeed speed)
@@ -366,7 +364,7 @@ keyDownSubscription model =
             Decode.field "key" Decode.string
 
         onKeyDown =
-            Controls.onKeyDown (controlEvents model)
+            Controls.onKeyDown (controlEventHandlers model)
     in
     Events.onKeyDown keyDecoder
         |> Sub.map onKeyDown

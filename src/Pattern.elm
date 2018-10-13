@@ -23,8 +23,8 @@ type alias Coordinate =
 
 
 toCoordinates : Pattern -> List Coordinate
-toCoordinates (Pattern pattern) =
-    pattern
+toCoordinates (Pattern coordinates) =
+    coordinates
 
 
 

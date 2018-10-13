@@ -57,9 +57,9 @@ initialModel =
 
 
 type Msg
-    = Undo
+    = ClockTick
+    | Undo
     | Redo
-    | ClockTick
     | ChangeStatus Status
     | ChangeSpeed Speed
     | ChangeZoom Zoom
@@ -82,21 +82,23 @@ type alias Coordinate =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        ClockTick ->
+            stepGame model
+                |> ifGameFinished pauseGame
+                |> withoutCmd
+
         Undo ->
-            { model | status = Paused }
-                |> maybeUndo
+            model
+                |> pauseGame
+                |> tryUndoStep
                 |> Maybe.withDefault model
                 |> withoutCmd
 
         Redo ->
-            { model | status = Paused }
-                |> maybeRedo
-                |> Maybe.withDefault (stepSimulation model)
-                |> withoutCmd
-
-        ClockTick ->
-            stepSimulation model
-                |> pauseIfUnchanged
+            model
+                |> pauseGame
+                |> tryRedoStep
+                |> Maybe.withDefault (stepGame model)
                 |> withoutCmd
 
         ChangeStatus status ->
@@ -164,6 +166,11 @@ withoutCmd model =
     ( model, Cmd.none )
 
 
+pauseGame : Model -> Model
+pauseGame model =
+    { model | status = Paused }
+
+
 displayPattern : Pattern -> Model -> Model
 displayPattern pattern model =
     let
@@ -180,20 +187,20 @@ toggleCell coordinate model =
         |> setGame model
 
 
-stepSimulation : Model -> Model
-stepSimulation model =
+stepGame : Model -> Model
+stepGame model =
     History.record GameOfLife.step model.game
         |> setGame model
 
 
-maybeUndo : Model -> Maybe Model
-maybeUndo model =
+tryUndoStep : Model -> Maybe Model
+tryUndoStep model =
     History.undo model.game
         |> Maybe.map (setGame model)
 
 
-maybeRedo : Model -> Maybe Model
-maybeRedo model =
+tryRedoStep : Model -> Maybe Model
+tryRedoStep model =
     History.redo model.game
         |> Maybe.map (setGame model)
 
@@ -203,10 +210,10 @@ setGame model game =
     { model | game = game }
 
 
-pauseIfUnchanged : Model -> Model
-pauseIfUnchanged model =
+ifGameFinished : (Model -> Model) -> Model -> Model
+ifGameFinished updateModel model =
     if History.isUnchanged model.game then
-        { model | status = Paused }
+        updateModel model
 
     else
         model

@@ -2,7 +2,6 @@ module GameOfLife exposing
     ( Cell(..)
     , Events
     , GameOfLife
-    , Zoom(..)
     , begin
     , beginWithPattern
     , isFinished
@@ -11,6 +10,7 @@ module GameOfLife exposing
     , view
     )
 
+import Common exposing (Zoom(..))
 import Html exposing (Attribute, Html, div)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onMouseDown, onMouseEnter, onMouseUp)
@@ -139,12 +139,6 @@ type alias Events msg =
     , onMouseDown : Coordinate -> msg
     , onMouseUp : msg
     }
-
-
-type Zoom
-    = Far
-    | Normal
-    | Close
 
 
 view : GameOfLife -> Zoom -> Events msg -> Html msg

@@ -2,8 +2,9 @@ module Main exposing (main)
 
 import Browser exposing (Document)
 import Browser.Events as Events
+import Common exposing (Zoom(..))
 import Controls exposing (ImportField(..), Speed(..), Status(..), UserInput)
-import GameOfLife exposing (GameOfLife, Zoom(..))
+import GameOfLife exposing (GameOfLife)
 import History exposing (History)
 import Html exposing (Html, div)
 import Html.Attributes exposing (class)

@@ -8,7 +8,7 @@ module Controls exposing
     , view
     )
 
-import GameOfLife exposing (Zoom(..))
+import Common exposing (Zoom(..))
 import Html exposing (Attribute, Html, button, div, text, textarea)
 import Html.Attributes exposing (autofocus, class, cols, placeholder, rows, value)
 import Html.Events exposing (onClick, onInput)

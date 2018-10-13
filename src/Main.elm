@@ -206,7 +206,7 @@ setGame model game =
 pauseIfUnchanged : Model -> Model
 pauseIfUnchanged model =
     if History.isUnchanged model.game then
-        pause model
+        { model | status = Paused }
 
     else
         model

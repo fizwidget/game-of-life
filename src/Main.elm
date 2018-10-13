@@ -122,8 +122,7 @@ update msg model =
         MouseOver coordinate ->
             case model.mouse of
                 Down ->
-                    model
-                        |> toggleCell coordinate
+                    toggleCell coordinate model
                         |> withoutCmd
 
                 Up ->
@@ -134,31 +133,25 @@ update msg model =
                 |> withoutCmd
 
         ImportFieldOpen ->
-            model
-                |> openImportField
+            { model | importField = Open "" }
                 |> withoutCmd
 
         ImportFieldChange userInput ->
             case Pattern.parseLife106 userInput of
                 Nothing ->
-                    model
-                        |> setImportField userInput
+                    { model | importField = Open userInput }
                         |> withoutCmd
 
                 Just parsedPattern ->
-                    model
-                        |> closeImportField
-                        |> resetZoom
+                    { model | importField = Closed, zoom = Far }
                         |> displayPattern parsedPattern
                         |> withoutCmd
 
         RandomPatternRequest ->
-            model
-                |> withCmd requestRandomPattern
+            ( model, requestRandomPattern )
 
         RandomPatternResponse randomPattern ->
-            model
-                |> displayPattern randomPattern
+            displayPattern randomPattern model
                 |> withoutCmd
 
         NoOp ->
@@ -182,26 +175,6 @@ withoutCmd model =
 pause : Model -> Model
 pause model =
     { model | status = Paused }
-
-
-resetZoom : Model -> Model
-resetZoom model =
-    { model | zoom = Far }
-
-
-openImportField : Model -> Model
-openImportField model =
-    { model | importField = Open "" }
-
-
-setImportField : UserInput -> Model -> Model
-setImportField userInput model =
-    { model | importField = Open userInput }
-
-
-closeImportField : Model -> Model
-closeImportField model =
-    { model | importField = Closed }
 
 
 displayPattern : Pattern -> Model -> Model

@@ -63,18 +63,18 @@ view :
     -> ImportField
     -> Events msg
     -> Html msg
-view gameOfLife status speed zoom importField handlers =
+view gameOfLife status speed zoom importField events =
     div []
         [ div [ class "bottom-left-overlay" ]
-            [ viewStatusButton status gameOfLife handlers.onStatusChange
-            , viewSpeedButton speed handlers.onSpeedChange
-            , viewZoomButton zoom handlers.onZoomChange
-            , viewImportField importField handlers.onImportFieldOpen handlers.onImportFieldChange
+            [ viewStatusButton status gameOfLife events.onStatusChange
+            , viewSpeedButton speed events.onSpeedChange
+            , viewZoomButton zoom events.onZoomChange
+            , viewImportField importField events.onImportFieldOpen events.onImportFieldChange
             ]
         , div [ class "bottom-right-overlay" ]
-            [ viewUndoButton status handlers.onUndo
-            , viewRedoButton status handlers.onRedo
-            , viewRandomizeButton handlers.onRandomize
+            [ viewUndoButton status events.onUndo
+            , viewRedoButton status events.onRedo
+            , viewRandomizeButton events.onRandomize
             ]
         ]
 

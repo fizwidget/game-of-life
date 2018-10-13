@@ -148,18 +148,18 @@ type Zoom
 
 
 view : GameOfLife -> Zoom -> Events msg -> Html msg
-view game zoom handlers =
+view game zoom events =
     div
         [ class "square-container" ]
-        [ viewCells game zoom handlers ]
+        [ viewCells game zoom events ]
 
 
 viewCells : GameOfLife -> Zoom -> Events msg -> Html msg
-viewCells (GameOfLife cells) zoom handlers =
+viewCells (GameOfLife cells) zoom events =
     div
         ([ class "cells-container" ] ++ zoomStyles zoom)
         (cells
-            |> Matrix.coordinateMap (viewCell (cellSize cells) handlers)
+            |> Matrix.coordinateMap (viewCell (cellSize cells) events)
             |> Matrix.toList
         )
 
@@ -184,14 +184,14 @@ zoomStyles zoom =
 
 
 viewCell : Percentage -> Events msg -> Coordinate -> Cell -> Html msg
-viewCell relativeSize handlers coordinate cell =
+viewCell relativeSize events coordinate cell =
     div
         [ class "center-content"
         , style "width" (percentageStyle relativeSize)
         , style "height" (percentageStyle relativeSize)
-        , onMouseDown (handlers.onMouseDown coordinate)
-        , onMouseUp handlers.onMouseUp
-        , onMouseEnter (handlers.onMouseOver coordinate)
+        , onMouseDown (events.onMouseDown coordinate)
+        , onMouseUp events.onMouseUp
+        , onMouseEnter (events.onMouseOver coordinate)
         ]
         [ viewCellContent cell coordinate ]
 

@@ -83,22 +83,19 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Undo ->
-            model
-                |> pause
+            { model | status = Paused }
                 |> maybeUndo
                 |> Maybe.withDefault model
                 |> withoutCmd
 
         Redo ->
-            model
-                |> pause
+            { model | status = Paused }
                 |> maybeRedo
                 |> Maybe.withDefault (stepSimulation model)
                 |> withoutCmd
 
         ClockTick ->
-            model
-                |> stepSimulation
+            stepSimulation model
                 |> pauseIfUnchanged
                 |> withoutCmd
 
@@ -162,19 +159,9 @@ update msg model =
 -- UPDATE HELPERS
 
 
-withCmd : Cmd Msg -> Model -> ( Model, Cmd Msg )
-withCmd cmd model =
-    ( model, cmd )
-
-
 withoutCmd : Model -> ( Model, Cmd msg )
 withoutCmd model =
     ( model, Cmd.none )
-
-
-pause : Model -> Model
-pause model =
-    { model | status = Paused }
 
 
 displayPattern : Pattern -> Model -> Model

@@ -4,7 +4,7 @@ import Browser exposing (Document)
 import Browser.Events as Events
 import Common exposing (Theme(..), Zoom(..))
 import Controls exposing (ImportField(..), Speed(..), Status(..), UserInput)
-import GameOfLife exposing (GameOfLife)
+import GameOfLife exposing (GameOfLife, Padding(..))
 import History exposing (History)
 import Html exposing (Html, div)
 import Html.Attributes exposing (class, style)
@@ -46,13 +46,18 @@ init =
 initialModel : Model
 initialModel =
     { status = Paused
-    , game = History.begin GameOfLife.begin
+    , game = History.begin initialGame
     , mouse = Up
     , speed = Slow
     , zoom = Far
     , theme = Dark
     , importField = Closed
     }
+
+
+initialGame : GameOfLife
+initialGame =
+    GameOfLife.begin { width = 18, height = 18 }
 
 
 
@@ -149,14 +154,14 @@ update msg model =
 
                 Just parsedPattern ->
                     { model | importField = Closed, zoom = Far }
-                        |> displayPattern parsedPattern
+                        |> displayPattern WithPadding parsedPattern
                         |> withoutCmd
 
         RandomPatternRequest ->
             ( model, requestRandomPattern )
 
         RandomPatternResponse randomPattern ->
-            displayPattern randomPattern model
+            displayPattern NoPadding randomPattern model
                 |> withoutCmd
 
         NoOp ->
@@ -177,11 +182,11 @@ pauseGame model =
     { model | status = Paused }
 
 
-displayPattern : Pattern -> Model -> Model
-displayPattern pattern model =
+displayPattern : Padding -> Pattern -> Model -> Model
+displayPattern padding pattern model =
     let
         newGame =
-            GameOfLife.beginWithPattern pattern
+            GameOfLife.beginWithPattern padding pattern
     in
     History.record (always newGame) model.game
         |> setGame model

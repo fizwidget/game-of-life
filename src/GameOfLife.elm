@@ -2,6 +2,7 @@ module GameOfLife exposing
     ( Cell(..)
     , Events
     , GameOfLife
+    , Padding(..)
     , begin
     , beginWithPattern
     , isFinished
@@ -35,25 +36,42 @@ type GameOfLife
     = GameOfLife Cells
 
 
+type alias Dimensions =
+    { width : Int
+    , height : Int
+    }
+
+
+type Padding
+    = WithPadding
+    | NoPadding
+
+
 
 -- CREATE
 
 
-begin : GameOfLife
-begin =
-    Matrix.create { width = 18, height = 18 } Dead
+begin : Dimensions -> GameOfLife
+begin dimensions =
+    Matrix.create dimensions Dead
         |> GameOfLife
 
 
-beginWithPattern : Pattern -> GameOfLife
-beginWithPattern pattern =
+beginWithPattern : Padding -> Pattern -> GameOfLife
+beginWithPattern padding pattern =
     let
+        paddingAmount =
+            case padding of
+                NoPadding ->
+                    0
+
+                WithPadding ->
+                    6
+
         size =
             max (Pattern.width pattern) (Pattern.height pattern)
-                |> toFloat
-                |> (*) 1.2
+                |> (+) paddingAmount
                 |> max 18
-                |> Basics.round
 
         center =
             { x = size // 2

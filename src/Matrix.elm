@@ -111,14 +111,14 @@ update transform coordinate matrix =
 
 
 map : (a -> b) -> Matrix a -> Matrix b
-map f (Matrix dimensions array) =
-    Array.map f array
+map transform (Matrix dimensions array) =
+    Array.map transform array
         |> Matrix dimensions
 
 
 coordinateMap : (Coordinate -> a -> b) -> Matrix a -> Matrix b
-coordinateMap f (Matrix dimensions array) =
-    Array.indexedMap (toCoordinate dimensions >> f) array
+coordinateMap transform (Matrix dimensions array) =
+    Array.indexedMap (toCoordinate dimensions >> transform) array
         |> Matrix dimensions
 
 

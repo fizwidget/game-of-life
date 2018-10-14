@@ -65,19 +65,15 @@ view :
     -> Events msg
     -> Html msg
 view status speed zoom theme importField events =
-    div []
-        [ div [ class "bottom-left-overlay" ]
-            [ viewStatusButton status events.onStatusChange
-            , viewSpeedButton speed events.onSpeedChange
-            , viewZoomButton zoom events.onZoomChange
-            , viewThemeButton theme events.onThemeChange
-            , viewImportField importField events.onImportFieldOpen events.onImportFieldChange
-            ]
-        , div [ class "bottom-right-overlay" ]
-            [ viewUndoButton status events.onUndo
-            , viewRedoButton status events.onRedo
-            , viewRandomizeButton events.onRandomize
-            ]
+    div [ class "control-panel" ]
+        [ viewStatusButton status events.onStatusChange
+        , viewSpeedButton speed events.onSpeedChange
+        , viewZoomButton zoom events.onZoomChange
+        , viewThemeButton theme events.onThemeChange
+        , viewImportField importField events.onImportFieldOpen events.onImportFieldChange
+        , viewUndoButton status events.onUndo
+        , viewRedoButton status events.onRedo
+        , viewRandomizeButton events.onRandomize
         ]
 
 

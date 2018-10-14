@@ -7,7 +7,7 @@ import Controls exposing (ImportField(..), Speed(..), Status(..), UserInput)
 import GameOfLife exposing (GameOfLife)
 import History exposing (History)
 import Html exposing (Html, div)
-import Html.Attributes exposing (class)
+import Html.Attributes exposing (class, style)
 import Json.Decode as Decode exposing (Decoder)
 import Pattern exposing (Pattern)
 import Random
@@ -50,7 +50,7 @@ initialModel =
     , mouse = Up
     , speed = Slow
     , zoom = Far
-    , theme = Light
+    , theme = Dark
     , importField = Closed
     }
 
@@ -244,10 +244,20 @@ document model =
 view : Model -> Html Msg
 view model =
     div
-        [ class "center-content" ]
+        [ class "center-content", style "height" "100%", class (backgroundColorClass model.theme) ]
         [ viewGame model
         , viewControls model
         ]
+
+
+backgroundColorClass : Theme -> String
+backgroundColorClass theme =
+    case theme of
+        Light ->
+            "white-background"
+
+        Dark ->
+            "black-background"
 
 
 viewGame : Model -> Html Msg

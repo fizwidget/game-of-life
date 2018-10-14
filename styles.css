@@ -61,18 +61,47 @@ body {
 
 /* Overlay */
 
-.bottom-left-overlay {
+.control-panel {
     position: fixed;
     left: 20px;
     bottom: 20px;
+    display: flex;
+    flex-direction: column-reverse;
+    flex-wrap: wrap;
+    max-height: 240px;
 }
 
-.bottom-right-overlay {
-    position: fixed;
-    right: 20px;
-    bottom: 20px;
+.orange-background {
+    background-color: rgba(255, 171, 0, 0.8);
 }
 
+.green-background {
+    background-color: rgba(54, 179, 126, 0.8);
+}
+
+.blue-background {
+    background-color: rgba(0, 184, 217, 0.8);
+}
+
+.purple-background {
+    background-color: rgba(101, 84, 192, 0.8);
+}
+
+.light-grey-background {
+    background-color: rgb(244, 245, 247);
+}
+
+.dark-grey-background {
+    background-color: rgba(30, 30, 30, 0.77);
+}
+
+.black-background {
+    background-color: black;
+}
+
+.white-background {
+    background-color: white;
+}
 
 /* Import field */
 

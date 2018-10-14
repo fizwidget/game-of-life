@@ -151,16 +151,11 @@ view game zoom theme events =
 viewCells : GameOfLife -> Zoom -> Theme -> Events msg -> Html msg
 viewCells (GameOfLife cells) zoom theme events =
     div
-        ([ class "cells-container" ] ++ dynamicStyles zoom theme)
+        ([ class "cells-container" ] ++ zoomStyles zoom)
         (cells
             |> Matrix.coordinateMap (viewCell (cellSize cells) theme events)
             |> Matrix.toList
         )
-
-
-dynamicStyles : Zoom -> Theme -> List (Attribute msg)
-dynamicStyles zoom theme =
-    backgroundColorStyle theme :: zoomStyles zoom
 
 
 zoomStyles : Zoom -> List (Attribute msg)
@@ -180,16 +175,6 @@ zoomStyles zoom =
     [ style "width" percentage
     , style "height" percentage
     ]
-
-
-backgroundColorStyle : Theme -> Attribute msg
-backgroundColorStyle theme =
-    case theme of
-        Light ->
-            backgroundColor 0 0 0 0
-
-        Dark ->
-            backgroundColor 15 15 15 1
 
 
 viewCell : Percentage -> Theme -> Events msg -> Coordinate -> Cell -> Html msg
@@ -213,7 +198,7 @@ viewCellContent cell coordinate theme =
     in
     div
         [ class "cell-content"
-        , cellBackgroundColor cell coordinate theme
+        , class (cellColorClass cell coordinate theme)
         , style "width" (percentageStyle size)
         , style "height" (percentageStyle size)
         ]
@@ -240,44 +225,27 @@ cellContentSize cell =
             40
 
 
-cellBackgroundColor : Cell -> Coordinate -> Theme -> Attribute msg
-cellBackgroundColor cell { x, y } theme =
+cellColorClass : Cell -> Coordinate -> Theme -> String
+cellColorClass cell { x, y } theme =
     case cell of
         Dead ->
             case theme of
                 Light ->
-                    backgroundColor 244 245 247 1.0
+                    "light-grey-background"
 
                 Dark ->
-                    backgroundColor 30 30 30 0.77
+                    "dark-grey-background"
 
         Alive ->
             case ( modBy 2 x == 0, modBy 2 y == 0 ) of
                 ( True, True ) ->
-                    backgroundColor 255 171 0 0.8
+                    "orange-background"
 
                 ( True, False ) ->
-                    backgroundColor 54 179 126 0.8
+                    "green-background"
 
                 ( False, True ) ->
-                    backgroundColor 0 184 217 0.8
+                    "blue-background"
 
                 ( False, False ) ->
-                    backgroundColor 101 84 192 0.8
-
-
-backgroundColor : Int -> Int -> Int -> Float -> Attribute msg
-backgroundColor red green blue alpha =
-    let
-        colorString =
-            "rgba("
-                ++ String.fromInt red
-                ++ ", "
-                ++ String.fromInt green
-                ++ ", "
-                ++ String.fromInt blue
-                ++ ", "
-                ++ String.fromFloat alpha
-                ++ ")"
-    in
-    style "background-color" colorString
+                    "purple-background"

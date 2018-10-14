@@ -6,7 +6,7 @@ import Common exposing (Theme(..), Zoom(..))
 import Controls exposing (ImportField(..), Speed(..), Status(..), UserInput)
 import GameOfLife exposing (GameOfLife, Padding(..))
 import History exposing (History)
-import Html exposing (Html, div)
+import Html exposing (Html, div, node, text)
 import Html.Attributes exposing (class, style)
 import Json.Decode as Decode exposing (Decoder)
 import Pattern exposing (Pattern)
@@ -249,20 +249,28 @@ document model =
 view : Model -> Html Msg
 view model =
     div
-        [ class "center-content", style "height" "100%", class (backgroundColorClass model.theme) ]
-        [ viewGame model
+        [ class "center-content" ]
+        [ bodyStyles model.theme
+        , viewGame model
         , viewControls model
         ]
 
 
-backgroundColorClass : Theme -> String
-backgroundColorClass theme =
+bodyStyles : Theme -> Html msg
+bodyStyles theme =
+    node "style"
+        []
+        [ text <| "body { background-color: " ++ backgroundColor theme ++ "; }" ]
+
+
+backgroundColor : Theme -> String
+backgroundColor theme =
     case theme of
         Light ->
-            "white-background"
+            "white"
 
         Dark ->
-            "black-background"
+            "black"
 
 
 viewGame : Model -> Html Msg

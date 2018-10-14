@@ -95,14 +95,6 @@ body {
     background-color: rgba(30, 30, 30, 0.77);
 }
 
-.black-background {
-    background-color: black;
-}
-
-.white-background {
-    background-color: white;
-}
-
 /* Import field */
 
 .import-field {

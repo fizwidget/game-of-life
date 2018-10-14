@@ -198,7 +198,7 @@ zoomStyles zoom =
 viewCell : Percentage -> Theme -> Events msg -> Coordinate -> Cell -> Html msg
 viewCell relativeSize theme events coordinate cell =
     div
-        [ class "center-content"
+        [ class "cell"
         , style "width" (percentageStyle relativeSize)
         , style "height" (percentageStyle relativeSize)
         , onMouseDown (events.onMouseDown coordinate)

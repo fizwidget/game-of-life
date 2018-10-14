@@ -249,7 +249,7 @@ document model =
 view : Model -> Html Msg
 view model =
     div
-        [ class "center-content" ]
+        []
         [ bodyStyles model.theme
         , viewGame model
         , viewControls model
@@ -258,9 +258,13 @@ view model =
 
 bodyStyles : Theme -> Html msg
 bodyStyles theme =
+    let
+        backgroundColorStyle =
+            "body { background-color: " ++ backgroundColor theme ++ "; }"
+    in
     node "style"
         []
-        [ text <| "body { background-color: " ++ backgroundColor theme ++ "; }" ]
+        [ text backgroundColorStyle ]
 
 
 backgroundColor : Theme -> String
@@ -270,7 +274,7 @@ backgroundColor theme =
             "white"
 
         Dark ->
-            "black"
+            "rgb(15, 15, 15)"
 
 
 viewGame : Model -> Html Msg

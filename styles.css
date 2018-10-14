@@ -2,8 +2,6 @@ body {
     margin: 0;
 }
 
-/* Container */
-
 .square-container {
     position: relative;
     width: 100%;
@@ -14,8 +12,6 @@ body {
     display: block;
     padding-bottom: 100%;
 }
-
-/* Cells */
 
 .cells-container {
     display: flex;
@@ -40,8 +36,6 @@ body {
                 height 0.2s;
 }
 
-/* Button */
-
 .button {
     width: 100px;
     height: 40px;
@@ -58,8 +52,6 @@ body {
 .green-button {
     background-color: rgba(54, 179, 126, 0.8)
 }
-
-/* Overlay */
 
 .control-panel {
     position: fixed;
@@ -95,17 +87,7 @@ body {
     background-color: rgba(30, 30, 30, 0.77);
 }
 
-/* Import field */
-
 .import-field {
     border-radius: 4px;
     resize: none;
-}
-
-/* Utils */
-
-.center-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }

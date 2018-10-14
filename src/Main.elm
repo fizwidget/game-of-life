@@ -66,8 +66,8 @@ initialGame =
 
 type Msg
     = ClockTick
-    | Undo
-    | Redo
+    | StepBack
+    | StepForward
     | ChangeStatus Status
     | ChangeSpeed Speed
     | ChangeZoom Zoom
@@ -96,13 +96,13 @@ update msg model =
                 |> ifGameFinished pauseGame
                 |> withoutCmd
 
-        Undo ->
+        StepBack ->
             tryUndoStep model
                 |> Maybe.withDefault model
                 |> pauseGame
                 |> withoutCmd
 
-        Redo ->
+        StepForward ->
             tryRedoStep model
                 |> Maybe.withDefault (stepGame model)
                 |> pauseGame
@@ -307,8 +307,8 @@ gameEventHandlers =
 
 controlEventHandlers : Model -> Controls.Events Msg
 controlEventHandlers { speed, zoom, theme, status } =
-    { onUndo = Undo
-    , onRedo = Redo
+    { onStepBack = StepBack
+    , onStepForward = StepForward
     , onSpeedChange = ChangeSpeed (nextSpeed speed)
     , onZoomChange = ChangeZoom (nextZoomLevel zoom)
     , onThemeChange = ChangeTheme (nextTheme theme)

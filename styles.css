@@ -13,8 +13,8 @@ body {
     padding-bottom: 100%;
 }
 
-.cells-container {
-    display: flex;
+.cells {
+    display: flex; 
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
@@ -27,7 +27,7 @@ body {
     align-items: center;
 }
 
-.cell-content {
+.inner-cell {
     width: 70%;
     height: 70%;
     border-radius: 30%;
@@ -63,27 +63,27 @@ body {
     max-height: 240px;
 }
 
-.orange-background {
+.orange-cell {
     background-color: rgba(255, 171, 0, 0.8);
 }
 
-.green-background {
+.green-cell {
     background-color: rgba(54, 179, 126, 0.8);
 }
 
-.blue-background {
+.blue-cell {
     background-color: rgba(0, 184, 217, 0.8);
 }
 
-.purple-background {
+.purple-cell {
     background-color: rgba(101, 84, 192, 0.8);
 }
 
-.light-grey-background {
+.light-grey-cell {
     background-color: rgb(244, 245, 247);
 }
 
-.dark-grey-background {
+.dark-grey-cell {
     background-color: rgba(30, 30, 30, 0.77);
 }
 

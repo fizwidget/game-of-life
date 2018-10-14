@@ -39,8 +39,8 @@ type alias UserInput =
 
 
 type alias Events msg =
-    { onUndo : msg
-    , onRedo : msg
+    { onStepBack : msg
+    , onStepForward : msg
     , onStatusChange : msg
     , onSpeedChange : msg
     , onZoomChange : msg
@@ -67,13 +67,13 @@ view :
 view status speed zoom theme importField events =
     div [ class "control-panel" ]
         [ viewStatusButton status events.onStatusChange
-        , viewSpeedButton speed events.onSpeedChange
+        , viewUndoButton status events.onStepBack
         , viewZoomButton zoom events.onZoomChange
         , viewThemeButton theme events.onThemeChange
-        , viewImportField importField events.onImportFieldOpen events.onImportFieldChange
-        , viewUndoButton status events.onUndo
-        , viewRedoButton status events.onRedo
+        , viewSpeedButton speed events.onSpeedChange
+        , viewRedoButton status events.onStepForward
         , viewRandomizeButton events.onRandomize
+        , viewImportField importField events.onImportFieldOpen events.onImportFieldChange
         ]
 
 
@@ -178,10 +178,10 @@ onKeyDown : Events msg -> Key -> msg
 onKeyDown events key =
     case key of
         "ArrowLeft" ->
-            events.onUndo
+            events.onStepBack
 
         "ArrowRight" ->
-            events.onRedo
+            events.onStepForward
 
         "p" ->
             events.onStatusChange

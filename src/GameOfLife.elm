@@ -48,7 +48,7 @@ type Padding
 
 
 
--- CREATE
+-- CREATION
 
 
 begin : Dimensions -> GameOfLife
@@ -60,7 +60,7 @@ begin dimensions =
 beginWithPattern : Padding -> Pattern -> GameOfLife
 beginWithPattern padding pattern =
     let
-        paddingAmount =
+        paddingCells =
             case padding of
                 WithPadding ->
                     6
@@ -70,7 +70,7 @@ beginWithPattern padding pattern =
 
         size =
             max (Pattern.width pattern) (Pattern.height pattern)
-                |> (+) paddingAmount
+                |> (+) paddingCells
                 |> max 18
 
         center =
@@ -80,15 +80,23 @@ beginWithPattern padding pattern =
 
         centeredPattern =
             Pattern.centerAt center pattern
+    in
+    GameOfLife (initializeCells size centeredPattern)
+
+
+initializeCells : Int -> Pattern -> Cells
+initializeCells gameSize pattern =
+    let
+        makeAlive =
+            Matrix.set Alive
 
         deadCells =
-            Matrix.create { width = size, height = size } Dead
+            Matrix.create { width = gameSize, height = gameSize } Dead
+
+        patternCoordinates =
+            Pattern.toCoordinates pattern
     in
-    GameOfLife <|
-        List.foldl
-            (Matrix.set Alive)
-            deadCells
-            (Pattern.toCoordinates centeredPattern)
+    List.foldl makeAlive deadCells patternCoordinates
 
 
 
@@ -152,6 +160,10 @@ type alias Percentage =
     Float
 
 
+type alias ClassName =
+    String
+
+
 type alias Events msg =
     { onMouseOver : Coordinate -> msg
     , onMouseDown : Coordinate -> msg
@@ -168,8 +180,12 @@ view game zoom theme events =
 
 viewCells : GameOfLife -> Zoom -> Theme -> Events msg -> Html msg
 viewCells (GameOfLife cells) zoom theme events =
+    let
+        attributes =
+            [ class "cells" ] ++ zoomStyles zoom
+    in
     div
-        ([ class "cells-container" ] ++ zoomStyles zoom)
+        attributes
         (cells
             |> Matrix.coordinateMap (viewCell (cellSize cells) theme events)
             |> Matrix.toList
@@ -182,13 +198,13 @@ zoomStyles zoom =
         percentage =
             case zoom of
                 Far ->
-                    percentageStyle 100
+                    percentString 100
 
                 Normal ->
-                    percentageStyle 150
+                    percentString 150
 
                 Close ->
-                    percentageStyle 200
+                    percentString 200
     in
     [ style "width" percentage
     , style "height" percentage
@@ -199,33 +215,33 @@ viewCell : Percentage -> Theme -> Events msg -> Coordinate -> Cell -> Html msg
 viewCell relativeSize theme events coordinate cell =
     div
         [ class "cell"
-        , style "width" (percentageStyle relativeSize)
-        , style "height" (percentageStyle relativeSize)
+        , style "width" (percentString relativeSize)
+        , style "height" (percentString relativeSize)
         , onMouseDown (events.onMouseDown coordinate)
         , onMouseUp events.onMouseUp
         , onMouseEnter (events.onMouseOver coordinate)
         ]
-        [ viewCellContent cell coordinate theme ]
+        [ viewInnerCell cell coordinate theme ]
 
 
-viewCellContent : Cell -> Coordinate -> Theme -> Html msg
-viewCellContent cell coordinate theme =
+viewInnerCell : Cell -> Coordinate -> Theme -> Html msg
+viewInnerCell cell coordinate theme =
     let
         size =
-            cellContentSize cell
+            innerCellSize cell
     in
     div
-        [ class "cell-content"
+        [ class "inner-cell"
         , class (cellColorClass cell coordinate theme)
-        , style "width" (percentageStyle size)
-        , style "height" (percentageStyle size)
+        , style "width" (percentString size)
+        , style "height" (percentString size)
         ]
         []
 
 
-percentageStyle : Percentage -> String
-percentageStyle value =
-    String.fromFloat value ++ "%"
+percentString : Percentage -> String
+percentString percentage =
+    String.fromFloat percentage ++ "%"
 
 
 cellSize : Cells -> Percentage
@@ -233,8 +249,8 @@ cellSize cells =
     100.0 / (Matrix.width cells |> toFloat)
 
 
-cellContentSize : Cell -> Percentage
-cellContentSize cell =
+innerCellSize : Cell -> Percentage
+innerCellSize cell =
     case cell of
         Alive ->
             70
@@ -243,27 +259,27 @@ cellContentSize cell =
             40
 
 
-cellColorClass : Cell -> Coordinate -> Theme -> String
+cellColorClass : Cell -> Coordinate -> Theme -> ClassName
 cellColorClass cell { x, y } theme =
     case cell of
         Dead ->
             case theme of
                 Light ->
-                    "light-grey-background"
+                    "light-grey-cell"
 
                 Dark ->
-                    "dark-grey-background"
+                    "dark-grey-cell"
 
         Alive ->
             case ( modBy 2 x == 0, modBy 2 y == 0 ) of
                 ( True, True ) ->
-                    "orange-background"
+                    "orange-cell"
 
                 ( True, False ) ->
-                    "green-background"
+                    "green-cell"
 
                 ( False, True ) ->
-                    "blue-background"
+                    "blue-cell"
 
                 ( False, False ) ->
-                    "purple-background"
+                    "purple-cell"

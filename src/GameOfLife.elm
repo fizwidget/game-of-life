@@ -44,7 +44,7 @@ type alias Dimensions =
 
 type Padding
     = WithPadding
-    | NoPadding
+    | WithoutPadding
 
 
 
@@ -62,11 +62,11 @@ beginWithPattern padding pattern =
     let
         paddingAmount =
             case padding of
-                NoPadding ->
-                    0
-
                 WithPadding ->
                     6
+
+                WithoutPadding ->
+                    0
 
         size =
             max (Pattern.width pattern) (Pattern.height pattern)

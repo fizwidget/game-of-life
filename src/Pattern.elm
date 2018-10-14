@@ -3,7 +3,7 @@ module Pattern exposing
     , centerAt
     , generator
     , height
-    , parseLife106
+    , parseLife106Format
     , toCoordinates
     , width
     )
@@ -28,11 +28,11 @@ toCoordinates (Pattern coordinates) =
 
 
 
--- Parsing
+-- PARSER
 
 
-parseLife106 : String -> Maybe Pattern
-parseLife106 text =
+parseLife106Format : String -> Maybe Pattern
+parseLife106Format text =
     String.lines text
         |> List.map String.trim
         |> List.filter (not << String.isEmpty)
@@ -78,7 +78,7 @@ toCoordinate ( first, second ) =
 
 
 
--- Random generation
+-- RANDOM GENERATOR
 
 
 type alias BoundingBox =
@@ -109,7 +109,7 @@ coordinateGenerator boundingBox =
 
 
 
--- Utils
+-- UTILS
 
 
 width : Pattern -> Int

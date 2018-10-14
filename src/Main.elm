@@ -147,7 +147,7 @@ update msg model =
                 |> withoutCmd
 
         ImportFieldChange userInput ->
-            case Pattern.parseLife106 userInput of
+            case Pattern.parseLife106Format userInput of
                 Nothing ->
                     { model | importField = Open userInput }
                         |> withoutCmd
@@ -161,7 +161,7 @@ update msg model =
             ( model, requestRandomPattern )
 
         RandomPatternResponse randomPattern ->
-            displayPattern NoPadding randomPattern model
+            displayPattern WithoutPadding randomPattern model
                 |> withoutCmd
 
         NoOp ->

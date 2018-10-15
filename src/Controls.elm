@@ -66,18 +66,20 @@ view :
     -> Events msg
     -> Html msg
 view status speed zoom theme importField events =
-    div [ class "control-panel" ]
-        [ viewStatusButton status events.onStatusChange
-        , viewBackButton status events.onStepBack
-        , viewForwardButton status events.onStepForward
-        , viewZoomButton zoom events.onZoomChange
-        , viewSpeedButton speed events.onSpeedChange
-        , viewRandomizeButton events.onRandomize
-        , viewThemeButton theme events.onThemeChange
-        , viewImportField importField
-            events.onImportFieldOpen
-            events.onImportFieldChange
-            events.onImportFieldCancel
+    div []
+        [ div [ class "control-panel" ]
+            [ viewStatusButton status events.onStatusChange
+            , viewBackButton status events.onStepBack
+            , viewForwardButton status events.onStepForward
+            , viewZoomButton zoom events.onZoomChange
+            , viewSpeedButton speed events.onSpeedChange
+            , viewRandomizeButton events.onRandomize
+            , viewThemeButton theme events.onThemeChange
+            , viewImportButton importField
+                events.onImportFieldOpen
+                events.onImportFieldCancel
+            ]
+        , viewImportField importField events.onImportFieldChange
         ]
 
 
@@ -127,24 +129,31 @@ viewThemeButton theme clickMsg =
             viewButton "Dark" clickMsg []
 
 
-viewImportField : ImportField -> msg -> (UserInput -> msg) -> msg -> Html msg
-viewImportField importField openMsg changeMsg cancelMsg =
+viewImportButton : ImportField -> msg -> msg -> Html msg
+viewImportButton importField openMsg cancelMsg =
     case importField of
+        Open text ->
+            viewButton "Cancel" cancelMsg []
+
         Closed ->
             viewButton "Import" openMsg []
 
+
+viewImportField : ImportField -> (UserInput -> msg) -> Html msg
+viewImportField importField changeMsg =
+    case importField of
         Open text ->
-            div []
-                [ textarea
-                    [ autofocus True
-                    , placeholder "Paste a 'Life 1.06' pattern here..."
-                    , class "import-field"
-                    , value text
-                    , onInput changeMsg
-                    ]
-                    []
-                , viewButton "Cancel" cancelMsg []
+            textarea
+                [ autofocus True
+                , placeholder "Paste a 'Life 1.06' pattern here..."
+                , class "import-field"
+                , value text
+                , onInput changeMsg
                 ]
+                []
+
+        Closed ->
+            text ""
 
 
 viewBackButton : Status -> msg -> Html msg

@@ -158,12 +158,12 @@ viewImportField importField changeMsg =
 
 viewBackButton : Status -> msg -> Html msg
 viewBackButton status clickMsg =
-    viewButton "⬅︎" clickMsg []
+    viewButton "⇦" clickMsg []
 
 
 viewForwardButton : Status -> msg -> Html msg
 viewForwardButton status clickMsg =
-    viewButton "➡︎" clickMsg []
+    viewButton "⇨" clickMsg []
 
 
 viewRandomizeButton : msg -> Html msg

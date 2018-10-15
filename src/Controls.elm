@@ -57,24 +57,17 @@ type alias Events msg =
 -- VIEW
 
 
-view :
-    Status
-    -> Speed
-    -> Zoom
-    -> Theme
-    -> ImportField
-    -> Events msg
-    -> Html msg
-view status speed zoom theme importField events =
+view : Status -> ImportField -> Events msg -> Html msg
+view status importField events =
     div []
         [ div [ class "control-panel" ]
             [ viewStatusButton status events.onStatusChange
             , viewBackButton status events.onStepBack
             , viewForwardButton status events.onStepForward
-            , viewZoomButton zoom events.onZoomChange
-            , viewSpeedButton speed events.onSpeedChange
             , viewRandomizeButton events.onRandomize
-            , viewThemeButton theme events.onThemeChange
+            , viewSpeedButton events.onSpeedChange
+            , viewZoomButton events.onZoomChange
+            , viewThemeButton events.onThemeChange
             , viewImportButton importField
                 events.onImportFieldOpen
                 events.onImportFieldCancel
@@ -87,46 +80,25 @@ viewStatusButton : Status -> msg -> Html msg
 viewStatusButton status clickMsg =
     case status of
         Paused ->
-            viewButton "Play" clickMsg [ class "play-button" ]
+            viewButton "Start" clickMsg [ class "play-button" ]
 
         Playing ->
-            viewButton "Pause" clickMsg []
+            viewButton "Stop" clickMsg []
 
 
-viewSpeedButton : Speed -> msg -> Html msg
-viewSpeedButton speed clickMsg =
-    case speed of
-        Slow ->
-            viewButton "Slow" clickMsg []
-
-        Medium ->
-            viewButton "Medium" clickMsg []
-
-        Fast ->
-            viewButton "Fast" clickMsg []
+viewSpeedButton : msg -> Html msg
+viewSpeedButton clickMsg =
+    viewButton "🏃\u{200D}♀️" clickMsg []
 
 
-viewZoomButton : Zoom -> msg -> Html msg
-viewZoomButton zoom clickMsg =
-    case zoom of
-        Far ->
-            viewButton "1X" clickMsg []
-
-        Normal ->
-            viewButton "1.5X" clickMsg []
-
-        Close ->
-            viewButton "2X" clickMsg []
+viewZoomButton : msg -> Html msg
+viewZoomButton clickMsg =
+    viewButton "🔬" clickMsg []
 
 
-viewThemeButton : Theme -> msg -> Html msg
-viewThemeButton theme clickMsg =
-    case theme of
-        Light ->
-            viewButton "Light" clickMsg []
-
-        Dark ->
-            viewButton "Dark" clickMsg []
+viewThemeButton : msg -> Html msg
+viewThemeButton clickMsg =
+    viewButton "🎨" clickMsg []
 
 
 viewImportButton : ImportField -> msg -> msg -> Html msg
@@ -168,7 +140,7 @@ viewForwardButton status clickMsg =
 
 viewRandomizeButton : msg -> Html msg
 viewRandomizeButton clickMsg =
-    viewButton "Randomize" clickMsg []
+    viewButton "🎲" clickMsg []
 
 
 viewButton : String -> msg -> List (Attribute msg) -> Html msg

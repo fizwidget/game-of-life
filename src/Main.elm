@@ -304,9 +304,6 @@ viewControls : Model -> Html Msg
 viewControls model =
     Controls.view
         model.status
-        model.speed
-        model.zoom
-        model.theme
         model.importField
         (controlEventHandlers model)
 

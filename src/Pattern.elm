@@ -97,7 +97,7 @@ generator boundingBox =
         |> Random.map Pattern
 
 
-coordinateGenerator : BoundingBox -> Generator Coordinate
+coordinateGenerator : Dimensions -> Generator Coordinate
 coordinateGenerator boundingBox =
     Random.map2
         Coordinate

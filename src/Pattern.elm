@@ -81,18 +81,15 @@ toCoordinate ( first, second ) =
 -- RANDOM GENERATOR
 
 
-type alias BoundingBox =
+type alias Dimensions =
     { width : Int
     , height : Int
     }
 
 
-generator : Generator Pattern
-generator =
+generator : Dimensions -> Generator Pattern
+generator boundingBox =
     let
-        boundingBox =
-            { width = 18, height = 18 }
-
         coordinateCount =
             (boundingBox.width * boundingBox.height) // 4
     in

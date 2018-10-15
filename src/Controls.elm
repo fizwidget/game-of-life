@@ -67,11 +67,11 @@ view :
 view status speed zoom theme importField events =
     div [ class "control-panel" ]
         [ viewStatusButton status events.onStatusChange
-        , viewUndoButton status events.onStepBack
+        , viewBackButton status events.onStepBack
         , viewZoomButton zoom events.onZoomChange
         , viewThemeButton theme events.onThemeChange
         , viewSpeedButton speed events.onSpeedChange
-        , viewRedoButton status events.onStepForward
+        , viewForwardButton status events.onStepForward
         , viewRandomizeButton events.onRandomize
         , viewImportField importField events.onImportFieldOpen events.onImportFieldChange
         ]
@@ -81,7 +81,7 @@ viewStatusButton : Status -> msg -> Html msg
 viewStatusButton status clickMsg =
     case status of
         Paused ->
-            viewButton "Play" clickMsg [ class "green-button" ]
+            viewButton "Play" clickMsg [ class "play-button" ]
 
         Playing ->
             viewButton "Pause" clickMsg []
@@ -142,13 +142,13 @@ viewImportField importField openMsg changeMsg =
                 []
 
 
-viewUndoButton : Status -> msg -> Html msg
-viewUndoButton status clickMsg =
+viewBackButton : Status -> msg -> Html msg
+viewBackButton status clickMsg =
     viewButton "⬅︎" clickMsg []
 
 
-viewRedoButton : Status -> msg -> Html msg
-viewRedoButton status clickMsg =
+viewForwardButton : Status -> msg -> Html msg
+viewForwardButton status clickMsg =
     viewButton "➡︎" clickMsg []
 
 

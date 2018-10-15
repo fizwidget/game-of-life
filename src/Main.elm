@@ -85,6 +85,7 @@ type Msg
     | MouseUp
     | ImportFieldOpen
     | ImportFieldChange UserInput
+    | ImportFieldCancel
     | RandomPatternRequest
     | RandomPatternResponse Pattern
     | NoOp
@@ -164,6 +165,10 @@ update msg model =
                     { model | importField = Closed, zoom = Far }
                         |> displayPattern WithPadding importedPattern
                         |> withoutCmd
+
+        ImportFieldCancel ->
+            { model | importField = Closed }
+                |> withoutCmd
 
         RandomPatternRequest ->
             ( model, requestRandomPattern )
@@ -325,6 +330,7 @@ controlEventHandlers { speed, zoom, theme, status } =
     , onRandomize = RandomPatternRequest
     , onImportFieldOpen = ImportFieldOpen
     , onImportFieldChange = ImportFieldChange
+    , onImportFieldCancel = ImportFieldCancel
     , noOp = NoOp
     }
 

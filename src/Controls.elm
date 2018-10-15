@@ -48,6 +48,7 @@ type alias Events msg =
     , onRandomize : msg
     , onImportFieldOpen : msg
     , onImportFieldChange : UserInput -> msg
+    , onImportFieldCancel : msg
     , noOp : msg
     }
 
@@ -68,12 +69,15 @@ view status speed zoom theme importField events =
     div [ class "control-panel" ]
         [ viewStatusButton status events.onStatusChange
         , viewBackButton status events.onStepBack
-        , viewZoomButton zoom events.onZoomChange
-        , viewThemeButton theme events.onThemeChange
-        , viewSpeedButton speed events.onSpeedChange
         , viewForwardButton status events.onStepForward
+        , viewZoomButton zoom events.onZoomChange
+        , viewSpeedButton speed events.onSpeedChange
         , viewRandomizeButton events.onRandomize
-        , viewImportField importField events.onImportFieldOpen events.onImportFieldChange
+        , viewThemeButton theme events.onThemeChange
+        , viewImportField importField
+            events.onImportFieldOpen
+            events.onImportFieldChange
+            events.onImportFieldCancel
         ]
 
 
@@ -123,23 +127,26 @@ viewThemeButton theme clickMsg =
             viewButton "Dark" clickMsg []
 
 
-viewImportField : ImportField -> msg -> (UserInput -> msg) -> Html msg
-viewImportField importField openMsg changeMsg =
+viewImportField : ImportField -> msg -> (UserInput -> msg) -> msg -> Html msg
+viewImportField importField openMsg changeMsg cancelMsg =
     case importField of
         Closed ->
             viewButton "Import" openMsg []
 
         Open text ->
-            textarea
-                [ rows 22
-                , cols 30
-                , autofocus True
-                , placeholder "Paste a 'Life 1.06' pattern here"
-                , class "import-field"
-                , value text
-                , onInput changeMsg
+            div []
+                [ textarea
+                    [ rows 10
+                    , cols 30
+                    , autofocus True
+                    , placeholder "Paste a 'Life 1.06' pattern here"
+                    , class "import-field"
+                    , value text
+                    , onInput changeMsg
+                    ]
+                    []
+                , viewButton "Cancel" cancelMsg []
                 ]
-                []
 
 
 viewBackButton : Status -> msg -> Html msg
@@ -154,7 +161,7 @@ viewForwardButton status clickMsg =
 
 viewRandomizeButton : msg -> Html msg
 viewRandomizeButton clickMsg =
-    viewButton "Random" clickMsg []
+    viewButton "Randomize" clickMsg []
 
 
 viewButton : String -> msg -> List (Attribute msg) -> Html msg

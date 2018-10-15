@@ -100,8 +100,12 @@ body {
 
 .import-field {
     position: absolute;
-    bottom: 20px;
-    right: 20px;
+    bottom: 0;
+    right: 0;
     border-radius: 4px;
     resize: none;
+    padding: 8px;
+    height: 24px;
+    width: 250px;
+    font-size: 16px;
 }

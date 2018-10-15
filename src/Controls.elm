@@ -10,7 +10,7 @@ module Controls exposing
 
 import Common exposing (Theme(..), Zoom(..))
 import Html exposing (Attribute, Html, button, div, text, textarea)
-import Html.Attributes exposing (autofocus, class, cols, placeholder, rows, value)
+import Html.Attributes exposing (autofocus, class, placeholder, value)
 import Html.Events exposing (onClick, onInput)
 
 
@@ -136,10 +136,8 @@ viewImportField importField openMsg changeMsg cancelMsg =
         Open text ->
             div []
                 [ textarea
-                    [ rows 10
-                    , cols 30
-                    , autofocus True
-                    , placeholder "Paste a 'Life 1.06' pattern here"
+                    [ autofocus True
+                    , placeholder "Paste a 'Life 1.06' pattern here..."
                     , class "import-field"
                     , value text
                     , onInput changeMsg

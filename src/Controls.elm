@@ -10,7 +10,7 @@ module Controls exposing
 
 import Common exposing (Theme(..), Zoom(..))
 import Html exposing (Attribute, Html, button, div, text, textarea)
-import Html.Attributes exposing (autofocus, class, placeholder, value)
+import Html.Attributes exposing (autofocus, class, placeholder, title, value)
 import Html.Events exposing (onClick, onInput)
 
 
@@ -80,35 +80,35 @@ viewStatusButton : Status -> msg -> Html msg
 viewStatusButton status clickMsg =
     case status of
         Paused ->
-            viewButton "Start" clickMsg [ class "play-button" ]
+            viewButton "Start" "Start simulation" clickMsg [ class "play-button" ]
 
         Playing ->
-            viewButton "Stop" clickMsg []
+            viewButton "Stop" "Stop simulation" clickMsg []
 
 
 viewSpeedButton : msg -> Html msg
 viewSpeedButton clickMsg =
-    viewButton "🏃\u{200D}♀️" clickMsg []
+    viewButton "🏃\u{200D}♀️" "Speed" clickMsg []
 
 
 viewZoomButton : msg -> Html msg
 viewZoomButton clickMsg =
-    viewButton "🔬" clickMsg []
+    viewButton "🔬" "Zoom" clickMsg []
 
 
 viewThemeButton : msg -> Html msg
 viewThemeButton clickMsg =
-    viewButton "🎨" clickMsg []
+    viewButton "🎨" "Theme" clickMsg []
 
 
 viewImportButton : ImportField -> msg -> msg -> Html msg
 viewImportButton importField openMsg cancelMsg =
     case importField of
         Open text ->
-            viewButton "Cancel" cancelMsg []
+            viewButton "Cancel" "Cancel import" cancelMsg []
 
         Closed ->
-            viewButton "Import" openMsg []
+            viewButton "Import" "Import pattern" openMsg []
 
 
 viewImportField : ImportField -> (UserInput -> msg) -> Html msg
@@ -130,24 +130,24 @@ viewImportField importField changeMsg =
 
 viewBackButton : Status -> msg -> Html msg
 viewBackButton status clickMsg =
-    viewButton "⇦" clickMsg []
+    viewButton "⇦" "Back" clickMsg []
 
 
 viewForwardButton : Status -> msg -> Html msg
 viewForwardButton status clickMsg =
-    viewButton "⇨" clickMsg []
+    viewButton "⇨" "Forward" clickMsg []
 
 
 viewRandomizeButton : msg -> Html msg
 viewRandomizeButton clickMsg =
-    viewButton "🎲" clickMsg []
+    viewButton "🎲" "Randomize" clickMsg []
 
 
-viewButton : String -> msg -> List (Attribute msg) -> Html msg
-viewButton description clickMsg customAttributes =
+viewButton : String -> String -> msg -> List (Attribute msg) -> Html msg
+viewButton description tooltip clickMsg customAttributes =
     let
         attributes =
-            [ class "button", onClick clickMsg ] ++ customAttributes
+            [ class "button", title tooltip, onClick clickMsg ] ++ customAttributes
     in
     button attributes [ text description ]
 

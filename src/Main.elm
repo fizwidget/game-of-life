@@ -76,10 +76,10 @@ type Msg
     = ClockTick
     | StepBack
     | StepForward
-    | ChangeStatus Status
-    | ChangeSpeed Speed
-    | ChangeZoom Zoom
-    | ChangeTheme Theme
+    | ChangeStatus
+    | ChangeSpeed
+    | ChangeZoom
+    | ChangeTheme
     | MouseDown Coordinate
     | MouseOver Coordinate
     | MouseUp
@@ -117,20 +117,20 @@ update msg model =
                 |> pauseGame
                 |> withoutCmd
 
-        ChangeStatus status ->
-            { model | status = status }
+        ChangeStatus ->
+            { model | status = nextStatus model.status }
                 |> withoutCmd
 
-        ChangeSpeed speed ->
-            { model | speed = speed }
+        ChangeSpeed ->
+            { model | speed = nextSpeed model.speed }
                 |> withoutCmd
 
-        ChangeZoom zoom ->
-            { model | zoom = zoom }
+        ChangeZoom ->
+            { model | zoom = nextZoom model.zoom }
                 |> withoutCmd
 
-        ChangeTheme theme ->
-            { model | theme = theme }
+        ChangeTheme ->
+            { model | theme = nextTheme model.theme }
                 |> withoutCmd
 
         MouseDown coordinate ->
@@ -249,6 +249,52 @@ requestRandomPattern =
         |> Random.generate RandomPatternResponse
 
 
+nextSpeed : Speed -> Speed
+nextSpeed speed =
+    case speed of
+        Slow ->
+            Medium
+
+        Medium ->
+            Fast
+
+        Fast ->
+            Slow
+
+
+nextZoom : Zoom -> Zoom
+nextZoom zoom =
+    case zoom of
+        Far ->
+            Normal
+
+        Normal ->
+            Close
+
+        Close ->
+            Far
+
+
+nextTheme : Theme -> Theme
+nextTheme theme =
+    case theme of
+        Light ->
+            Dark
+
+        Dark ->
+            Light
+
+
+nextStatus : Status -> Status
+nextStatus status =
+    case status of
+        Playing ->
+            Paused
+
+        Paused ->
+            Playing
+
+
 
 -- VIEW
 
@@ -256,18 +302,12 @@ requestRandomPattern =
 document : Model -> Document Msg
 document model =
     { title = "Game of Life"
-    , body = [ view model ]
-    }
-
-
-view : Model -> Html Msg
-view model =
-    div
-        []
+    , body =
         [ bodyStyles model.theme
         , viewGame model
         , viewControls model
         ]
+    }
 
 
 bodyStyles : Theme -> Html msg
@@ -305,7 +345,7 @@ viewControls model =
     Controls.view
         model.status
         model.importField
-        (controlEventHandlers model)
+        controlEventHandlers
 
 
 gameEventHandlers : GameOfLife.Events Msg
@@ -316,66 +356,20 @@ gameEventHandlers =
     }
 
 
-controlEventHandlers : Model -> Controls.Events Msg
-controlEventHandlers { speed, zoom, theme, status } =
+controlEventHandlers : Controls.Events Msg
+controlEventHandlers =
     { onStepBack = StepBack
     , onStepForward = StepForward
-    , onSpeedChange = ChangeSpeed (nextSpeed speed)
-    , onZoomChange = ChangeZoom (nextZoomLevel zoom)
-    , onThemeChange = ChangeTheme (nextTheme theme)
-    , onStatusChange = ChangeStatus (nextStatus status)
+    , onSpeedChange = ChangeSpeed
+    , onZoomChange = ChangeZoom
+    , onThemeChange = ChangeTheme
+    , onStatusChange = ChangeStatus
     , onRandomize = RandomPatternRequest
     , onImportFieldOpen = ImportFieldOpen
     , onImportFieldChange = ImportFieldChange
     , onImportFieldCancel = ImportFieldCancel
     , noOp = NoOp
     }
-
-
-nextSpeed : Speed -> Speed
-nextSpeed speed =
-    case speed of
-        Slow ->
-            Medium
-
-        Medium ->
-            Fast
-
-        Fast ->
-            Slow
-
-
-nextZoomLevel : Zoom -> Zoom
-nextZoomLevel zoom =
-    case zoom of
-        Far ->
-            Normal
-
-        Normal ->
-            Close
-
-        Close ->
-            Far
-
-
-nextTheme : Theme -> Theme
-nextTheme theme =
-    case theme of
-        Light ->
-            Dark
-
-        Dark ->
-            Light
-
-
-nextStatus : Status -> Status
-nextStatus status =
-    case status of
-        Playing ->
-            Paused
-
-        Paused ->
-            Playing
 
 
 
@@ -385,8 +379,8 @@ nextStatus status =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ keyDownSubscription model
-        , tickSubscription model.status model.speed
+        [ tickSubscription model.status model.speed
+        , keyDownSubscription
         ]
 
 
@@ -417,14 +411,14 @@ tickInterval speed =
             50
 
 
-keyDownSubscription : Model -> Sub Msg
-keyDownSubscription model =
+keyDownSubscription : Sub Msg
+keyDownSubscription =
     let
         keyDecoder =
             Decode.field "key" Decode.string
 
         onKeyDown =
-            Controls.onKeyDown (controlEventHandlers model)
+            Controls.onKeyDown controlEventHandlers
     in
     Events.onKeyDown keyDecoder
         |> Sub.map onKeyDown

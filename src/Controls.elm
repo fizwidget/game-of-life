@@ -80,25 +80,25 @@ viewStatusButton : Status -> msg -> Html msg
 viewStatusButton status clickMsg =
     case status of
         Paused ->
-            viewButton "Start" "Start simulation" clickMsg [ class "play-button" ]
+            viewButton "Start" "Start simulation (P)" clickMsg [ class "play-button" ]
 
         Playing ->
-            viewButton "Stop" "Stop simulation" clickMsg []
+            viewButton "Stop" "Stop simulation (P)" clickMsg []
 
 
 viewSpeedButton : msg -> Html msg
 viewSpeedButton clickMsg =
-    viewButton "🏃\u{200D}♀️" "Speed" clickMsg []
+    viewButton "🏃\u{200D}♀️" "Speed (S)" clickMsg []
 
 
 viewZoomButton : msg -> Html msg
 viewZoomButton clickMsg =
-    viewButton "🔬" "Zoom" clickMsg []
+    viewButton "🔬" "Zoom (Z)" clickMsg []
 
 
 viewThemeButton : msg -> Html msg
 viewThemeButton clickMsg =
-    viewButton "🎨" "Theme" clickMsg []
+    viewButton "🎨" "Theme (T)" clickMsg []
 
 
 viewImportButton : ImportField -> msg -> msg -> Html msg
@@ -130,17 +130,17 @@ viewImportField importField changeMsg =
 
 viewBackButton : Status -> msg -> Html msg
 viewBackButton status clickMsg =
-    viewButton "⇦" "Back" clickMsg []
+    viewButton "⇦" "Back (←)" clickMsg []
 
 
 viewForwardButton : Status -> msg -> Html msg
 viewForwardButton status clickMsg =
-    viewButton "⇨" "Forward" clickMsg []
+    viewButton "⇨" "Forward (→)" clickMsg []
 
 
 viewRandomizeButton : msg -> Html msg
 viewRandomizeButton clickMsg =
-    viewButton "🎲" "Randomize" clickMsg []
+    viewButton "🎲" "Randomize (R)" clickMsg []
 
 
 viewButton : String -> String -> msg -> List (Attribute msg) -> Html msg

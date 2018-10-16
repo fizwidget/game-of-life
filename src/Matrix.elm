@@ -134,7 +134,7 @@ toList (Matrix _ array) =
 
 neighbours : Matrix a -> Coordinate -> List a
 neighbours matrix coordinate =
-    [ ( 1, 1 ), ( 1, 0 ), ( 1, -1 ), ( 0, -1 ), ( -1, -1 ), ( -1, 0 ), ( -1, 1 ), ( 0, 1 ) ]
+    [ ( 1, 1 ), ( 0, 1 ), ( -1, 1 ), ( 1, 0 ), ( -1, 0 ), ( 1, -1 ), ( 0, -1 ), ( -1, -1 ) ]
         |> List.map (offsetBy coordinate)
         |> List.filterMap (\neighbourCoordinate -> get neighbourCoordinate matrix)
 

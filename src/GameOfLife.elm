@@ -3,6 +3,8 @@ module GameOfLife exposing
     , Events
     , GameOfLife
     , Padding(..)
+    , Theme(..)
+    , Zoom(..)
     , begin
     , beginWithPattern
     , isFinished
@@ -11,7 +13,6 @@ module GameOfLife exposing
     , view
     )
 
-import Common exposing (Theme(..), Zoom(..))
 import Html exposing (Attribute, Html, div)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onMouseDown, onMouseEnter, onMouseUp)
@@ -162,6 +163,17 @@ type alias Percentage =
 
 type alias ClassName =
     String
+
+
+type Zoom
+    = Far
+    | Normal
+    | Close
+
+
+type Theme
+    = Light
+    | Dark
 
 
 type alias Events msg =

@@ -1,0 +1,4 @@
+{
+    "elm.makeOutput": "build/elm.js",
+    "elm.compiler": "./node_modules/.bin/elm"
+}

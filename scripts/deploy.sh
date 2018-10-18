@@ -16,7 +16,7 @@ yarn build --optimize
 echo
 
 echo "- Comitting new artefacts..."
-git add elm.js
+git add build/elm.js
 git commit -m "Updating build artefacts"
 echo
 

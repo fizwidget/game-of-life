@@ -9,7 +9,7 @@ git merge master -m "Merging master"
 echo
 
 echo "- Installing dependencies..."
-yarn
+yarn install
 
 echo "- Building..."
 yarn build --optimize

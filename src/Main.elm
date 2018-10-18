@@ -62,8 +62,8 @@ initialModel =
 
 defaultGameSize : Dimensions
 defaultGameSize =
-    { width = 18
-    , height = 18
+    { width = 20
+    , height = 20
     }
 
 

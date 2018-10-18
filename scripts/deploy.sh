@@ -9,7 +9,7 @@ git merge master -m "Merging master"
 echo
 
 echo "- Building..."
-make production
+yarn build --optimize
 echo
 
 echo "- Comitting new artefacts..."

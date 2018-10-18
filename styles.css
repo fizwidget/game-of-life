@@ -29,8 +29,6 @@ body {
 }
 
 .inner-cell {
-    width: 70%;
-    height: 70%;
     border-radius: 30%;
     transition: background-color 0.2s ease-in-out,
                 width 0.2s,

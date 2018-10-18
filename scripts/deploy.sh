@@ -8,6 +8,9 @@ echo "- Merging master into deployment branch"
 git merge master -m "Merging master"
 echo
 
+echo "- Installing dependencies..."
+yarn
+
 echo "- Building..."
 yarn build --optimize
 echo

@@ -103,7 +103,7 @@ viewThemeButton clickMsg =
 viewImportButton : ImportField -> msg -> msg -> Html msg
 viewImportButton importField openMsg cancelMsg =
     case importField of
-        Open text ->
+        Open _ ->
             viewButton "Cancel" "Cancel import" cancelMsg []
 
         Closed ->

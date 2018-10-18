@@ -195,11 +195,14 @@ viewCells (GameOfLife cells) zoom theme events =
     let
         attributes =
             [ class "cells" ] ++ zoomStyles zoom
+
+        size =
+            outerCellSize cells
     in
     div
         attributes
         (cells
-            |> Matrix.coordinateMap (viewCell (cellSize cells) theme events)
+            |> Matrix.coordinateMap (viewCell size theme events)
             |> Matrix.toList
         )
 
@@ -256,8 +259,8 @@ percentString percentage =
     String.fromFloat percentage ++ "%"
 
 
-cellSize : Cells -> Percentage
-cellSize cells =
+outerCellSize : Cells -> Percentage
+outerCellSize cells =
     100.0 / (Matrix.width cells |> toFloat)
 
 

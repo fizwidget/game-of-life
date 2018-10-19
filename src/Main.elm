@@ -198,7 +198,7 @@ displayPattern : Padding -> Pattern -> Model -> Model
 displayPattern padding pattern model =
     let
         newGame =
-            GameOfLife.beginWithPattern padding pattern
+            GameOfLife.beginWithPattern defaultGameSize padding pattern
     in
     History.record (always newGame) model.game
         |> setGame model

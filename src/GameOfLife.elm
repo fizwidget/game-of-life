@@ -58,8 +58,8 @@ begin dimensions =
         |> GameOfLife
 
 
-beginWithPattern : Padding -> Pattern -> GameOfLife
-beginWithPattern padding pattern =
+beginWithPattern : Dimensions -> Padding -> Pattern -> GameOfLife
+beginWithPattern minDimensions padding pattern =
     let
         paddingCells =
             case padding of
@@ -69,35 +69,36 @@ beginWithPattern padding pattern =
                 WithoutPadding ->
                     0
 
-        size =
-            max (Pattern.width pattern) (Pattern.height pattern)
-                |> (+) paddingCells
-                |> max 18
+        width =
+            max (Pattern.width pattern + paddingCells) minDimensions.width
+
+        height =
+            max (Pattern.height pattern + paddingCells) minDimensions.height
 
         center =
-            { x = size // 2
-            , y = size // 2
+            { x = width // 2
+            , y = height // 2
             }
 
         centeredPattern =
             Pattern.centerAt center pattern
+
+        deadCells =
+            Matrix.create { width = width, height = height } Dead
     in
-    GameOfLife (initializeCells size centeredPattern)
+    GameOfLife (bringPatternToLife deadCells centeredPattern)
 
 
-initializeCells : Int -> Pattern -> Cells
-initializeCells gameSize pattern =
+bringPatternToLife : Cells -> Pattern -> Cells
+bringPatternToLife cells pattern =
     let
         makeAlive =
             Matrix.set Alive
 
-        deadCells =
-            Matrix.create { width = gameSize, height = gameSize } Dead
-
         patternCoordinates =
             Pattern.toCoordinates pattern
     in
-    List.foldl makeAlive deadCells patternCoordinates
+    List.foldl makeAlive cells patternCoordinates
 
 
 
@@ -157,8 +158,8 @@ isFinished (GameOfLife cells) =
 -- VIEW
 
 
-type alias Percentage =
-    Float
+type Percentage
+    = Percentage Float
 
 
 type alias ClassName =
@@ -213,16 +214,16 @@ zoomStyles zoom =
         percentage =
             case zoom of
                 Far ->
-                    percentString 100
+                    Percentage 100
 
                 Normal ->
-                    percentString 150
+                    Percentage 150
 
                 Close ->
-                    percentString 200
+                    Percentage 200
     in
-    [ style "width" percentage
-    , style "height" percentage
+    [ style "width" (percentString percentage)
+    , style "height" (percentString percentage)
     ]
 
 
@@ -255,23 +256,26 @@ viewInnerCell cell coordinate theme =
 
 
 percentString : Percentage -> String
-percentString percentage =
+percentString (Percentage percentage) =
     String.fromFloat percentage ++ "%"
 
 
 outerCellSize : Cells -> Percentage
 outerCellSize cells =
-    100.0 / (Matrix.width cells |> toFloat)
+    Matrix.width cells
+        |> toFloat
+        |> (\width -> 100 / width)
+        |> Percentage
 
 
 innerCellSize : Cell -> Percentage
 innerCellSize cell =
     case cell of
         Alive ->
-            70
+            Percentage 70
 
         Dead ->
-            40
+            Percentage 40
 
 
 cellColorClass : Cell -> Coordinate -> Theme -> ClassName

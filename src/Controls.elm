@@ -29,8 +29,9 @@ type Speed
 
 
 type ImportField
-    = Open UserInput
-    | Closed
+    = Closed
+    | Open
+    | Invalid UserInput
 
 
 type alias UserInput =
@@ -103,28 +104,41 @@ viewThemeButton clickMsg =
 viewImportButton : ImportField -> msg -> msg -> Html msg
 viewImportButton importField openMsg cancelMsg =
     case importField of
-        Open _ ->
-            viewButton "Cancel" "Cancel import" cancelMsg []
-
         Closed ->
             viewButton "Import" "Import pattern" openMsg []
+
+        Open ->
+            viewButton "Cancel" "Cancel import" cancelMsg []
+
+        Invalid _ ->
+            viewButton "Cancel" "Cancel import" cancelMsg []
 
 
 viewImportField : ImportField -> (UserInput -> msg) -> Html msg
 viewImportField importField changeMsg =
     case importField of
-        Open text ->
+        Closed ->
+            text ""
+
+        Open ->
             textarea
                 [ autofocus True
                 , placeholder "Paste a 'Life 1.06' pattern here..."
                 , class "import-field"
-                , value text
+                , value ""
                 , onInput changeMsg
                 ]
                 []
 
-        Closed ->
-            text ""
+        Invalid userInput ->
+            textarea
+                [ autofocus True
+                , placeholder "Paste a 'Life 1.06' pattern here..."
+                , class "import-field invalid"
+                , value userInput
+                , onInput changeMsg
+                ]
+                []
 
 
 viewBackButton : Status -> msg -> Html msg

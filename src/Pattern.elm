@@ -39,6 +39,7 @@ parseLife106Format text =
         |> stripOptionalHeader
         |> List.map parseCoordinate
         |> Maybe.combine
+        |> Maybe.filter (\coordinates -> List.length coordinates > 0)
         |> Maybe.map Pattern
 
 

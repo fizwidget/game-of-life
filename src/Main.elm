@@ -156,18 +156,18 @@ update msg model =
                 |> withoutCmd
 
         ImportFieldOpen ->
-            { model | importField = Empty }
+            { model | importField = Open "" }
                 |> withoutCmd
 
         ImportFieldChange userInput ->
             case Pattern.parseLife106Format userInput of
-                Err _ ->
-                    { model | importField = Invalid userInput }
-                        |> withoutCmd
-
                 Ok parsedPattern ->
                     { model | importField = Closed, zoom = Far }
                         |> displayPattern WithPadding parsedPattern
+                        |> withoutCmd
+
+                Err _ ->
+                    { model | importField = Open userInput }
                         |> withoutCmd
 
         ImportFieldCancel ->

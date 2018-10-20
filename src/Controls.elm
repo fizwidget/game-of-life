@@ -30,8 +30,7 @@ type Speed
 
 type ImportField
     = Closed
-    | Empty
-    | Invalid UserInput
+    | Open UserInput
 
 
 type alias UserInput =
@@ -86,6 +85,21 @@ viewStatusButton status clickMsg =
             viewButton "Stop" "Stop simulation (P)" clickMsg []
 
 
+viewBackButton : Status -> msg -> Html msg
+viewBackButton status clickMsg =
+    viewButton "⇦" "Back (←)" clickMsg []
+
+
+viewForwardButton : Status -> msg -> Html msg
+viewForwardButton status clickMsg =
+    viewButton "⇨" "Forward (→)" clickMsg []
+
+
+viewRandomizeButton : msg -> Html msg
+viewRandomizeButton clickMsg =
+    viewButton "🎲" "Randomize (R)" clickMsg []
+
+
 viewSpeedButton : msg -> Html msg
 viewSpeedButton clickMsg =
     viewButton "🏃\u{200D}♀️" "Speed (S)" clickMsg []
@@ -107,10 +121,7 @@ viewImportButton importField openMsg cancelMsg =
         Closed ->
             viewButton "Import" "Import pattern" openMsg []
 
-        Empty ->
-            viewButton "Cancel" "Cancel import" cancelMsg []
-
-        Invalid _ ->
+        Open _ ->
             viewButton "Cancel" "Cancel import" cancelMsg []
 
 
@@ -120,38 +131,18 @@ viewImportField importField changeMsg =
         Closed ->
             text ""
 
-        Empty ->
-            viewImportFieldTextArea "" changeMsg False
-
-        Invalid userInput ->
-            viewImportFieldTextArea userInput changeMsg True
-
-
-viewImportFieldTextArea : UserInput -> (UserInput -> msg) -> Bool -> Html msg
-viewImportFieldTextArea userInput changeMsg isInvalid =
-    textarea
-        [ autofocus True
-        , placeholder "Paste a 'Life 1.06' pattern here..."
-        , classList [ ( "import-field", True ), ( "invalid", isInvalid ) ]
-        , value userInput
-        , onInput changeMsg
-        ]
-        []
-
-
-viewBackButton : Status -> msg -> Html msg
-viewBackButton status clickMsg =
-    viewButton "⇦" "Back (←)" clickMsg []
-
-
-viewForwardButton : Status -> msg -> Html msg
-viewForwardButton status clickMsg =
-    viewButton "⇨" "Forward (→)" clickMsg []
-
-
-viewRandomizeButton : msg -> Html msg
-viewRandomizeButton clickMsg =
-    viewButton "🎲" "Randomize (R)" clickMsg []
+        Open userInput ->
+            textarea
+                [ autofocus True
+                , placeholder "Paste a 'Life 1.06' pattern here..."
+                , classList
+                    [ ( "import-field", True )
+                    , ( "invalid", (not << String.isEmpty) userInput )
+                    ]
+                , value userInput
+                , onInput changeMsg
+                ]
+                []
 
 
 viewButton : String -> String -> msg -> List (Attribute msg) -> Html msg

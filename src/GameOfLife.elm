@@ -58,8 +58,8 @@ begin dimensions =
         |> GameOfLife
 
 
-beginWithPattern : Dimensions -> Padding -> Pattern -> GameOfLife
-beginWithPattern minDimensions padding pattern =
+beginWithPattern : Int -> Padding -> Pattern -> GameOfLife
+beginWithPattern minSize padding pattern =
     let
         paddingCells =
             case padding of
@@ -69,22 +69,26 @@ beginWithPattern minDimensions padding pattern =
                 WithoutPadding ->
                     0
 
-        width =
-            max (Pattern.width pattern + paddingCells) minDimensions.width
+        size =
+            max (Pattern.width pattern) (Pattern.height pattern)
+                |> (+) paddingCells
+                |> max minSize
 
-        height =
-            max (Pattern.height pattern + paddingCells) minDimensions.height
+        dimensions =
+            { width = size
+            , height = size
+            }
 
         center =
-            { x = width // 2
-            , y = height // 2
+            { x = size // 2
+            , y = size // 2
             }
 
         centeredPattern =
             Pattern.centerAt center pattern
 
         deadCells =
-            Matrix.create { width = width, height = height } Dead
+            Matrix.create dimensions Dead
     in
     GameOfLife (bringPatternToLife deadCells centeredPattern)
 

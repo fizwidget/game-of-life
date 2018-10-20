@@ -51,7 +51,7 @@ init =
 initialModel : Model
 initialModel =
     { status = Paused
-    , game = History.begin (GameOfLife.begin defaultGameSize)
+    , game = History.begin (GameOfLife.begin defaultGameDimensions)
     , mouse = Up
     , speed = Slow
     , zoom = Far
@@ -60,10 +60,15 @@ initialModel =
     }
 
 
-defaultGameSize : Dimensions
+defaultGameSize : Int
 defaultGameSize =
-    { width = 20
-    , height = 20
+    20
+
+
+defaultGameDimensions : Dimensions
+defaultGameDimensions =
+    { width = defaultGameSize
+    , height = defaultGameSize
     }
 
 
@@ -151,18 +156,18 @@ update msg model =
                 |> withoutCmd
 
         ImportFieldOpen ->
-            { model | importField = Open }
+            { model | importField = Empty }
                 |> withoutCmd
 
         ImportFieldChange userInput ->
             case Pattern.parseLife106Format userInput of
-                Nothing ->
+                Err _ ->
                     { model | importField = Invalid userInput }
                         |> withoutCmd
 
-                Just importedPattern ->
+                Ok parsedPattern ->
                     { model | importField = Closed, zoom = Far }
-                        |> displayPattern WithPadding importedPattern
+                        |> displayPattern WithPadding parsedPattern
                         |> withoutCmd
 
         ImportFieldCancel ->
@@ -244,7 +249,7 @@ ifGameFinished updateModel model =
 
 requestRandomPattern : Cmd Msg
 requestRandomPattern =
-    Pattern.generator defaultGameSize
+    Pattern.generator defaultGameDimensions
         |> Random.generate RandomPatternResponse
 
 

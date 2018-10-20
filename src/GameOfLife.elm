@@ -2,8 +2,8 @@ module GameOfLife exposing
     ( Cell(..)
     , Events
     , GameOfLife
-    , GameSize(..)
     , Padding(..)
+    , Size(..)
     , Theme(..)
     , Zoom(..)
     , begin
@@ -17,7 +17,7 @@ module GameOfLife exposing
 import Html exposing (Attribute, Html, div)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onMouseDown, onMouseEnter, onMouseUp)
-import Matrix exposing (Coordinate, Matrix)
+import Matrix exposing (Coordinate, Dimensions, Matrix)
 import Pattern exposing (Pattern)
 
 
@@ -38,8 +38,8 @@ type GameOfLife
     = GameOfLife Cells
 
 
-type GameSize
-    = GameSize Int
+type Size
+    = Size Int
 
 
 type Padding
@@ -51,8 +51,8 @@ type Padding
 -- CREATION
 
 
-begin : GameSize -> GameOfLife
-begin (GameSize size) =
+begin : Size -> GameOfLife
+begin (Size size) =
     let
         dimensions =
             { width = size
@@ -63,39 +63,46 @@ begin (GameSize size) =
         |> GameOfLife
 
 
-beginWithPattern : GameSize -> Padding -> Pattern -> GameOfLife
-beginWithPattern (GameSize minimumSize) padding pattern =
+beginWithPattern : Size -> Padding -> Pattern -> GameOfLife
+beginWithPattern minimumSize padding pattern =
     let
-        paddingCells =
+        (Size actualSize) =
+            calculateSize pattern padding minimumSize
+
+        center =
+            { x = actualSize // 2
+            , y = actualSize // 2
+            }
+
+        centeredPattern =
+            Pattern.centerAt center pattern
+
+        dimensions =
+            { width = actualSize
+            , height = actualSize
+            }
+
+        deadCells =
+            Matrix.create dimensions Dead
+    in
+    GameOfLife (bringPatternToLife deadCells centeredPattern)
+
+
+calculateSize : Pattern -> Padding -> Size -> Size
+calculateSize pattern padding (Size minimumSize) =
+    let
+        paddingAmount =
             case padding of
                 WithPadding ->
                     6
 
                 WithoutPadding ->
                     0
-
-        size =
-            max (Pattern.width pattern) (Pattern.height pattern)
-                |> (+) paddingCells
-                |> max minimumSize
-
-        dimensions =
-            { width = size
-            , height = size
-            }
-
-        center =
-            { x = size // 2
-            , y = size // 2
-            }
-
-        centeredPattern =
-            Pattern.centerAt center pattern
-
-        deadCells =
-            Matrix.create dimensions Dead
     in
-    GameOfLife (bringPatternToLife deadCells centeredPattern)
+    max (Pattern.width pattern) (Pattern.height pattern)
+        |> (+) paddingAmount
+        |> max minimumSize
+        |> Size
 
 
 bringPatternToLife : Cells -> Pattern -> Cells
@@ -104,10 +111,10 @@ bringPatternToLife cells pattern =
         makeAlive =
             Matrix.set Alive
 
-        patternCoordinates =
+        coordinates =
             Pattern.toCoordinates pattern
     in
-    List.foldl makeAlive cells patternCoordinates
+    List.foldl makeAlive cells coordinates
 
 
 
@@ -145,17 +152,18 @@ countLiveNeighbours cells coordinate =
 
 toggleCell : Coordinate -> GameOfLife -> GameOfLife
 toggleCell coordinate (GameOfLife cells) =
-    let
-        toggle cell =
-            case cell of
-                Alive ->
-                    Dead
-
-                Dead ->
-                    Alive
-    in
-    Matrix.update toggle coordinate cells
+    Matrix.update toggleHelper coordinate cells
         |> GameOfLife
+
+
+toggleHelper : Cell -> Cell
+toggleHelper cell =
+    case cell of
+        Alive ->
+            Dead
+
+        Dead ->
+            Alive
 
 
 isFinished : GameOfLife -> Bool
@@ -165,14 +173,6 @@ isFinished (GameOfLife cells) =
 
 
 -- VIEW
-
-
-type Percentage
-    = Percentage Float
-
-
-type ClassName
-    = ClassName String
 
 
 type Zoom
@@ -186,6 +186,14 @@ type Theme
     | Dark
 
 
+type Percentage
+    = Percentage Float
+
+
+type ClassName
+    = ClassName String
+
+
 type alias Events msg =
     { onMouseOver : Coordinate -> msg
     , onMouseDown : Coordinate -> msg
@@ -197,91 +205,88 @@ view : GameOfLife -> Zoom -> Theme -> Events msg -> Html msg
 view game zoom theme events =
     div
         [ class "square-container" ]
-        [ viewCells game zoom theme events ]
+        [ viewGame game zoom theme events ]
 
 
-viewCells : GameOfLife -> Zoom -> Theme -> Events msg -> Html msg
-viewCells (GameOfLife cells) zoom theme events =
+viewGame : GameOfLife -> Zoom -> Theme -> Events msg -> Html msg
+viewGame (GameOfLife cells) zoom theme events =
     let
-        attributes =
-            [ class "cells" ] ++ zoomStyles zoom
+        gameSize =
+            calculateGameSize zoom
 
-        size =
-            outerCellSize cells
+        coordinateSize =
+            calculateCoordinateSize cells
     in
     div
-        attributes
+        [ class "cells"
+        , style "width" (percentStyleValue gameSize)
+        , style "height" (percentStyleValue gameSize)
+        ]
         (cells
-            |> Matrix.coordinateMap (viewCell size theme events)
+            |> Matrix.coordinateMap (viewCoordinate coordinateSize theme events)
             |> Matrix.toList
         )
 
 
-zoomStyles : Zoom -> List (Attribute msg)
-zoomStyles zoom =
-    let
-        percentage =
-            case zoom of
-                Far ->
-                    Percentage 100
-
-                Normal ->
-                    Percentage 150
-
-                Close ->
-                    Percentage 200
-    in
-    [ style "width" (percentString percentage)
-    , style "height" (percentString percentage)
-    ]
-
-
-viewCell : Percentage -> Theme -> Events msg -> Coordinate -> Cell -> Html msg
-viewCell relativeSize theme events coordinate cell =
+viewCoordinate : Percentage -> Theme -> Events msg -> Coordinate -> Cell -> Html msg
+viewCoordinate relativeSize theme events coordinate cell =
     div
-        [ class "cell"
-        , style "width" (percentString relativeSize)
-        , style "height" (percentString relativeSize)
+        [ class "coordinate"
+        , style "width" (percentStyleValue relativeSize)
+        , style "height" (percentStyleValue relativeSize)
         , onMouseDown (events.onMouseDown coordinate)
         , onMouseUp events.onMouseUp
         , onMouseEnter (events.onMouseOver coordinate)
         ]
-        [ viewInnerCell cell coordinate theme ]
+        [ viewCell cell coordinate theme ]
 
 
-viewInnerCell : Cell -> Coordinate -> Theme -> Html msg
-viewInnerCell cell coordinate theme =
+viewCell : Cell -> Coordinate -> Theme -> Html msg
+viewCell cell coordinate theme =
     let
         size =
-            innerCellSize cell
+            calculateCellSize cell
 
         (ClassName colorClass) =
             cellColorClass cell coordinate theme
     in
     div
-        [ class "inner-cell"
+        [ class "cell"
         , class colorClass
-        , style "width" (percentString size)
-        , style "height" (percentString size)
+        , style "width" (percentStyleValue size)
+        , style "height" (percentStyleValue size)
         ]
         []
 
 
-percentString : Percentage -> String
-percentString (Percentage percentage) =
+percentStyleValue : Percentage -> String
+percentStyleValue (Percentage percentage) =
     String.fromFloat percentage ++ "%"
 
 
-outerCellSize : Cells -> Percentage
-outerCellSize cells =
+calculateCoordinateSize : Cells -> Percentage
+calculateCoordinateSize cells =
     Matrix.width cells
         |> toFloat
         |> (\width -> 100 / width)
         |> Percentage
 
 
-innerCellSize : Cell -> Percentage
-innerCellSize cell =
+calculateGameSize : Zoom -> Percentage
+calculateGameSize zoom =
+    case zoom of
+        Far ->
+            Percentage 100
+
+        Normal ->
+            Percentage 150
+
+        Close ->
+            Percentage 200
+
+
+calculateCellSize : Cell -> Percentage
+calculateCellSize cell =
     case cell of
         Alive ->
             Percentage 70

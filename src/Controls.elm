@@ -137,7 +137,7 @@ viewImportField importField changeMsg =
                 , placeholder "Paste a 'Life 1.06' pattern here..."
                 , classList
                     [ ( "import-field", True )
-                    , ( "invalid", (not << String.isEmpty) userInput )
+                    , ( "invalid", not <| String.isEmpty userInput )
                     ]
                 , value userInput
                 , onInput changeMsg
@@ -146,12 +146,12 @@ viewImportField importField changeMsg =
 
 
 viewButton : String -> String -> msg -> List (Attribute msg) -> Html msg
-viewButton description tooltip clickMsg customAttributes =
+viewButton description tooltip clickMsg extraAttributes =
     let
-        attributes =
-            [ class "button", title tooltip, onClick clickMsg ] ++ customAttributes
+        allAttributes =
+            [ class "button", title tooltip, onClick clickMsg ] ++ extraAttributes
     in
-    button attributes [ text description ]
+    button allAttributes [ text description ]
 
 
 

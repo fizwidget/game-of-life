@@ -3,7 +3,7 @@ module Main exposing (main)
 import Browser exposing (Document)
 import Browser.Events as Events
 import Controls exposing (ImportField(..), Speed(..), Status(..), UserInput)
-import GameOfLife exposing (GameOfLife, GameSize(..), Padding(..), Theme(..), Zoom(..))
+import GameOfLife exposing (GameOfLife, Padding(..), Size(..), Theme(..), Zoom(..))
 import History exposing (History)
 import Html exposing (Html, div, node, text)
 import Html.Attributes exposing (class, style)
@@ -60,9 +60,9 @@ initialModel =
     }
 
 
-defaultGameSize : GameSize
+defaultGameSize : Size
 defaultGameSize =
-    GameSize 20
+    Size 20
 
 
 
@@ -73,10 +73,6 @@ type Msg
     = ClockTick
     | StepBack
     | StepForward
-    | ChangeStatus
-    | ChangeSpeed
-    | ChangeZoom
-    | ChangeTheme
     | MouseDown Coordinate
     | MouseOver Coordinate
     | MouseUp
@@ -85,6 +81,10 @@ type Msg
     | ImportFieldCancel
     | RandomPatternRequest
     | RandomPatternResponse Pattern
+    | ChangeStatus
+    | ChangeSpeed
+    | ChangeZoom
+    | ChangeTheme
     | NoOp
 
 
@@ -112,22 +112,6 @@ update msg model =
             tryRedoStep model
                 |> Maybe.withDefault (stepGame model)
                 |> pauseGame
-                |> withoutCmd
-
-        ChangeStatus ->
-            { model | status = nextStatus model.status }
-                |> withoutCmd
-
-        ChangeSpeed ->
-            { model | speed = nextSpeed model.speed }
-                |> withoutCmd
-
-        ChangeZoom ->
-            { model | zoom = nextZoom model.zoom }
-                |> withoutCmd
-
-        ChangeTheme ->
-            { model | theme = nextTheme model.theme }
                 |> withoutCmd
 
         MouseDown coordinate ->
@@ -172,6 +156,22 @@ update msg model =
 
         RandomPatternResponse randomPattern ->
             displayPattern WithoutPadding randomPattern model
+                |> withoutCmd
+
+        ChangeStatus ->
+            { model | status = nextStatus model.status }
+                |> withoutCmd
+
+        ChangeSpeed ->
+            { model | speed = nextSpeed model.speed }
+                |> withoutCmd
+
+        ChangeZoom ->
+            { model | zoom = nextZoom model.zoom }
+                |> withoutCmd
+
+        ChangeTheme ->
+            { model | theme = nextTheme model.theme }
                 |> withoutCmd
 
         NoOp ->
@@ -240,8 +240,8 @@ ifGameFinished updateModel model =
         model
 
 
-requestRandomPattern : GameSize -> Cmd Msg
-requestRandomPattern (GameSize size) =
+requestRandomPattern : Size -> Cmd Msg
+requestRandomPattern (Size size) =
     Pattern.generator { width = size, height = size }
         |> Random.generate RandomPatternResponse
 

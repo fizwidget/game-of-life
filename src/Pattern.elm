@@ -36,7 +36,11 @@ type ParseError
     = ParseError String
 
 
-parseLife106Format : String -> Result ParseError Pattern
+type alias PatternResult =
+    Result ParseError Pattern
+
+
+parseLife106Format : String -> PatternResult
 parseLife106Format text =
     String.lines text
         |> List.map String.trim

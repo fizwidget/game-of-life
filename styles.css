@@ -22,13 +22,13 @@ body {
     position: absolute;
 }
 
-.cell {
+.coordinate {
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.inner-cell {
+.cell {
     border-radius: 30%;
     transition: background-color 0.2s ease-in-out,
                 width 0.2s,

@@ -3,7 +3,7 @@ module Main exposing (main)
 import Browser exposing (Document)
 import Browser.Events as Events
 import Controls exposing (ImportField(..), Speed(..), Status(..), UserInput)
-import GameOfLife exposing (GameOfLife, Padding(..), Theme(..), Zoom(..))
+import GameOfLife exposing (GameOfLife, GameSize(..), Padding(..), Theme(..), Zoom(..))
 import History exposing (History)
 import Html exposing (Html, div, node, text)
 import Html.Attributes exposing (class, style)
@@ -51,7 +51,7 @@ init =
 initialModel : Model
 initialModel =
     { status = Paused
-    , game = History.begin (GameOfLife.begin defaultGameDimensions)
+    , game = History.begin (GameOfLife.begin defaultGameSize)
     , mouse = Up
     , speed = Slow
     , zoom = Far
@@ -60,16 +60,9 @@ initialModel =
     }
 
 
-defaultGameSize : Int
+defaultGameSize : GameSize
 defaultGameSize =
-    20
-
-
-defaultGameDimensions : Dimensions
-defaultGameDimensions =
-    { width = defaultGameSize
-    , height = defaultGameSize
-    }
+    GameSize 20
 
 
 
@@ -175,7 +168,7 @@ update msg model =
                 |> withoutCmd
 
         RandomPatternRequest ->
-            ( model, requestRandomPattern )
+            ( model, requestRandomPattern defaultGameSize )
 
         RandomPatternResponse randomPattern ->
             displayPattern WithoutPadding randomPattern model
@@ -247,9 +240,9 @@ ifGameFinished updateModel model =
         model
 
 
-requestRandomPattern : Cmd Msg
-requestRandomPattern =
-    Pattern.generator defaultGameDimensions
+requestRandomPattern : GameSize -> Cmd Msg
+requestRandomPattern (GameSize size) =
+    Pattern.generator { width = size, height = size }
         |> Random.generate RandomPatternResponse
 
 

@@ -2,6 +2,7 @@ module GameOfLife exposing
     ( Cell(..)
     , Events
     , GameOfLife
+    , GameSize(..)
     , Padding(..)
     , Theme(..)
     , Zoom(..)
@@ -37,10 +38,8 @@ type GameOfLife
     = GameOfLife Cells
 
 
-type alias Dimensions =
-    { width : Int
-    , height : Int
-    }
+type GameSize
+    = GameSize Int
 
 
 type Padding
@@ -52,14 +51,20 @@ type Padding
 -- CREATION
 
 
-begin : Dimensions -> GameOfLife
-begin dimensions =
+begin : GameSize -> GameOfLife
+begin (GameSize size) =
+    let
+        dimensions =
+            { width = size
+            , height = size
+            }
+    in
     Matrix.create dimensions Dead
         |> GameOfLife
 
 
-beginWithPattern : Int -> Padding -> Pattern -> GameOfLife
-beginWithPattern minSize padding pattern =
+beginWithPattern : GameSize -> Padding -> Pattern -> GameOfLife
+beginWithPattern (GameSize minimumSize) padding pattern =
     let
         paddingCells =
             case padding of
@@ -72,7 +77,7 @@ beginWithPattern minSize padding pattern =
         size =
             max (Pattern.width pattern) (Pattern.height pattern)
                 |> (+) paddingCells
-                |> max minSize
+                |> max minimumSize
 
         dimensions =
             { width = size

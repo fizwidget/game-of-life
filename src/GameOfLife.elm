@@ -152,12 +152,12 @@ countLiveNeighbours cells coordinate =
 
 toggleCell : Coordinate -> GameOfLife -> GameOfLife
 toggleCell coordinate (GameOfLife cells) =
-    Matrix.update toggleHelper coordinate cells
+    Matrix.update toggleCellHelper coordinate cells
         |> GameOfLife
 
 
-toggleHelper : Cell -> Cell
-toggleHelper cell =
+toggleCellHelper : Cell -> Cell
+toggleCellHelper cell =
     case cell of
         Alive ->
             Dead

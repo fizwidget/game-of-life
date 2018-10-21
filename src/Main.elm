@@ -37,30 +37,32 @@ type alias Model =
 -- INIT
 
 
-init : ( Model, Cmd Msg )
-init =
-    withoutCmd initialModel
-
-
-initialModel : Model
-initialModel =
-    { status = Paused
-    , game = History.begin (GameOfLife.begin defaultGameSize)
-    , mouse = Up
-    , speed = Slow
-    , zoom = Far
-    , theme = Dark
-    , importField = Closed
-    }
-
-
 defaultGameSize : Size
 defaultGameSize =
     Size 20
 
 
+init : ( Model, Cmd Msg )
+init =
+    withoutCmd
+        { game = History.begin (GameOfLife.begin defaultGameSize)
+        , status = Paused
+        , mouse = Up
+        , speed = Slow
+        , zoom = Far
+        , theme = Dark
+        , importField = Closed
+        }
+
+
 
 -- UPDATE
+
+
+type alias Coordinate =
+    { x : Int
+    , y : Int
+    }
 
 
 type Msg
@@ -80,12 +82,6 @@ type Msg
     | ChangeZoom
     | ChangeTheme
     | NoOp
-
-
-type alias Coordinate =
-    { x : Int
-    , y : Int
-    }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -172,10 +168,6 @@ update msg model =
             withoutCmd model
 
 
-
--- UPDATE HELPERS
-
-
 withoutCmd : Model -> ( Model, Cmd msg )
 withoutCmd model =
     ( model, Cmd.none )
@@ -184,16 +176,6 @@ withoutCmd model =
 pauseGame : Model -> Model
 pauseGame model =
     { model | status = Paused }
-
-
-displayPattern : Padding -> Pattern -> Model -> Model
-displayPattern padding pattern model =
-    let
-        newGame =
-            GameOfLife.beginWithPattern defaultGameSize padding pattern
-    in
-    History.record (always newGame) model.game
-        |> setGame model
 
 
 toggleCell : Coordinate -> Model -> Model
@@ -220,9 +202,20 @@ tryRedoStep model =
         |> Maybe.map (setGame model)
 
 
-setGame : Model -> History GameOfLife -> Model
-setGame model game =
-    { model | game = game }
+displayPattern : Padding -> Pattern -> Model -> Model
+displayPattern padding pattern model =
+    let
+        newGame =
+            GameOfLife.beginWithPattern defaultGameSize padding pattern
+    in
+    History.record (always newGame) model.game
+        |> setGame model
+
+
+requestRandomPattern : Size -> Cmd Msg
+requestRandomPattern (Size size) =
+    Pattern.generator { width = size, height = size }
+        |> Random.generate RandomPatternResponse
 
 
 ifGameFinished : (Model -> Model) -> Model -> Model
@@ -234,10 +227,9 @@ ifGameFinished updateModel model =
         model
 
 
-requestRandomPattern : Size -> Cmd Msg
-requestRandomPattern (Size size) =
-    Pattern.generator { width = size, height = size }
-        |> Random.generate RandomPatternResponse
+setGame : Model -> History GameOfLife -> Model
+setGame model game =
+    { model | game = game }
 
 
 nextSpeed : Speed -> Speed
@@ -304,22 +296,18 @@ document model =
 bodyStyles : Theme -> Html msg
 bodyStyles theme =
     let
+        backgroundColor =
+            case theme of
+                Light ->
+                    "white"
+
+                Dark ->
+                    "rgb(15, 15, 15)"
+
         backgroundColorStyle =
-            "body { background-color: " ++ backgroundColor theme ++ "; }"
+            "body { background-color: " ++ backgroundColor ++ "; }"
     in
-    node "style"
-        []
-        [ text backgroundColorStyle ]
-
-
-backgroundColor : Theme -> String
-backgroundColor theme =
-    case theme of
-        Light ->
-            "white"
-
-        Dark ->
-            "rgb(15, 15, 15)"
+    node "style" [] [ text backgroundColorStyle ]
 
 
 viewGame : Model -> Html Msg

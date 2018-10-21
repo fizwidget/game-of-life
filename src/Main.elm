@@ -284,7 +284,7 @@ nextStatus status =
 
 document : Model -> Document Msg
 document model =
-    { title = "Game of Life!!!##"
+    { title = "Game of Life@" x
     , body =
         [ bodyStyles model.theme
         , viewGame model

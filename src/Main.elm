@@ -45,7 +45,7 @@ defaultGameSize =
 init : ( Model, Cmd Msg )
 init =
     withoutCmd
-        { game = History.begin (GameOfLife.begin defaultGameSize)
+        { game = GameOfLife.begin defaultGameSize |> History.begin
         , status = Paused
         , mouse = Up
         , speed = Slow

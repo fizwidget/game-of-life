@@ -12,6 +12,7 @@ echo
 
 echo "- Installing dependencies..."
 yarn install
+echo
 
 echo "- Building..."
 yarn build --optimize

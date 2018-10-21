@@ -38,13 +38,13 @@ type alias UserInput =
 
 
 type alias Events msg =
-    { onStepBack : msg
+    { onStatusChange : msg
+    , onStepBack : msg
     , onStepForward : msg
-    , onStatusChange : msg
     , onSpeedChange : msg
     , onZoomChange : msg
-    , onThemeChange : msg
     , onRandomize : msg
+    , onThemeChange : msg
     , onImportFieldOpen : msg
     , onImportFieldChange : UserInput -> msg
     , onImportFieldCancel : msg
@@ -63,9 +63,9 @@ view status importField events =
             [ viewStatusButton status events.onStatusChange
             , viewBackButton status events.onStepBack
             , viewForwardButton status events.onStepForward
-            , viewRandomizeButton events.onRandomize
             , viewSpeedButton events.onSpeedChange
             , viewZoomButton events.onZoomChange
+            , viewRandomizeButton events.onRandomize
             , viewThemeButton events.onThemeChange
             , viewImportButton importField
                 events.onImportFieldOpen
@@ -95,11 +95,6 @@ viewForwardButton status clickMsg =
     viewButton "⇨" "Forward (→)" clickMsg []
 
 
-viewRandomizeButton : msg -> Html msg
-viewRandomizeButton clickMsg =
-    viewButton "🎲" "Randomize (R)" clickMsg []
-
-
 viewSpeedButton : msg -> Html msg
 viewSpeedButton clickMsg =
     viewButton "🏃\u{200D}♀️" "Speed (S)" clickMsg []
@@ -108,6 +103,11 @@ viewSpeedButton clickMsg =
 viewZoomButton : msg -> Html msg
 viewZoomButton clickMsg =
     viewButton "🔬" "Zoom (Z)" clickMsg []
+
+
+viewRandomizeButton : msg -> Html msg
+viewRandomizeButton clickMsg =
+    viewButton "🎲" "Randomize (R)" clickMsg []
 
 
 viewThemeButton : msg -> Html msg

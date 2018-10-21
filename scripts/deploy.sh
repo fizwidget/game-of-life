@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 echo "- Checking out deployment branch..."
 git checkout gh-pages
 echo

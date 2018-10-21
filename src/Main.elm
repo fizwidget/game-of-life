@@ -178,15 +178,15 @@ pauseGame model =
     { model | status = Paused }
 
 
-toggleCell : Coordinate -> Model -> Model
-toggleCell coordinate model =
-    History.record (GameOfLife.toggleCell coordinate) model.game
-        |> setGame model
-
-
 stepGame : Model -> Model
 stepGame model =
     History.record GameOfLife.step model.game
+        |> setGame model
+
+
+toggleCell : Coordinate -> Model -> Model
+toggleCell coordinate model =
+    History.record (GameOfLife.toggleCell coordinate) model.game
         |> setGame model
 
 
@@ -205,10 +205,10 @@ tryRedoStep model =
 displayPattern : Padding -> Pattern -> Model -> Model
 displayPattern padding pattern model =
     let
-        newGame =
+        gameWithPattern =
             GameOfLife.beginWithPattern defaultGameSize padding pattern
     in
-    History.record (always newGame) model.game
+    History.record (always gameWithPattern) model.game
         |> setGame model
 
 

@@ -22,12 +22,6 @@ type Mouse
     | Down
 
 
-type alias Dimensions =
-    { width : Int
-    , height : Int
-    }
-
-
 type alias Model =
     { game : History GameOfLife
     , status : Status

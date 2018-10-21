@@ -1,9 +1,23 @@
 # Game of Life
 
-Conway's Game of Life implemented in Elm. Allows travelling forwards and backwards in time.
+Conway's Game of Life, implemented according to the [The Elm Architecture](https://guide.elm-lang.org/architecture/).
 
 [Have a play with it here!](https://fizwidget.github.io/game-of-life/index.html)  (｡◕‿◕｡)
 
-## TODOs
+## Features
 
-* Support other pattern formats.
+* Generate random patterns.
+* Import pattern files.
+  * The [Life 1.06 file format](http://www.conwaylife.com/w/index.php?title=Life_1.06) is supported.
+  * Many patterns are available on [LifeWiki](http://conwaylife.com/w/index.php?title=Main_Page).
+  * Example: [Twin Bees Shuttle](http://conwaylife.com/wiki/Twin_bees_shuttle).
+* Undo/redo (i.e. move backwards/forwards in the simulation one step at a time).
+* Adjustable simulation speed.
+* Adjustable zoom level.
+* Light & dark themes.
+
+
+## Upcoming features
+
+* Support for importing other pattern file formats.
+* Improved performance for large patterns.

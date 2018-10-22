@@ -14,15 +14,13 @@ import Time
 
 
 
-{-
-   This module contains "The Elm Architecture" model/view/update logic.
+{- This module contains "The Elm Architecture" model/view/update logic.
    It delegates most behavior to these helper modules:
 
-   - `GameOfLife` module: implements the game logic and renders the cells.
-   - `History` module: tracks changes and allows for undo & redo operations.
-   - `Controls` module: renders the game control buttons and handles keyboard shortcuts.
+   - GameOfLife: implements the game logic and renders the cells.
+   - History: tracks changes and allows for undo & redo operations.
+   - Controls: renders the various buttons and handles keyboard shortcuts.
 -}
--- MODEL
 
 
 type Mouse

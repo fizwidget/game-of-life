@@ -15,9 +15,12 @@ Conway's Game of Life, implemented using the [The Elm Architecture](https://guid
 * Adjustable zoom level.
 * Light & dark themes.
 
-
 ## Upcoming features
 
 * Support for importing other pattern file formats.
 * Improved performance for large patterns.
 * Improved mobile support.
+
+## Development
+
+`yarn install && yarn start`

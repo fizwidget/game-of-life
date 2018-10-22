@@ -14,7 +14,8 @@ import Time
 
 
 
-{- This module contains "The Elm Architecture" model/view/update logic.
+{-
+   This module contains "The Elm Architecture" model/view/update logic.
    It delegates most behavior to these helper modules:
 
    - GameOfLife: implements the game logic and renders the cells.

@@ -14,7 +14,7 @@ body {
     padding-bottom: 100%;
 }
 
-.cells {
+.game-container {
     display: flex; 
     align-items: center;
     justify-content: center;
@@ -33,6 +33,42 @@ body {
     transition: background-color 0.2s ease-in-out,
                 width 0.2s,
                 height 0.2s;
+}
+
+.cell.alive {
+    width: 70%;
+    height: 70%;
+}
+
+
+.cell.dead {
+    width: 40%;
+    height: 40%;
+}
+
+
+.cell.orange {
+    background-color: rgba(255, 171, 0, 0.8);
+}
+
+.cell.green {
+    background-color: rgba(54, 179, 126, 0.8);
+}
+
+.cell.blue {
+    background-color: rgba(0, 184, 217, 0.8);
+}
+
+.cell.purple {
+    background-color: rgba(101, 84, 192, 0.8);
+}
+
+.cell.light-grey {
+    background-color: rgb(244, 245, 247);
+}
+
+.cell.dark-grey {
+    background-color: rgba(30, 30, 30, 0.77);
 }
 
 .button {
@@ -73,29 +109,6 @@ body {
     max-height: 240px;
 }
 
-.orange-cell {
-    background-color: rgba(255, 171, 0, 0.8);
-}
-
-.green-cell {
-    background-color: rgba(54, 179, 126, 0.8);
-}
-
-.blue-cell {
-    background-color: rgba(0, 184, 217, 0.8);
-}
-
-.purple-cell {
-    background-color: rgba(101, 84, 192, 0.8);
-}
-
-.light-grey-cell {
-    background-color: rgb(244, 245, 247);
-}
-
-.dark-grey-cell {
-    background-color: rgba(30, 30, 30, 0.77);
-}
 
 .import-field {
     position: fixed;

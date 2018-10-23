@@ -1,6 +1,6 @@
 module Controls exposing
-    ( Events
-    , ImportField(..)
+    ( ImportField(..)
+    , Msg(..)
     , Speed(..)
     , Status(..)
     , UserInput
@@ -37,96 +37,93 @@ type alias UserInput =
     String
 
 
-type alias Events msg =
-    { onStatusChange : msg
-    , onStepBack : msg
-    , onStepForward : msg
-    , onSpeedChange : msg
-    , onZoomChange : msg
-    , onRandomize : msg
-    , onThemeChange : msg
-    , onImportFieldOpen : msg
-    , onImportFieldChange : UserInput -> msg
-    , onImportFieldCancel : msg
-    , noOp : msg
-    }
+type Msg
+    = StepBack
+    | StepForward
+    | ImportFieldOpen
+    | ImportFieldChange UserInput
+    | ImportFieldCancel
+    | RandomPatternRequest
+    | ChangeStatus
+    | ChangeSpeed
+    | ChangeZoom
+    | ChangeTheme
+    | NoOp
 
 
 
 -- VIEW
 
 
-view : Status -> ImportField -> Events msg -> Html msg
-view status importField events =
+view : Status -> ImportField -> Html Msg
+view status importField =
     div []
         [ div [ class "control-panel" ]
-            [ viewStatusButton status events.onStatusChange
-            , viewBackButton status events.onStepBack
-            , viewForwardButton status events.onStepForward
-            , viewSpeedButton events.onSpeedChange
-            , viewZoomButton events.onZoomChange
-            , viewRandomizeButton events.onRandomize
-            , viewThemeButton events.onThemeChange
+            [ viewStatusButton status
+            , viewBackButton
+            , viewForwardButton
+            , viewSpeedButton
+            , viewZoomButton
+            , viewRandomizeButton
+            , viewThemeButton
             , viewImportButton importField
-                events.onImportFieldOpen
-                events.onImportFieldCancel
             ]
-        , viewImportField importField events.onImportFieldChange
+        , viewImportField importField
         ]
 
 
-viewStatusButton : Status -> msg -> Html msg
-viewStatusButton status clickMsg =
+viewStatusButton : Status -> Html Msg
+viewStatusButton status =
     case status of
         Paused ->
-            viewButton "Start" "Start simulation (P)" clickMsg [ class "play-button" ]
+            viewButton "Start" "Start simulation (P)" ChangeStatus [ class "play-button" ]
 
         Playing ->
-            viewButton "Stop" "Stop simulation (P)" clickMsg []
+            viewButton "Stop" "Stop simulation (P)" ChangeStatus []
 
 
-viewBackButton : Status -> msg -> Html msg
-viewBackButton status clickMsg =
-    viewButton "⇦" "Back (←)" clickMsg []
+viewBackButton : Html Msg
+viewBackButton =
+    viewButton "⇦" "Back (←)" StepBack []
 
 
-viewForwardButton : Status -> msg -> Html msg
-viewForwardButton status clickMsg =
-    viewButton "⇨" "Forward (→)" clickMsg []
+viewForwardButton : Html Msg
+viewForwardButton =
+    viewButton "⇨" "Forward (→)" StepForward []
 
 
-viewSpeedButton : msg -> Html msg
-viewSpeedButton clickMsg =
-    viewButton "🏃\u{200D}♀️" "Speed (S)" clickMsg []
+viewSpeedButton : Html Msg
+viewSpeedButton =
+    viewButton "🏃\u{200D}♀️" "Speed (S)" ChangeSpeed []
 
 
-viewZoomButton : msg -> Html msg
-viewZoomButton clickMsg =
-    viewButton "🔬" "Zoom (Z)" clickMsg []
+viewZoomButton : Html Msg
+viewZoomButton =
+    viewButton "🔬" "Zoom (Z)" ChangeZoom []
 
 
-viewRandomizeButton : msg -> Html msg
-viewRandomizeButton clickMsg =
-    viewButton "🎲" "Randomize (R)" clickMsg []
+viewRandomizeButton : Html Msg
+viewRandomizeButton =
+    viewButton "🎲" "Randomize (R)" RandomPatternRequest []
 
 
-viewThemeButton : msg -> Html msg
-viewThemeButton clickMsg =
-    viewButton "🎨" "Theme (T)" clickMsg []
+viewThemeButton : Html Msg
+viewThemeButton =
+    viewButton "🎨" "Theme (T)" ChangeTheme []
 
 
-viewImportButton : ImportField -> msg -> msg -> Html msg
-viewImportButton importField openMsg cancelMsg =
+viewImportButton : ImportField -> Html Msg
+viewImportButton importField =
     case importField of
         Closed ->
-            viewButton "Import" "Import pattern" openMsg []
+            viewButton "Import" "Import pattern" ImportFieldOpen []
 
         Open _ ->
-            viewButton "Cancel" "Cancel import" cancelMsg []
+            viewButton "Cancel" "Cancel import" ImportFieldCancel []
 
 
-viewImportField : ImportField -> (UserInput -> msg) -> Html msg
-viewImportField importField changeMsg =
+viewImportField : ImportField -> Html Msg
+viewImportField importField =
     case importField of
         Closed ->
             text ""
@@ -140,12 +137,12 @@ viewImportField importField changeMsg =
                     , ( "invalid", not <| String.isEmpty userInput )
                     ]
                 , value userInput
-                , onInput changeMsg
+                , onInput ImportFieldChange
                 ]
                 []
 
 
-viewButton : String -> String -> msg -> List (Attribute msg) -> Html msg
+viewButton : String -> String -> Msg -> List (Attribute Msg) -> Html Msg
 viewButton description tooltip clickMsg extraAttributes =
     let
         allAttributes =
@@ -162,29 +159,29 @@ type alias Key =
     String
 
 
-onKeyDown : Events msg -> Key -> msg
-onKeyDown events key =
+onKeyDown : Key -> Msg
+onKeyDown key =
     case key of
         "ArrowLeft" ->
-            events.onStepBack
+            StepBack
 
         "ArrowRight" ->
-            events.onStepForward
+            StepForward
 
         "p" ->
-            events.onStatusChange
+            ChangeStatus
 
         "s" ->
-            events.onSpeedChange
+            ChangeSpeed
 
         "r" ->
-            events.onRandomize
+            RandomPatternRequest
 
         "z" ->
-            events.onZoomChange
+            ChangeZoom
 
         "t" ->
-            events.onThemeChange
+            ChangeTheme
 
         _ ->
-            events.noOp
+            NoOp

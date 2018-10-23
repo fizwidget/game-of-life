@@ -17,6 +17,7 @@ Conway's Game of Life, implemented using the [The Elm Architecture](https://guid
 
 ## Upcoming features
 
+* Allow custom game sizes.
 * Support for importing other pattern file formats.
 * Improved performance for large patterns.
 * Improved mobile support.

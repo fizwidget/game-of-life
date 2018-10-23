@@ -1,7 +1,7 @@
 module GameOfLife exposing
     ( Cell(..)
-    , Events
     , GameOfLife
+    , Msg(..)
     , Padding(..)
     , Size(..)
     , Theme(..)
@@ -194,22 +194,21 @@ type ClassName
     = ClassName String
 
 
-type alias Events msg =
-    { onMouseOver : Coordinate -> msg
-    , onMouseDown : Coordinate -> msg
-    , onMouseUp : msg
-    }
+type Msg
+    = MouseDown Coordinate
+    | MouseOver Coordinate
+    | MouseUp
 
 
-view : GameOfLife -> Zoom -> Theme -> Events msg -> Html msg
-view game zoom theme events =
+view : GameOfLife -> Zoom -> Theme -> Html Msg
+view game zoom theme =
     div
         [ class "square-container" ]
-        [ viewGame game zoom theme events ]
+        [ viewGame game zoom theme ]
 
 
-viewGame : GameOfLife -> Zoom -> Theme -> Events msg -> Html msg
-viewGame (GameOfLife cells) zoom theme events =
+viewGame : GameOfLife -> Zoom -> Theme -> Html Msg
+viewGame (GameOfLife cells) zoom theme =
     let
         gameSize =
             calculateGameSize zoom
@@ -218,43 +217,42 @@ viewGame (GameOfLife cells) zoom theme events =
             calculateCoordinateSize cells
     in
     div
-        [ class "cells"
+        [ class "game-container"
         , style "width" (percentStyleValue gameSize)
         , style "height" (percentStyleValue gameSize)
         ]
         (cells
-            |> Matrix.coordinateMap (viewCoordinate coordinateSize theme events)
+            |> Matrix.coordinateMap (viewCoordinate coordinateSize theme)
             |> Matrix.toList
         )
 
 
-viewCoordinate : Percentage -> Theme -> Events msg -> Coordinate -> Cell -> Html msg
-viewCoordinate relativeSize theme events coordinate cell =
+viewCoordinate : Percentage -> Theme -> Coordinate -> Cell -> Html Msg
+viewCoordinate relativeSize theme coordinate cell =
     div
         [ class "coordinate"
         , style "width" (percentStyleValue relativeSize)
         , style "height" (percentStyleValue relativeSize)
-        , onMouseDown (events.onMouseDown coordinate)
-        , onMouseUp events.onMouseUp
-        , onMouseEnter (events.onMouseOver coordinate)
+        , onMouseDown (MouseDown coordinate)
+        , onMouseUp MouseUp
+        , onMouseEnter (MouseOver coordinate)
         ]
         [ viewCell cell coordinate theme ]
 
 
-viewCell : Cell -> Coordinate -> Theme -> Html msg
+viewCell : Cell -> Coordinate -> Theme -> Html Msg
 viewCell cell coordinate theme =
     let
-        size =
-            calculateCellSize cell
+        (ClassName zoomClass) =
+            cellStatusClass cell
 
         (ClassName colorClass) =
             cellColorClass cell coordinate theme
     in
     div
         [ class "cell"
+        , class zoomClass
         , class colorClass
-        , style "width" (percentStyleValue size)
-        , style "height" (percentStyleValue size)
         ]
         []
 
@@ -285,14 +283,14 @@ calculateGameSize zoom =
             Percentage 200
 
 
-calculateCellSize : Cell -> Percentage
-calculateCellSize cell =
+cellStatusClass : Cell -> ClassName
+cellStatusClass cell =
     case cell of
         Alive ->
-            Percentage 70
+            ClassName "alive"
 
         Dead ->
-            Percentage 40
+            ClassName "dead"
 
 
 cellColorClass : Cell -> Coordinate -> Theme -> ClassName
@@ -301,21 +299,21 @@ cellColorClass cell { x, y } theme =
         Dead ->
             case theme of
                 Light ->
-                    ClassName "light-grey-cell"
+                    ClassName "light-grey"
 
                 Dark ->
-                    ClassName "dark-grey-cell"
+                    ClassName "dark-grey"
 
         Alive ->
             case ( modBy 2 x == 0, modBy 2 y == 0 ) of
                 ( True, True ) ->
-                    ClassName "orange-cell"
+                    ClassName "orange"
 
                 ( True, False ) ->
-                    ClassName "green-cell"
+                    ClassName "green"
 
                 ( False, True ) ->
-                    ClassName "blue-cell"
+                    ClassName "blue"
 
                 ( False, False ) ->
-                    ClassName "purple-cell"
+                    ClassName "purple"

@@ -210,16 +210,16 @@ view game zoom theme =
 viewGame : GameOfLife -> Zoom -> Theme -> Html Msg
 viewGame (GameOfLife cells) zoom theme =
     let
-        gameSize =
-            calculateGameSize zoom
+        zoomPercentage =
+            calculateZoomPercentage zoom
 
         coordinateSize =
             calculateCoordinateSize cells
     in
     div
         [ class "game-container"
-        , style "width" (percentStyleValue gameSize)
-        , style "height" (percentStyleValue gameSize)
+        , style "width" (percentageStyle zoomPercentage)
+        , style "height" (percentageStyle zoomPercentage)
         ]
         (cells
             |> Matrix.coordinateMap (viewCoordinate coordinateSize theme)
@@ -231,8 +231,8 @@ viewCoordinate : Percentage -> Theme -> Coordinate -> Cell -> Html Msg
 viewCoordinate relativeSize theme coordinate cell =
     div
         [ class "coordinate"
-        , style "width" (percentStyleValue relativeSize)
-        , style "height" (percentStyleValue relativeSize)
+        , style "width" (percentageStyle relativeSize)
+        , style "height" (percentageStyle relativeSize)
         , onMouseDown (MouseDown coordinate)
         , onMouseUp MouseUp
         , onMouseEnter (MouseOver coordinate)
@@ -257,8 +257,8 @@ viewCell cell coordinate theme =
         []
 
 
-percentStyleValue : Percentage -> String
-percentStyleValue (Percentage percentage) =
+percentageStyle : Percentage -> String
+percentageStyle (Percentage percentage) =
     String.fromFloat percentage ++ "%"
 
 
@@ -270,8 +270,8 @@ calculateCoordinateSize cells =
         |> Percentage
 
 
-calculateGameSize : Zoom -> Percentage
-calculateGameSize zoom =
+calculateZoomPercentage : Zoom -> Percentage
+calculateZoomPercentage zoom =
     case zoom of
         Far ->
             Percentage 100

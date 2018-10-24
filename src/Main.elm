@@ -115,19 +115,13 @@ updateGameOfLife gameOfLifeMsg model =
         MouseOver coordinate ->
             case model.mouse of
                 Down ->
-                    ( toggleCell coordinate model
-                    , Cmd.none
-                    )
+                    ( toggleCell coordinate model, Cmd.none )
 
                 Up ->
-                    ( model
-                    , Cmd.none
-                    )
+                    ( model, Cmd.none )
 
         MouseUp ->
-            ( { model | mouse = Up }
-            , Cmd.none
-            )
+            ( { model | mouse = Up }, Cmd.none )
 
 
 updateControls : Controls.Msg -> Model -> ( Model, Cmd Msg )
@@ -193,9 +187,7 @@ updateControls controlsMsg model =
             )
 
         NoOp ->
-            ( model
-            , Cmd.none
-            )
+            ( model, Cmd.none )
 
 
 withoutCmd : Model -> ( Model, Cmd msg )

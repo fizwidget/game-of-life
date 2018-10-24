@@ -144,11 +144,9 @@ viewImportField importField =
 
 viewButton : String -> String -> Msg -> List (Attribute Msg) -> Html Msg
 viewButton description tooltip clickMsg extraAttributes =
-    let
-        allAttributes =
-            [ class "button", title tooltip, onClick clickMsg ] ++ extraAttributes
-    in
-    button allAttributes [ text description ]
+    button
+        ([ class "button", title tooltip, onClick clickMsg ] ++ extraAttributes)
+        [ text description ]
 
 
 

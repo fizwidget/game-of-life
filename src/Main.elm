@@ -1,3 +1,14 @@
+{-
+   This module contains "The Elm Architecture" model/view/update logic.
+   It delegates most behavior to these helper modules:
+
+   - GameOfLife: implements the game logic and renders the cells.
+   - Pattern: allows parsing cell patterns and randomly generating them.
+   - History: tracks changes and allows for undo & redo operations.
+   - Controls: renders the various buttons and handles keyboard shortcuts.
+-}
+
+
 module Main exposing (main)
 
 import Browser exposing (Document)
@@ -14,15 +25,7 @@ import Time
 
 
 
-{-
-   This module contains "The Elm Architecture" model/view/update logic.
-   It delegates most behavior to these helper modules:
-
-   - GameOfLife: implements the game logic and renders the cells.
-   - Pattern: allows parsing cell patterns and randomly generating them.
-   - History: tracks changes and allows for undo & redo operations.
-   - Controls: renders the various buttons and handles keyboard shortcuts.
--}
+-- MODEL
 
 
 type Mouse
@@ -149,12 +152,12 @@ updateControls controlsMsg model =
 
         ImportFieldChange userInput ->
             case Pattern.parseLife106Format userInput of
-                Ok parsedPattern ->
+                Just parsedPattern ->
                     { model | importField = Closed, zoom = Far }
                         |> displayPattern WithPadding parsedPattern
                         |> withoutCmd
 
-                Err _ ->
+                Nothing ->
                     ( { model | importField = Open userInput }
                     , Cmd.none
                     )
@@ -320,6 +323,18 @@ document model =
     }
 
 
+viewGame : Model -> Html Msg
+viewGame { game, zoom, theme } =
+    GameOfLife.view (History.now game) zoom theme
+        |> Html.map GameOfLifeMsg
+
+
+viewControls : Model -> Html Msg
+viewControls { status, importField } =
+    Controls.view status importField
+        |> Html.map ControlsMsg
+
+
 bodyStyles : Theme -> Html msg
 bodyStyles theme =
     let
@@ -335,18 +350,6 @@ bodyStyles theme =
             "body { background-color: " ++ backgroundColor ++ "; }"
     in
     node "style" [] [ text backgroundColorStyle ]
-
-
-viewGame : Model -> Html Msg
-viewGame model =
-    GameOfLife.view (History.now model.game) model.zoom model.theme
-        |> Html.map GameOfLifeMsg
-
-
-viewControls : Model -> Html Msg
-viewControls model =
-    Controls.view model.status model.importField
-        |> Html.map ControlsMsg
 
 
 

@@ -59,27 +59,26 @@ begin (Size size) =
             , height = size
             }
     in
-    Matrix.create dimensions Dead
-        |> GameOfLife
+    GameOfLife (Matrix.create dimensions Dead)
 
 
 beginWithPattern : Size -> Padding -> Pattern -> GameOfLife
 beginWithPattern minimumSize padding pattern =
     let
-        (Size actualSize) =
-            calculateSize pattern padding minimumSize
+        (Size size) =
+            calculateSize minimumSize padding pattern
 
         center =
-            { x = actualSize // 2
-            , y = actualSize // 2
+            { x = size // 2
+            , y = size // 2
             }
 
         centeredPattern =
             Pattern.centerAt center pattern
 
         dimensions =
-            { width = actualSize
-            , height = actualSize
+            { width = size
+            , height = size
             }
 
         deadCells =
@@ -88,21 +87,22 @@ beginWithPattern minimumSize padding pattern =
     GameOfLife (bringPatternToLife deadCells centeredPattern)
 
 
-calculateSize : Pattern -> Padding -> Size -> Size
-calculateSize pattern padding (Size minimumSize) =
-    let
-        paddingAmount =
-            case padding of
-                WithPadding ->
-                    6
-
-                WithoutPadding ->
-                    0
-    in
-    max (Pattern.width pattern) (Pattern.height pattern)
-        |> (+) paddingAmount
+calculateSize : Size -> Padding -> Pattern -> Size
+calculateSize (Size minimumSize) padding pattern =
+    Pattern.size pattern
+        |> (+) (paddingAmount padding pattern)
         |> max minimumSize
         |> Size
+
+
+paddingAmount : Padding -> Pattern -> Int
+paddingAmount padding pattern =
+    case padding of
+        WithPadding ->
+            Pattern.size pattern // 4
+
+        WithoutPadding ->
+            0
 
 
 bringPatternToLife : Cells -> Pattern -> Cells
@@ -243,7 +243,7 @@ viewCoordinate relativeSize theme coordinate cell =
 viewCell : Cell -> Coordinate -> Theme -> Html Msg
 viewCell cell coordinate theme =
     let
-        (ClassName zoomClass) =
+        (ClassName statusClass) =
             cellStatusClass cell
 
         (ClassName colorClass) =
@@ -251,7 +251,7 @@ viewCell cell coordinate theme =
     in
     div
         [ class "cell"
-        , class zoomClass
+        , class statusClass
         , class colorClass
         ]
         []

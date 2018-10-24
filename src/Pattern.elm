@@ -4,6 +4,7 @@ module Pattern exposing
     , generator
     , height
     , parseLife106Format
+    , size
     , toCoordinates
     , width
     )
@@ -29,18 +30,10 @@ toCoordinates (Pattern coordinates) =
 
 
 
--- PARSER
+-- PARSING
 
 
-type ParseError
-    = ParseError String
-
-
-type alias PatternResult =
-    Result ParseError Pattern
-
-
-parseLife106Format : String -> PatternResult
+parseLife106Format : String -> Maybe Pattern
 parseLife106Format text =
     String.lines text
         |> List.map String.trim
@@ -48,9 +41,8 @@ parseLife106Format text =
         |> stripOptionalHeader
         |> List.map parseCoordinate
         |> Maybe.combine
-        |> Maybe.filter (\coordinates -> List.length coordinates > 0)
+        |> Maybe.filter (not << List.isEmpty)
         |> Maybe.map Pattern
-        |> Result.fromMaybe (ParseError "Error parsing pattern")
 
 
 stripOptionalHeader : List String -> List String
@@ -89,7 +81,7 @@ toCoordinate ( first, second ) =
 
 
 
--- RANDOM GENERATOR
+-- RANDOM GENERATION
 
 
 type alias Dimensions =
@@ -118,6 +110,11 @@ coordinateGenerator boundingBox =
 
 
 -- UTILS
+
+
+size : Pattern -> Int
+size pattern =
+    max (width pattern) (height pattern)
 
 
 width : Pattern -> Int

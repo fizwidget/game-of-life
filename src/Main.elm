@@ -13,12 +13,13 @@ module Main exposing (main)
 
 import Browser exposing (Document)
 import Browser.Events as Events
-import Controls exposing (ImportField(..), Msg(..), Speed(..), Status(..), UserInput)
-import GameOfLife exposing (GameOfLife, Msg(..), Padding(..), Size(..), Theme(..), Zoom(..))
+import Controls exposing (ImportField(..), Speed(..), Status(..), UserInput)
+import GameOfLife exposing (GameOfLife, Padding(..), Size(..), Theme(..), Zoom(..))
 import History exposing (History)
 import Html exposing (Html, div, node, text)
 import Html.Attributes exposing (class, style)
 import Json.Decode as Decode exposing (Decoder)
+import Msg exposing (Msg(..))
 import Pattern exposing (Pattern)
 import Random
 import Time
@@ -77,13 +78,6 @@ type alias Coordinate =
     }
 
 
-type Msg
-    = ClockTick
-    | RandomPatternResponse Pattern
-    | GameOfLifeMsg GameOfLife.Msg
-    | ControlsMsg Controls.Msg
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -92,21 +86,18 @@ update msg model =
                 |> ifGameFinished pauseGame
                 |> withoutCmd
 
-        GameOfLifeMsg gameOfLifeMsg ->
-            updateGameOfLife gameOfLifeMsg model
+        StepBack ->
+            tryUndoStep model
+                |> Maybe.withDefault model
+                |> pauseGame
+                |> withoutCmd
 
-        ControlsMsg controlsMsg ->
-            updateControls controlsMsg model
+        StepForward ->
+            tryRedoStep model
+                |> Maybe.withDefault (stepGame model)
+                |> pauseGame
+                |> withoutCmd
 
-        RandomPatternResponse randomPattern ->
-            ( displayPattern WithoutPadding randomPattern model
-            , Cmd.none
-            )
-
-
-updateGameOfLife : GameOfLife.Msg -> Model -> ( Model, Cmd Msg )
-updateGameOfLife gameOfLifeMsg model =
-    case gameOfLifeMsg of
         MouseDown coordinate ->
             { model | mouse = Down }
                 |> toggleCell coordinate
@@ -123,21 +114,15 @@ updateGameOfLife gameOfLifeMsg model =
         MouseUp ->
             ( { model | mouse = Up }, Cmd.none )
 
+        RandomPatternRequest ->
+            ( model
+            , requestRandomPattern defaultGameSize
+            )
 
-updateControls : Controls.Msg -> Model -> ( Model, Cmd Msg )
-updateControls controlsMsg model =
-    case controlsMsg of
-        StepBack ->
-            tryUndoStep model
-                |> Maybe.withDefault model
-                |> pauseGame
-                |> withoutCmd
-
-        StepForward ->
-            tryRedoStep model
-                |> Maybe.withDefault (stepGame model)
-                |> pauseGame
-                |> withoutCmd
+        RandomPatternResponse randomPattern ->
+            ( displayPattern WithoutPadding randomPattern model
+            , Cmd.none
+            )
 
         ImportFieldOpen ->
             ( { model | importField = Open "" }
@@ -159,11 +144,6 @@ updateControls controlsMsg model =
         ImportFieldCancel ->
             ( { model | importField = Closed }
             , Cmd.none
-            )
-
-        RandomPatternRequest ->
-            ( model
-            , requestRandomPattern defaultGameSize
             )
 
         ChangeStatus ->
@@ -318,13 +298,11 @@ document model =
 viewGame : Model -> Html Msg
 viewGame { game, zoom, theme } =
     GameOfLife.view (History.now game) zoom theme
-        |> Html.map GameOfLifeMsg
 
 
 viewControls : Model -> Html Msg
 viewControls { status, importField } =
     Controls.view status importField
-        |> Html.map ControlsMsg
 
 
 bodyStyles : Theme -> Html msg
@@ -390,7 +368,7 @@ keyDownSubscription =
             Decode.field "key" Decode.string
     in
     Events.onKeyDown keyDecoder
-        |> Sub.map (Controls.onKeyDown >> ControlsMsg)
+        |> Sub.map Controls.onKeyDown
 
 
 

@@ -1,7 +1,6 @@
 module GameOfLife exposing
     ( Cell(..)
     , GameOfLife
-    , Msg(..)
     , Padding(..)
     , Size(..)
     , Theme(..)
@@ -18,6 +17,7 @@ import Html exposing (Attribute, Html, div)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onMouseDown, onMouseEnter, onMouseUp)
 import Matrix exposing (Coordinate, Dimensions, Matrix)
+import Msg exposing (Msg(..))
 import Pattern exposing (Pattern)
 
 
@@ -192,12 +192,6 @@ type Percentage
 
 type ClassName
     = ClassName String
-
-
-type Msg
-    = MouseDown Coordinate
-    | MouseOver Coordinate
-    | MouseUp
 
 
 view : GameOfLife -> Zoom -> Theme -> Html Msg

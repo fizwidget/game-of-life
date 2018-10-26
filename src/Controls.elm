@@ -1,6 +1,5 @@
 module Controls exposing
     ( ImportField(..)
-    , Msg(..)
     , Speed(..)
     , Status(..)
     , UserInput
@@ -11,6 +10,7 @@ module Controls exposing
 import Html exposing (Attribute, Html, button, div, text, textarea)
 import Html.Attributes exposing (autofocus, class, classList, placeholder, title, value)
 import Html.Events exposing (onClick, onInput)
+import Msg exposing (Msg(..))
 
 
 
@@ -35,20 +35,6 @@ type ImportField
 
 type alias UserInput =
     String
-
-
-type Msg
-    = StepBack
-    | StepForward
-    | ImportFieldOpen
-    | ImportFieldChange UserInput
-    | ImportFieldCancel
-    | RandomPatternRequest
-    | ChangeStatus
-    | ChangeSpeed
-    | ChangeZoom
-    | ChangeTheme
-    | NoOp
 
 
 

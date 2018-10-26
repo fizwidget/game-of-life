@@ -186,12 +186,12 @@ type Theme
     | Dark
 
 
-type Percentage
-    = Percentage Float
+type alias Percentage =
+    Float
 
 
-type ClassName
-    = ClassName String
+type alias ClassName =
+    String
 
 
 view : GameOfLife -> Zoom -> Theme -> Html Msg
@@ -236,24 +236,12 @@ viewCoordinate relativeSize theme coordinate cell =
 
 viewCell : Cell -> Coordinate -> Theme -> Html Msg
 viewCell cell coordinate theme =
-    let
-        (ClassName statusClass) =
-            cellStatusClass cell
-
-        (ClassName colorClass) =
-            cellColorClass cell coordinate theme
-    in
     div
         [ class "cell"
-        , class statusClass
-        , class colorClass
+        , class (cellStatusClass cell)
+        , class (cellColorClass cell coordinate theme)
         ]
         []
-
-
-percentageStyle : Percentage -> String
-percentageStyle (Percentage percentage) =
-    String.fromFloat percentage ++ "%"
 
 
 calculateCoordinateSize : Cells -> Percentage
@@ -261,30 +249,29 @@ calculateCoordinateSize cells =
     Matrix.width cells
         |> toFloat
         |> (\width -> 100 / width)
-        |> Percentage
 
 
 calculateZoomPercentage : Zoom -> Percentage
 calculateZoomPercentage zoom =
     case zoom of
         Far ->
-            Percentage 100
+            100
 
         Normal ->
-            Percentage 150
+            150
 
         Close ->
-            Percentage 200
+            200
 
 
 cellStatusClass : Cell -> ClassName
 cellStatusClass cell =
     case cell of
         Alive ->
-            ClassName "alive"
+            "alive"
 
         Dead ->
-            ClassName "dead"
+            "dead"
 
 
 cellColorClass : Cell -> Coordinate -> Theme -> ClassName
@@ -293,21 +280,26 @@ cellColorClass cell { x, y } theme =
         Dead ->
             case theme of
                 Light ->
-                    ClassName "light-grey"
+                    "light-grey"
 
                 Dark ->
-                    ClassName "dark-grey"
+                    "dark-grey"
 
         Alive ->
             case ( modBy 2 x == 0, modBy 2 y == 0 ) of
                 ( True, True ) ->
-                    ClassName "orange"
+                    "orange"
 
                 ( True, False ) ->
-                    ClassName "green"
+                    "green"
 
                 ( False, True ) ->
-                    ClassName "blue"
+                    "blue"
 
                 ( False, False ) ->
-                    ClassName "purple"
+                    "purple"
+
+
+percentageStyle : Percentage -> String
+percentageStyle percentage =
+    String.fromFloat percentage ++ "%"

@@ -285,24 +285,14 @@ nextStatus status =
 
 
 document : Model -> Document Msg
-document model =
+document { game, zoom, theme, status, importField } =
     { title = "Game of Life"
     , body =
-        [ bodyStyles model.theme
-        , viewGame model
-        , viewControls model
+        [ bodyStyles theme
+        , GameOfLife.view (History.now game) zoom theme
+        , Controls.view status importField
         ]
     }
-
-
-viewGame : Model -> Html Msg
-viewGame { game, zoom, theme } =
-    GameOfLife.view (History.now game) zoom theme
-
-
-viewControls : Model -> Html Msg
-viewControls { status, importField } =
-    Controls.view status importField
 
 
 bodyStyles : Theme -> Html msg

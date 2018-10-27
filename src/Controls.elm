@@ -1,6 +1,5 @@
 module Controls exposing
     ( ImportField(..)
-    , Speed(..)
     , Status(..)
     , UserInput
     , onKeyDown
@@ -20,12 +19,6 @@ import Msg exposing (Msg(..))
 type Status
     = Paused
     | Playing
-
-
-type Speed
-    = Slow
-    | Medium
-    | Fast
 
 
 type ImportField

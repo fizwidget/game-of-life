@@ -13,7 +13,7 @@ module Main exposing (main)
 
 import Browser exposing (Document)
 import Browser.Events as Events
-import Controls exposing (ImportField(..), Speed(..), Status(..), UserInput)
+import Controls exposing (ImportField(..), Status(..), UserInput)
 import GameOfLife exposing (GameOfLife, Padding(..), Size(..), Zoom(..))
 import History exposing (History)
 import Html exposing (Html, div, node, text)
@@ -29,14 +29,20 @@ import Time
 -- MODEL
 
 
-type Theme
-    = Light
-    | Dark
+type Speed
+    = Slow
+    | Medium
+    | Fast
 
 
 type Mouse
     = Up
     | Down
+
+
+type Theme
+    = Light
+    | Dark
 
 
 type alias Model =

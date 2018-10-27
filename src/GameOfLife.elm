@@ -3,7 +3,6 @@ module GameOfLife exposing
     , GameOfLife
     , Padding(..)
     , Size(..)
-    , Theme(..)
     , Zoom(..)
     , begin
     , beginWithPattern
@@ -181,11 +180,6 @@ type Zoom
     | Close
 
 
-type Theme
-    = Light
-    | Dark
-
-
 type alias Percentage =
     Float
 
@@ -194,15 +188,15 @@ type alias ClassName =
     String
 
 
-view : GameOfLife -> Zoom -> Theme -> Html Msg
-view game zoom theme =
+view : GameOfLife -> Zoom -> Html Msg
+view game zoom =
     div
         [ class "square-container" ]
-        [ viewGame game zoom theme ]
+        [ viewGame game zoom ]
 
 
-viewGame : GameOfLife -> Zoom -> Theme -> Html Msg
-viewGame (GameOfLife cells) zoom theme =
+viewGame : GameOfLife -> Zoom -> Html Msg
+viewGame (GameOfLife cells) zoom =
     let
         zoomPercentage =
             calculateZoomPercentage zoom
@@ -216,13 +210,13 @@ viewGame (GameOfLife cells) zoom theme =
         , style "height" (percentageStyle zoomPercentage)
         ]
         (cells
-            |> Matrix.coordinateMap (viewCoordinate coordinateSize theme)
+            |> Matrix.coordinateMap (viewCoordinate coordinateSize)
             |> Matrix.toList
         )
 
 
-viewCoordinate : Percentage -> Theme -> Coordinate -> Cell -> Html Msg
-viewCoordinate relativeSize theme coordinate cell =
+viewCoordinate : Percentage -> Coordinate -> Cell -> Html Msg
+viewCoordinate relativeSize coordinate cell =
     div
         [ class "coordinate"
         , style "width" (percentageStyle relativeSize)
@@ -231,17 +225,40 @@ viewCoordinate relativeSize theme coordinate cell =
         , onMouseUp MouseUp
         , onMouseEnter (MouseOver coordinate)
         ]
-        [ viewCell cell coordinate theme ]
+        [ viewCell cell coordinate ]
 
 
-viewCell : Cell -> Coordinate -> Theme -> Html Msg
-viewCell cell coordinate theme =
+viewCell : Cell -> Coordinate -> Html Msg
+viewCell cell coordinate =
     div
-        [ class "cell"
-        , class (cellStatusClass cell)
-        , class (cellColorClass cell coordinate theme)
-        ]
+        [ class (cellClasses cell coordinate) ]
         []
+
+
+cellClasses : Cell -> Coordinate -> ClassName
+cellClasses cell coordinate =
+    case cell of
+        Dead ->
+            "cell dead"
+
+        Alive ->
+            "cell alive " ++ cellColorClass coordinate
+
+
+cellColorClass : Coordinate -> ClassName
+cellColorClass { x, y } =
+    case ( modBy 2 x == 0, modBy 2 y == 0 ) of
+        ( True, True ) ->
+            "orange"
+
+        ( True, False ) ->
+            "green"
+
+        ( False, True ) ->
+            "blue"
+
+        ( False, False ) ->
+            "purple"
 
 
 calculateCoordinateSize : Cells -> Percentage
@@ -262,42 +279,6 @@ calculateZoomPercentage zoom =
 
         Close ->
             200
-
-
-cellStatusClass : Cell -> ClassName
-cellStatusClass cell =
-    case cell of
-        Alive ->
-            "alive"
-
-        Dead ->
-            "dead"
-
-
-cellColorClass : Cell -> Coordinate -> Theme -> ClassName
-cellColorClass cell { x, y } theme =
-    case cell of
-        Dead ->
-            case theme of
-                Light ->
-                    "light-grey"
-
-                Dark ->
-                    "dark-grey"
-
-        Alive ->
-            case ( modBy 2 x == 0, modBy 2 y == 0 ) of
-                ( True, True ) ->
-                    "orange"
-
-                ( True, False ) ->
-                    "green"
-
-                ( False, True ) ->
-                    "blue"
-
-                ( False, False ) ->
-                    "purple"
 
 
 percentageStyle : Percentage -> String

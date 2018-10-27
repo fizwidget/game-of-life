@@ -46,6 +46,14 @@ body {
     height: 40%;
 }
 
+.light-theme .cell.dead {
+    background-color: rgb(244, 245, 247);
+}
+
+.dark-theme .cell.dead {
+    background-color: rgba(30, 30, 30, 0.77);
+}
+
 
 .cell.orange {
     background-color: rgba(255, 171, 0, 0.8);
@@ -61,14 +69,6 @@ body {
 
 .cell.purple {
     background-color: rgba(101, 84, 192, 0.8);
-}
-
-.cell.light-grey {
-    background-color: rgb(244, 245, 247);
-}
-
-.cell.dark-grey {
-    background-color: rgba(30, 30, 30, 0.77);
 }
 
 .button {

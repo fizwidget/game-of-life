@@ -14,7 +14,7 @@ module Main exposing (main)
 import Browser exposing (Document)
 import Browser.Events as Events
 import Controls exposing (ImportField(..), Speed(..), Status(..), UserInput)
-import GameOfLife exposing (GameOfLife, Padding(..), Size(..), Theme(..), Zoom(..))
+import GameOfLife exposing (GameOfLife, Padding(..), Size(..), Zoom(..))
 import History exposing (History)
 import Html exposing (Html, div, node, text)
 import Html.Attributes exposing (class, style)
@@ -27,6 +27,11 @@ import Time
 
 
 -- MODEL
+
+
+type Theme
+    = Light
+    | Dark
 
 
 type Mouse
@@ -288,17 +293,33 @@ document : Model -> Document Msg
 document { game, zoom, theme, status, importField } =
     { title = "Game of Life"
     , body =
-        [ bodyStyles theme
-        , GameOfLife.view (History.now game) zoom theme
-        , Controls.view status importField
+        [ backgroundColor theme
+        , themeProvider theme
+            [ GameOfLife.view (History.now game) zoom
+            , Controls.view status importField
+            ]
         ]
     }
 
 
-bodyStyles : Theme -> Html msg
-bodyStyles theme =
+themeProvider : Theme -> List (Html Msg) -> Html Msg
+themeProvider theme children =
     let
-        backgroundColor =
+        themeClass =
+            case theme of
+                Light ->
+                    "light-theme"
+
+                Dark ->
+                    "dark-theme"
+    in
+    div [ class themeClass ] children
+
+
+backgroundColor : Theme -> Html msg
+backgroundColor theme =
+    let
+        color =
             case theme of
                 Light ->
                     "white"
@@ -307,7 +328,7 @@ bodyStyles theme =
                     "rgb(15, 15, 15)"
 
         backgroundColorStyle =
-            "body { background-color: " ++ backgroundColor ++ "; }"
+            "body { background-color: " ++ color ++ "; }"
     in
     node "style" [] [ text backgroundColorStyle ]
 

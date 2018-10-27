@@ -127,7 +127,7 @@ update msg model =
 
         RandomPatternRequest ->
             ( model
-            , requestRandomPattern defaultGameSize
+            , requestRandomPattern (GameOfLife.size (History.now model.game))
             )
 
         RandomPatternResponse randomPattern ->
@@ -169,6 +169,11 @@ update msg model =
 
         ChangeZoom ->
             ( { model | zoom = nextZoom model.zoom }
+            , Cmd.none
+            )
+
+        ChangeSize ->
+            ( { model | game = History.record nextSize model.game }
             , Cmd.none
             )
 
@@ -269,6 +274,22 @@ nextZoom zoom =
 
         Close ->
             Far
+
+
+nextSize : GameOfLife -> GameOfLife
+nextSize game =
+    let
+        (Size currentSize) =
+            GameOfLife.size game
+
+        updatedSize =
+            if currentSize >= 50 then
+                defaultGameSize
+
+            else
+                Size (currentSize * 2)
+    in
+    GameOfLife.begin updatedSize
 
 
 nextTheme : Theme -> Theme

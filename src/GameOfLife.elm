@@ -7,6 +7,7 @@ module GameOfLife exposing
     , begin
     , beginWithPattern
     , isFinished
+    , size
     , step
     , toggleCell
     , view
@@ -51,11 +52,11 @@ type Padding
 
 
 begin : Size -> GameOfLife
-begin (Size size) =
+begin (Size gameSize) =
     let
         dimensions =
-            { width = size
-            , height = size
+            { width = gameSize
+            , height = gameSize
             }
     in
     GameOfLife (Matrix.create dimensions Dead)
@@ -64,20 +65,20 @@ begin (Size size) =
 beginWithPattern : Size -> Padding -> Pattern -> GameOfLife
 beginWithPattern minimumSize padding pattern =
     let
-        (Size size) =
+        (Size actualSize) =
             calculateSize minimumSize padding pattern
 
         center =
-            { x = size // 2
-            , y = size // 2
+            { x = actualSize // 2
+            , y = actualSize // 2
             }
 
         centeredPattern =
             Pattern.centerAt center pattern
 
         dimensions =
-            { width = size
-            , height = size
+            { width = actualSize
+            , height = actualSize
             }
 
         deadCells =
@@ -114,6 +115,12 @@ bringPatternToLife cells pattern =
             Pattern.toCoordinates pattern
     in
     List.foldl makeAlive cells coordinates
+
+
+size : GameOfLife -> Size
+size (GameOfLife cells) =
+    max (Matrix.width cells) (Matrix.height cells)
+        |> Size
 
 
 

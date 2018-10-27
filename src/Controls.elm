@@ -43,6 +43,7 @@ view status importField =
             , viewForwardButton
             , viewSpeedButton
             , viewZoomButton
+            , viewResizeButton
             , viewRandomizeButton
             , viewThemeButton
             , viewImportButton importField
@@ -107,6 +108,16 @@ viewZoomButton =
         { label = "🔬"
         , tooltip = "Zoom (Z)"
         , onClick = ChangeZoom
+        , attributes = []
+        }
+
+
+viewResizeButton : Html Msg
+viewResizeButton =
+    viewButton
+        { label = "📐"
+        , tooltip = "Resize (V)"
+        , onClick = ChangeSize
         , attributes = []
         }
 
@@ -216,6 +227,9 @@ onKeyDown key =
 
         "z" ->
             ChangeZoom
+
+        "v" ->
+            ChangeSize
 
         "t" ->
             ChangeTheme

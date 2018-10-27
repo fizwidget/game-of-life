@@ -23,5 +23,6 @@ type Msg
     | ChangeStatus
     | ChangeSpeed
     | ChangeZoom
+    | ChangeSize
     | ChangeTheme
     | NoOp

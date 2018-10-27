@@ -7,7 +7,7 @@ git checkout gh-pages
 echo
 
 echo "- Merging master into deployment branch..."
-git merge master -m "Merging master"
+git merge master -m "Merging master" --strategy-option theirs
 echo
 
 echo "- Installing dependencies..."

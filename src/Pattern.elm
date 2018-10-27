@@ -11,7 +11,6 @@ module Pattern exposing
 
 import Maybe.Extra as Maybe
 import Random exposing (Generator)
-import Result
 
 
 type Pattern

@@ -62,50 +62,100 @@ viewStatusButton : Status -> Html Msg
 viewStatusButton status =
     case status of
         Paused ->
-            viewButton "Start" "Start simulation (P)" ChangeStatus [ class "play-button" ]
+            viewButton
+                { label = "Start"
+                , tooltip = "Start simulation (P)"
+                , onClick = ChangeStatus
+                , attributes = [ class "play-button" ]
+                }
 
         Playing ->
-            viewButton "Stop" "Stop simulation (P)" ChangeStatus []
+            viewButton
+                { label = "Stop"
+                , tooltip = "Stop simulation (P)"
+                , onClick = ChangeStatus
+                , attributes = []
+                }
 
 
 viewBackButton : Html Msg
 viewBackButton =
-    viewButton "⇦" "Back (←)" StepBack []
+    viewButton
+        { label = "⇦"
+        , tooltip = "Back (←)"
+        , onClick = StepBack
+        , attributes = []
+        }
 
 
 viewForwardButton : Html Msg
 viewForwardButton =
-    viewButton "⇨" "Forward (→)" StepForward []
+    viewButton
+        { label = "⇨"
+        , tooltip = "Forward (→)"
+        , onClick = StepForward
+        , attributes = []
+        }
 
 
 viewSpeedButton : Html Msg
 viewSpeedButton =
-    viewButton "🏃\u{200D}♀️" "Speed (S)" ChangeSpeed []
+    viewButton
+        { label = "🏃\u{200D}♀️"
+        , tooltip = "Speed (S)"
+        , onClick = ChangeSpeed
+        , attributes = []
+        }
 
 
 viewZoomButton : Html Msg
 viewZoomButton =
-    viewButton "🔬" "Zoom (Z)" ChangeZoom []
+    viewButton
+        { label = "🔬"
+        , tooltip = "Zoom (Z)"
+        , onClick = ChangeZoom
+        , attributes = []
+        }
 
 
 viewRandomizeButton : Html Msg
 viewRandomizeButton =
-    viewButton "🎲" "Randomize (R)" RandomPatternRequest []
+    viewButton
+        { label = "🎲"
+        , tooltip = "Randomize (R)"
+        , onClick = RandomPatternRequest
+        , attributes = []
+        }
 
 
 viewThemeButton : Html Msg
 viewThemeButton =
-    viewButton "🎨" "Theme (T)" ChangeTheme []
+    viewButton
+        { label = "🎨"
+        , tooltip = "Theme (T)"
+        , onClick = ChangeTheme
+        , attributes = []
+        }
 
 
 viewImportButton : ImportField -> Html Msg
 viewImportButton importField =
     case importField of
         Closed ->
-            viewButton "Import" "Import pattern" ImportFieldOpen []
+            viewButton
+                { label = "Import"
+                , tooltip = "Import pattern"
+                , onClick = ImportFieldOpen
+                , attributes = []
+                }
 
         Open _ ->
-            viewButton "Cancel" "Cancel import" ImportFieldCancel []
+            viewButton
+                { label = "Cancel"
+                , tooltip = "Cancel import"
+                , onClick = ImportFieldCancel
+                , attributes = []
+                }
 
 
 viewImportField : ImportField -> Html Msg
@@ -128,11 +178,21 @@ viewImportField importField =
                 []
 
 
-viewButton : String -> String -> Msg -> List (Attribute Msg) -> Html Msg
-viewButton description tooltip clickMsg extraAttributes =
-    button
-        ([ class "button", title tooltip, onClick clickMsg ] ++ extraAttributes)
-        [ text description ]
+type alias ButtonConfig =
+    { label : String
+    , tooltip : String
+    , onClick : Msg
+    , attributes : List (Attribute Msg)
+    }
+
+
+viewButton : ButtonConfig -> Html Msg
+viewButton { label, tooltip, onClick, attributes } =
+    let
+        baseAttributes =
+            [ class "button", title tooltip, Html.Events.onClick onClick ]
+    in
+    button (baseAttributes ++ attributes) [ text label ]
 
 
 

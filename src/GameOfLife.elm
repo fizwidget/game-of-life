@@ -7,6 +7,7 @@ module GameOfLife exposing
     , begin
     , beginWithPattern
     , isFinished
+    , resize
     , size
     , step
     , toggleCell
@@ -121,6 +122,20 @@ size : GameOfLife -> Size
 size (GameOfLife cells) =
     max (Matrix.width cells) (Matrix.height cells)
         |> Size
+
+
+resize : Size -> GameOfLife -> GameOfLife
+resize (Size newSize) (GameOfLife cells) =
+    let
+        newDimensions =
+            { width = newSize
+            , height = newSize
+            }
+
+        resizedMatrix =
+            Matrix.resize newDimensions Dead cells
+    in
+    GameOfLife resizedMatrix
 
 
 

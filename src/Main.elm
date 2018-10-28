@@ -289,7 +289,7 @@ nextSize game =
             else
                 Size (currentSize * 2)
     in
-    GameOfLife.begin updatedSize
+    GameOfLife.resize updatedSize game
 
 
 nextTheme : Theme -> Theme

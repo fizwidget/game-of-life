@@ -57,7 +57,7 @@ viewStatusButton status =
     case status of
         Paused ->
             viewButton
-                { label = "Start"
+                { text = "Start"
                 , tooltip = "Start simulation (P)"
                 , onClick = ChangeStatus
                 , attributes = [ class "play-button" ]
@@ -65,7 +65,7 @@ viewStatusButton status =
 
         Playing ->
             viewButton
-                { label = "Stop"
+                { text = "Stop"
                 , tooltip = "Stop simulation (P)"
                 , onClick = ChangeStatus
                 , attributes = []
@@ -75,7 +75,7 @@ viewStatusButton status =
 viewBackButton : Html Msg
 viewBackButton =
     viewButton
-        { label = "⇦"
+        { text = "⇦"
         , tooltip = "Back (←)"
         , onClick = StepBack
         , attributes = []
@@ -85,7 +85,7 @@ viewBackButton =
 viewForwardButton : Html Msg
 viewForwardButton =
     viewButton
-        { label = "⇨"
+        { text = "⇨"
         , tooltip = "Forward (→)"
         , onClick = StepForward
         , attributes = []
@@ -95,7 +95,7 @@ viewForwardButton =
 viewSpeedButton : Html Msg
 viewSpeedButton =
     viewButton
-        { label = "🏃\u{200D}♀️"
+        { text = "🏃\u{200D}♀️"
         , tooltip = "Speed (S)"
         , onClick = ChangeSpeed
         , attributes = []
@@ -105,7 +105,7 @@ viewSpeedButton =
 viewZoomButton : Html Msg
 viewZoomButton =
     viewButton
-        { label = "🔬"
+        { text = "🔬"
         , tooltip = "Zoom (Z)"
         , onClick = ChangeZoom
         , attributes = []
@@ -115,7 +115,7 @@ viewZoomButton =
 viewResizeButton : Html Msg
 viewResizeButton =
     viewButton
-        { label = "📐"
+        { text = "📐"
         , tooltip = "Resize (V)"
         , onClick = ChangeSize
         , attributes = []
@@ -125,7 +125,7 @@ viewResizeButton =
 viewRandomizeButton : Html Msg
 viewRandomizeButton =
     viewButton
-        { label = "🎲"
+        { text = "🎲"
         , tooltip = "Randomize (R)"
         , onClick = RandomPatternRequest
         , attributes = []
@@ -135,7 +135,7 @@ viewRandomizeButton =
 viewThemeButton : Html Msg
 viewThemeButton =
     viewButton
-        { label = "🎨"
+        { text = "🎨"
         , tooltip = "Theme (T)"
         , onClick = ChangeTheme
         , attributes = []
@@ -147,7 +147,7 @@ viewImportButton importField =
     case importField of
         Closed ->
             viewButton
-                { label = "Import"
+                { text = "Import"
                 , tooltip = "Import pattern"
                 , onClick = ImportFieldOpen
                 , attributes = []
@@ -155,7 +155,7 @@ viewImportButton importField =
 
         Open _ ->
             viewButton
-                { label = "Cancel"
+                { text = "Cancel"
                 , tooltip = "Cancel import"
                 , onClick = ImportFieldCancel
                 , attributes = []
@@ -183,7 +183,7 @@ viewImportField importField =
 
 
 type alias ButtonConfig =
-    { label : String
+    { text : String
     , tooltip : String
     , onClick : Msg
     , attributes : List (Attribute Msg)
@@ -191,12 +191,12 @@ type alias ButtonConfig =
 
 
 viewButton : ButtonConfig -> Html Msg
-viewButton { label, tooltip, onClick, attributes } =
+viewButton { text, tooltip, onClick, attributes } =
     let
         baseAttributes =
             [ class "button", title tooltip, Html.Events.onClick onClick ]
     in
-    button (baseAttributes ++ attributes) [ text label ]
+    button (baseAttributes ++ attributes) [ Html.text text ]
 
 
 

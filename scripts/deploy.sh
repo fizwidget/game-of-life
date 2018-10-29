@@ -18,6 +18,10 @@ echo "- Building..."
 yarn build --optimize
 echo
 
+echo "- Minifying..."
+yarn elm-minify ./build/elm.js --replace
+echo
+
 echo "- Comitting new artefacts..."
 git add build/elm.js
 git commit -m "Updating build artefacts"

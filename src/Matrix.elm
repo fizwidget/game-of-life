@@ -9,7 +9,6 @@ module Matrix exposing
     , height
     , map
     , neighbours
-    , resize
     , set
     , toList
     , update
@@ -43,27 +42,6 @@ create : Dimensions -> a -> Matrix a
 create dimensions defaultValue =
     Array.repeat (dimensions.width * dimensions.height) defaultValue
         |> Matrix dimensions
-
-
-resize : Dimensions -> a -> Matrix a -> Matrix a
-resize newDimensions defaultValue matrix =
-    let
-        coordinateValuePairs : List ( Coordinate, a )
-        coordinateValuePairs =
-            coordinateMap Tuple.pair matrix
-                |> toList
-
-        blankArray =
-            Array.repeat (newDimensions.width * newDimensions.height) defaultValue
-
-        newArray : Array a
-        newArray =
-            List.foldl
-                (\( coord, val ) arr -> Array.set (toIndex newDimensions coord) val arr)
-                blankArray
-                coordinateValuePairs
-    in
-    Matrix newDimensions newArray
 
 
 width : Matrix a -> Int

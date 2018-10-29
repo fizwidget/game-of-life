@@ -118,26 +118,6 @@ bringPatternToLife cells pattern =
     List.foldl makeAlive cells coordinates
 
 
-size : GameOfLife -> Size
-size (GameOfLife cells) =
-    max (Matrix.width cells) (Matrix.height cells)
-        |> Size
-
-
-resize : Size -> GameOfLife -> GameOfLife
-resize (Size newSize) (GameOfLife cells) =
-    let
-        newDimensions =
-            { width = newSize
-            , height = newSize
-            }
-
-        resizedMatrix =
-            Matrix.resize newDimensions Dead cells
-    in
-    GameOfLife resizedMatrix
-
-
 
 -- OPERATIONS
 
@@ -190,6 +170,26 @@ toggleCellHelper cell =
 isFinished : GameOfLife -> Bool
 isFinished (GameOfLife cells) =
     Matrix.all ((==) Dead) cells
+
+
+size : GameOfLife -> Size
+size (GameOfLife cells) =
+    max (Matrix.width cells) (Matrix.height cells)
+        |> Size
+
+
+resize : Size -> GameOfLife -> GameOfLife
+resize newSize game =
+    beginWithPattern newSize WithPadding (toPattern game)
+
+
+toPattern : GameOfLife -> Pattern
+toPattern (GameOfLife cells) =
+    Matrix.coordinateMap Tuple.pair cells
+        |> Matrix.toList
+        |> List.filter (Tuple.second >> (==) Alive)
+        |> List.map Tuple.first
+        |> Pattern.fromCoordinates
 
 
 

@@ -1,6 +1,7 @@
 module Pattern exposing
     ( Pattern
     , centerAt
+    , fromCoordinates
     , generator
     , height
     , parseLife106Format
@@ -21,6 +22,11 @@ type alias Coordinate =
     { x : Int
     , y : Int
     }
+
+
+fromCoordinates : List Coordinate -> Pattern
+fromCoordinates =
+    Pattern
 
 
 toCoordinates : Pattern -> List Coordinate

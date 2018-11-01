@@ -75,7 +75,7 @@ viewStatusButton status =
 viewBackButton : Html Msg
 viewBackButton =
     viewButton
-        { text = "⇦"
+        { text = "Back ⇦"
         , tooltip = "Back (←)"
         , onClick = StepBack
         , attributes = []
@@ -85,7 +85,7 @@ viewBackButton =
 viewForwardButton : Html Msg
 viewForwardButton =
     viewButton
-        { text = "⇨"
+        { text = "Forward ⇨"
         , tooltip = "Forward (→)"
         , onClick = StepForward
         , attributes = []

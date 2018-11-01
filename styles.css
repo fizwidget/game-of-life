@@ -72,27 +72,20 @@ body {
 }
 
 .button {
+    flex: 1;
     height: 40px;
     padding: 0 16px;
     margin: 0;
     border: none;
     color: white;
-    background-color: rgba(94, 98, 110, 0.685);
     font-size: 20px;
+    background-color: rgba(94, 98, 110, 0.685);
     transition: background-color 300ms ease-in-out,
                 visibility 300ms ease-in-out;
 }
 
 .button:active {
     filter:brightness(65%);
-}
-
-.button:first-child {
-    border-top-left-radius: 8px;
-}
-
-.button:last-child {
-    border-top-right-radius: 8px;
 }
 
 .play-button {
@@ -103,8 +96,8 @@ body {
     position: fixed;
     bottom: 0;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-wrap: wrap-reverse;
+    justify-content: space-between;
     width: 100%;
     max-height: 240px;
 }
@@ -112,7 +105,7 @@ body {
 
 .import-field {
     position: fixed;
-    bottom: 0;
+    bottom: 40px;
     right: 0;
     border-radius: 4px;
     border-width: 2px;

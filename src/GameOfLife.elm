@@ -232,13 +232,13 @@ viewGame (GameOfLife cells) zoom =
         , style "height" (percentageStyle zoomPercentage)
         ]
         (cells
-            |> Matrix.coordinateMap (viewCell coordinateSize)
+            |> Matrix.coordinateMap (viewCoordinate coordinateSize)
             |> Matrix.toList
         )
 
 
-viewCell : Percentage -> Coordinate -> Cell -> Html Msg
-viewCell relativeSize coordinate cell =
+viewCoordinate : Percentage -> Coordinate -> Cell -> Html Msg
+viewCoordinate relativeSize coordinate cell =
     div
         [ class "coordinate"
         , style "width" (percentageStyle relativeSize)
@@ -247,10 +247,14 @@ viewCell relativeSize coordinate cell =
         , onMouseUp MouseUp
         , onMouseEnter (MouseOver coordinate)
         ]
-        [ div
-            [ class (cellClasses cell coordinate) ]
-            []
-        ]
+        [ viewCell coordinate cell ]
+
+
+viewCell : Coordinate -> Cell -> Html Msg
+viewCell coordinate cell =
+    div
+        [ class (cellClasses cell coordinate) ]
+        []
 
 
 cellClasses : Cell -> Coordinate -> ClassName

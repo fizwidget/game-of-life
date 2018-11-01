@@ -75,7 +75,7 @@ viewStatusButton status =
 viewBackButton : Html Msg
 viewBackButton =
     viewButton
-        { text = "⇦"
+        { text = "Back ⇦"
         , tooltip = "Back (←)"
         , onClick = StepBack
         , attributes = []
@@ -85,7 +85,7 @@ viewBackButton =
 viewForwardButton : Html Msg
 viewForwardButton =
     viewButton
-        { text = "⇨"
+        { text = "Forward ⇨"
         , tooltip = "Forward (→)"
         , onClick = StepForward
         , attributes = []
@@ -95,7 +95,7 @@ viewForwardButton =
 viewSpeedButton : Html Msg
 viewSpeedButton =
     viewButton
-        { text = "🏃\u{200D}♀️"
+        { text = "Speed 🏃\u{200D}♀️"
         , tooltip = "Speed (S)"
         , onClick = ChangeSpeed
         , attributes = []
@@ -105,7 +105,7 @@ viewSpeedButton =
 viewZoomButton : Html Msg
 viewZoomButton =
     viewButton
-        { text = "🔬"
+        { text = "Zoom 🔬"
         , tooltip = "Zoom (Z)"
         , onClick = ChangeZoom
         , attributes = []
@@ -115,7 +115,7 @@ viewZoomButton =
 viewResizeButton : Html Msg
 viewResizeButton =
     viewButton
-        { text = "📐"
+        { text = "Size 📐"
         , tooltip = "Resize (V)"
         , onClick = ChangeSize
         , attributes = []
@@ -125,7 +125,7 @@ viewResizeButton =
 viewRandomizeButton : Html Msg
 viewRandomizeButton =
     viewButton
-        { text = "🎲"
+        { text = "Randomize 🎲"
         , tooltip = "Randomize (R)"
         , onClick = RandomPatternRequest
         , attributes = []
@@ -135,7 +135,7 @@ viewRandomizeButton =
 viewThemeButton : Html Msg
 viewThemeButton =
     viewButton
-        { text = "🎨"
+        { text = "Theme 🎨"
         , tooltip = "Theme (T)"
         , onClick = ChangeTheme
         , attributes = []
@@ -147,7 +147,7 @@ viewImportButton importField =
     case importField of
         Closed ->
             viewButton
-                { text = "Import"
+                { text = "Import ⬇"
                 , tooltip = "Import pattern"
                 , onClick = ImportFieldOpen
                 , attributes = []

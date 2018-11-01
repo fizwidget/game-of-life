@@ -320,8 +320,8 @@ document : Model -> Document Msg
 document { game, zoom, theme, status, importField } =
     { title = "Game of Life"
     , body =
-        [ backgroundColor theme
-        , themeProvider theme
+        [ bodyStyles theme
+        , viewWithTheme theme
             [ GameOfLife.view (History.now game) zoom
             , Controls.view status importField
             ]
@@ -329,8 +329,8 @@ document { game, zoom, theme, status, importField } =
     }
 
 
-themeProvider : Theme -> List (Html Msg) -> Html Msg
-themeProvider theme children =
+viewWithTheme : Theme -> List (Html Msg) -> Html Msg
+viewWithTheme theme children =
     let
         themeClass =
             case theme of
@@ -343,8 +343,8 @@ themeProvider theme children =
     div [ class themeClass ] children
 
 
-backgroundColor : Theme -> Html msg
-backgroundColor theme =
+bodyStyles : Theme -> Html msg
+bodyStyles theme =
     let
         color =
             case theme of

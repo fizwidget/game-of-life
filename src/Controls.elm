@@ -57,16 +57,16 @@ viewStatusButton status =
     case status of
         Paused ->
             viewButton
-                { text = "Start"
-                , tooltip = "Start simulation (P)"
+                { text = "Play"
+                , tooltip = "Play simulation (P)"
                 , onClick = ChangeStatus
                 , attributes = [ class "play-button" ]
                 }
 
         Playing ->
             viewButton
-                { text = "Stop"
-                , tooltip = "Stop simulation (P)"
+                { text = "Pause"
+                , tooltip = "Pause simulation (P)"
                 , onClick = ChangeStatus
                 , attributes = []
                 }

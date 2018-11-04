@@ -23,7 +23,7 @@ yarn elm-minify ./build/elm.js --replace
 echo
 
 echo "- Comitting new artefacts..."
-git add build/elm.js
+git add -f build/elm.js
 git commit -m "Updating build artefacts"
 echo
 

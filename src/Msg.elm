@@ -1,7 +1,15 @@
-module Msg exposing (Msg(..))
+module Msg exposing (Msg(..), Speed(..))
 
 import Matrix exposing (Coordinate)
 import Pattern exposing (Pattern)
+
+
+type alias Milliseconds =
+    Int
+
+
+type Speed
+    = Interval Milliseconds
 
 
 type alias UserInput =
@@ -21,7 +29,9 @@ type Msg
     | ImportFieldChange UserInput
     | ImportFieldCancel
     | ChangeStatus
-    | ChangeSpeed
+    | OpenSpeedField
+    | CloseSpeedField
+    | ChangeSpeed Speed
     | ChangeZoom
     | ChangeSize
     | ChangeTheme

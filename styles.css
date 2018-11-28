@@ -108,6 +108,17 @@ body {
     max-height: 240px;
 }
 
+.control {
+    display: flex;
+    position: relative;
+}
+
+.flyout {
+    position: absolute;
+    top: -20px;
+    height: 20px;
+    background-color: white;
+}
 
 .import-field {
     position: fixed;

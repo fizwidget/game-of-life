@@ -6,10 +6,10 @@ module Controls exposing
     , view
     )
 
-import Html exposing (Attribute, Html, button, div, text, textarea)
-import Html.Attributes exposing (autofocus, class, classList, placeholder, title, value)
+import Html exposing (Attribute, Html, button, div, input, text, textarea)
+import Html.Attributes as Attributes exposing (autofocus, class, classList, placeholder, title, type_, value)
 import Html.Events exposing (onClick, onInput)
-import Msg exposing (Msg(..))
+import Msg exposing (Msg(..), Speed(..))
 
 
 
@@ -34,14 +34,14 @@ type alias UserInput =
 -- VIEW
 
 
-view : Status -> ImportField -> Html Msg
-view status importField =
+view : Status -> Speed -> Bool -> ImportField -> Html Msg
+view status speed isSpeedFieldOpen importField =
     div []
         [ div [ class "control-panel" ]
             [ viewStatusButton status
             , viewBackButton
             , viewForwardButton
-            , viewSpeedButton
+            , viewSpeedButton speed isSpeedFieldOpen
             , viewZoomButton
             , viewResizeButton
             , viewRandomizeButton
@@ -92,12 +92,16 @@ viewForwardButton =
         }
 
 
-viewSpeedButton : Html Msg
-viewSpeedButton =
-    viewButton
+viewSpeedButton : Speed -> Bool -> Html Msg
+viewSpeedButton interval isOpen =
+    viewControl
         { text = "Speed 🏃\u{200D}♀️"
         , tooltip = "Speed (S)"
-        , onClick = ChangeSpeed
+        , isOpen = isOpen
+        , value = interval
+        , onOpen = OpenSpeedField
+        , onClose = CloseSpeedField
+        , onChange = ChangeSpeed
         , attributes = []
         }
 
@@ -182,12 +186,83 @@ viewImportField importField =
                 []
 
 
+type alias ControlConfig =
+    { text : String
+    , tooltip : String
+    , value : Speed
+    , isOpen : Bool
+    , onOpen : Msg
+    , onClose : Msg
+    , onChange : Speed -> Msg
+    , attributes : List (Attribute Msg)
+    }
+
+
 type alias ButtonConfig =
     { text : String
     , tooltip : String
     , onClick : Msg
     , attributes : List (Attribute Msg)
     }
+
+
+viewControl : ControlConfig -> Html Msg
+viewControl { text, tooltip, value, isOpen, onOpen, onClose, onChange, attributes } =
+    let
+        (Interval interval) =
+            value
+    in
+    div [ class "control" ]
+        [ if isOpen then
+            viewFlyout interval (Interval >> ChangeSpeed)
+
+          else
+            Html.text ""
+        , viewButton
+            { text = text
+            , tooltip = tooltip
+            , onClick =
+                if isOpen then
+                    onClose
+
+                else
+                    onOpen
+            , attributes = attributes
+            }
+        ]
+
+
+type alias SliderConfig =
+    { value : Int
+    , min : Int
+    , max : Int
+    , onChange : Int -> Msg
+    }
+
+
+viewSlider : SliderConfig -> Html Msg
+viewSlider { value, min, max, onChange } =
+    input
+        [ type_ "range"
+        , Attributes.min (String.fromInt min)
+        , Attributes.max (String.fromInt max)
+        , Attributes.value (String.fromInt value)
+        , onInput (String.toInt >> Maybe.map onChange >> Maybe.withDefault NoOp)
+        ]
+        []
+
+
+viewFlyout : Int -> (Int -> Msg) -> Html Msg
+viewFlyout value onChange =
+    div
+        [ class "flyout" ]
+        [ viewSlider
+            { value = value
+            , min = 0
+            , max = 1000
+            , onChange = onChange
+            }
+        ]
 
 
 viewButton : ButtonConfig -> Html Msg
@@ -218,9 +293,6 @@ onKeyDown key =
 
         "p" ->
             ChangeStatus
-
-        "s" ->
-            ChangeSpeed
 
         "r" ->
             RandomPatternRequest

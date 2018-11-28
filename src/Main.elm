@@ -19,7 +19,7 @@ import History exposing (History)
 import Html exposing (Html, div, node, text)
 import Html.Attributes exposing (class, style)
 import Json.Decode as Decode exposing (Decoder)
-import Msg exposing (Msg(..))
+import Msg exposing (Msg(..), Speed(..))
 import Pattern exposing (Pattern)
 import Random
 import Time
@@ -27,12 +27,6 @@ import Time
 
 
 -- MODEL
-
-
-type Speed
-    = Slow
-    | Medium
-    | Fast
 
 
 type Mouse
@@ -53,6 +47,7 @@ type alias Model =
     , zoom : Zoom
     , theme : Theme
     , importField : ImportField
+    , isSpeedFieldOpen : Bool
     }
 
 
@@ -70,7 +65,8 @@ init =
     ( { game = GameOfLife.begin defaultGameSize |> History.begin
       , status = Paused
       , mouse = Up
-      , speed = Slow
+      , speed = Interval 1000
+      , isSpeedFieldOpen = False
       , zoom = Far
       , theme = Dark
       , importField = Closed
@@ -162,8 +158,18 @@ update msg model =
             , Cmd.none
             )
 
-        ChangeSpeed ->
-            ( { model | speed = nextSpeed model.speed }
+        OpenSpeedField ->
+            ( { model | isSpeedFieldOpen = True }
+            , Cmd.none
+            )
+
+        CloseSpeedField ->
+            ( { model | isSpeedFieldOpen = False }
+            , Cmd.none
+            )
+
+        ChangeSpeed speed ->
+            ( { model | speed = speed }
             , Cmd.none
             )
 
@@ -250,19 +256,6 @@ setGame model game =
     { model | game = game }
 
 
-nextSpeed : Speed -> Speed
-nextSpeed speed =
-    case speed of
-        Slow ->
-            Medium
-
-        Medium ->
-            Fast
-
-        Fast ->
-            Slow
-
-
 nextZoom : Zoom -> Zoom
 nextZoom zoom =
     case zoom of
@@ -317,13 +310,13 @@ nextStatus status =
 
 
 document : Model -> Document Msg
-document { game, zoom, theme, status, importField } =
+document { game, zoom, theme, status, speed, isSpeedFieldOpen, importField } =
     { title = "Game of Life"
     , body =
         [ bodyStyles theme
         , viewWithTheme theme
             [ GameOfLife.view (History.now game) zoom
-            , Controls.view status importField
+            , Controls.view status speed isSpeedFieldOpen importField
             ]
         ]
     }
@@ -387,16 +380,8 @@ type alias Milliseconds =
 
 
 tickInterval : Speed -> Milliseconds
-tickInterval speed =
-    case speed of
-        Slow ->
-            600
-
-        Medium ->
-            300
-
-        Fast ->
-            50
+tickInterval (Interval interval) =
+    Basics.toFloat interval
 
 
 keyDownSubscription : Sub Msg

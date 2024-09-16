@@ -1,4 +1,4 @@
-# The Game of Life
+# The Game of Life 🐣
 
 Conway's Game of Life, implemented using the [The Elm Architecture](https://guide.elm-lang.org/architecture/).
 

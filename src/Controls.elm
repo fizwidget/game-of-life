@@ -65,7 +65,7 @@ viewStatusButton status =
 
         Playing ->
             viewButton
-                { text = "Pause"
+                { text = "Pause!"
                 , tooltip = "Pause simulation (P)"
                 , onClick = ChangeStatus
                 , attributes = []
